@@ -65,7 +65,7 @@ This bot is essential if you have an itch.io game and want to keep your server m
 
 ### 📝 Note
 
-This bot is intended to be used only for one server due to json caching
+This bot code is (probably) intended to be used only for one server due to json caching
 
 Ensure your bot has appropriate permissions to read and send messages in the channels where you intend to set updates. For any issues or suggestions, please contact the bot developer.
 
@@ -134,7 +134,7 @@ Ce bot est essentiel si vous avez un jeu sur itch.io et que vous souhaitez tenir
 
 ### 📝 Remarque
 
-Ce bot est destiné à être utilisé uniquement pour un seul serveur en raison de la mise en cache JSON
+Ce bot code est (probablement) destiné à être utilisé uniquement pour un seul serveur en raison de la mise en cache JSON
 
 Assurez-vous que votre bot a les permissions appropriées pour lire et envoyer des messages dans les canaux où vous souhaitez définir les mises à jour. Pour tout problème ou suggestion, veuillez contacter le développeur du bot.
 
