@@ -64,11 +64,11 @@ class RssCommands(commands.Cog):
                     section = soup.find('section', {'class': 'object_text_widget_widget base_widget user_formatted post_body'})
                     if section:
                         content = "\n".join([line.strip() for line in section.get_text(separator='\n').splitlines() if line.strip()])
-                        await channel.send(f"**{title}**\n```\n{content}\n```\n{link}")
+                        await channel.send(f"**{title}**\n```\n{content}\n```\n`{link}`")  # Encapsulate link in backticks
                     else:
-                        await channel.send(f"**{title}**\nContenu non trouvé.\n{link}")
+                        await channel.send(f"**{title}**\nContenu non trouvé.\n`{link}`")  # Encapsulate link in backticks
                 else:
-                    await channel.send(f"**{title}**\nImpossible de récupérer la page liée.\n{link}")
+                    await channel.send(f"**{title}**\nImpossible de récupérer la page liée.\n`{link}`")  # Encapsulate link in backticks
 
                 # Update last_rss_entries for this channel
                 self.last_rss_entries[str(channel.id)] = link
