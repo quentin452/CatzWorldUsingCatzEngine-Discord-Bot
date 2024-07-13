@@ -5,6 +5,7 @@ import requests
 import asyncio
 from bs4 import BeautifulSoup
 import json
+from Constants import ConstantsClass
 
 from config import load_config
 
@@ -45,14 +46,13 @@ class RssCommands(commands.Cog):
 
     async def last_rss_loop(self, channel):
         # Obtenez le rôle que vous voulez mentionner
-        role = discord.utils.get(channel.guild.roles, name="CatWorld game ping updates")
+        role = discord.utils.get(channel.guild.roles, name=ConstantsClass.ROLE_NAME)
 
         if role is None:
-            await channel.send("Le rôle CatWorld game ping updates n'existe pas dans ce serveur.")
+            await channel.send("Le rôle " + ConstantsClass.ROLE_NAME + "n'existe pas dans ce serveur.")
             return
 
-        rss_url = 'https://iamacatfrdev.itch.io/catzworld/devlog.rss'
-        feed = feedparser.parse(rss_url)
+        feed = feedparser.parse(ConstantsClass.RSS_URL)
         if 'entries' in feed:
             new_entries = [entry for entry in feed.entries if entry.get('title', 'Pas de titre') not in self.sent_rss_titles]
 
@@ -91,8 +91,7 @@ class RssCommands(commands.Cog):
     @commands.command()
     @commands.has_permissions(administrator=True)
     async def get_all_rss(self, ctx):
-        rss_url = 'https://iamacatfrdev.itch.io/catzworld/devlog.rss'
-        feed = feedparser.parse(rss_url)
+        feed = feedparser.parse(ConstantsClass.RSS_URL)
         if 'entries' in feed:
             for entry in feed.entries:
                 title = entry.get('title', 'Pas de titre')
@@ -113,8 +112,7 @@ class RssCommands(commands.Cog):
 
     @commands.command()
     async def get_last_rss(self, ctx):
-        rss_url = 'https://iamacatfrdev.itch.io/catzworld/devlog.rss'
-        feed = feedparser.parse(rss_url)
+        feed = feedparser.parse(ConstantsClass.RSS_URL)
         if 'entries' in feed:
             # Récupérer uniquement le dernier article RSS
             last_entry = feed.entries[0]
@@ -134,8 +132,7 @@ class RssCommands(commands.Cog):
 
     @commands.command()
     async def get_last_rss(self, ctx):
-        rss_url = 'https://iamacatfrdev.itch.io/catzworld/devlog.rss'
-        feed = feedparser.parse(rss_url)
+        feed = feedparser.parse(ConstantsClass.RSS_URL)
         if 'entries' in feed:
             # Récupérer uniquement le dernier article RSS
             last_entry = feed.entries[0]

@@ -13,7 +13,7 @@ api_key = config['api_key']
 game_id = config['game_id']
 
 intents = discord.Intents.all()
-bot = commands.Bot(command_prefix='!', intents=intents)
+bot = commands.Bot(command_prefix='/', intents=intents)
 
 def install_modules(modules):
     for module in modules:

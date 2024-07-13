@@ -3,6 +3,7 @@ from discord.ext import commands
 import requests
 import json
 import asyncio
+from Constants import ConstantsClass
 from config import load_config
 
 config = load_config()
@@ -49,10 +50,10 @@ class DownloadCommands(commands.Cog):
 
     async def last_download_loop(self, channel):
         # Obtenez le rôle que vous voulez mentionner
-        role = discord.utils.get(channel.guild.roles, name="CatWorld game ping updates")
+        role = discord.utils.get(channel.guild.roles, name=ConstantsClass.ROLE_NAME)
         
         if role is None:
-            await channel.send("Le rôle CatWorld game ping updates n'existe pas dans ce serveur.")
+            await channel.send("Le rôle " + ConstantsClass.ROLE_NAME + "n'existe pas dans ce serveur.")
             return
 
         uploads = await self.fetch_uploads()

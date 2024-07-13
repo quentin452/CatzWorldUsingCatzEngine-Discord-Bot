@@ -32,35 +32,35 @@ This bot is essential if you have an itch.io game and want to keep your server m
 
 #### Itch.io Devlogs
 
-- `!set_rss_channel`
+- `/set_rss_channel`
   - Set the channel where updated devlogs will be displayed.
 
-- `!get_all_rss` (REQUIRE ADMINISTRATOR PERMISSIONS)
+- `/get_all_rss` (REQUIRE ADMINISTRATOR PERMISSIONS)
   - Retrieve all devlogs from your itch.io game.
 
-- `!get_last_rss`
+- `/get_last_rss`
   - Retrieve last devlog from your itch.io game.
 
 #### Itch.io Files
 
-- `!set_download_channel`
+- `/set_download_channel`
   - Set the channel where updated download files will be displayed.
 
-- `!get_all_download` (REQUIRE ADMINISTRATOR PERMISSIONS)
+- `/get_all_download` (REQUIRE ADMINISTRATOR PERMISSIONS)
   - Retrieve all downloadable files from your itch.io game.
 
-- `!get_last_download`
+- `/get_last_download`
   - Retrieve the last downloadable file from your itch.io game.
 
 #### Other
 
-- `!hello [iamacat]`
+- `/hello [iamacat]`
   - Simply say hello to `iamacat`.
 
-- `!reset_channel` (REQUIRE ADMINISTRATOR PERMISSIONS)
+- `/reset_channel` (REQUIRE ADMINISTRATOR PERMISSIONS)
   - Reset all messages from the channel (use with caution).
 
-- `!help_cat`
+- `/help_cat`
   - Retrieve a list of all commands of the bot
 
 ### 📝 Note
@@ -101,35 +101,35 @@ Ce bot est essentiel si vous avez un jeu sur itch.io et que vous souhaitez tenir
 
 #### Journaux de développement d'Itch.io
 
-- `!set_rss_channel`
+- `/set_rss_channel`
   - Définissez le canal sur lequel les devlogs mis à jour seront affichés.
 
-- `!get_all_rss` (EXIGE LES AUTORISATIONS DE L'ADMINISTRATEUR)
+- `/get_all_rss` (EXIGE LES AUTORISATIONS DE L'ADMINISTRATEUR)
   - Récupérez tous les devlogs de votre jeu itch.io.
 
-- `!get_last_rss`
+- `/get_last_rss`
   - Récupérez le dernier devlog de votre jeu itch.io.
 
 #### Fichiers Itch.io
 
-- `!set_download_channel`
+- `/set_download_channel`
   - Définissez le canal sur lequel les fichiers téléchargés mis à jour seront affichés.
 
-- `!get_all_download` (EXIGE LES AUTORISATIONS DE L'ADMINISTRATEUR)
+- `/get_all_download` (EXIGE LES AUTORISATIONS DE L'ADMINISTRATEUR)
   - Récupérez tous les fichiers téléchargeables de votre jeu itch.io.
 
-- `!get_last_download`
+- `/get_last_download`
   - Récupérez le dernier fichier téléchargeable de votre jeu itch.io.
 
 #### Autre
 
-- `!bonjour [iamacat]`
+- `/bonjour [iamacat]`
   - Dites simplement bonjour à « iamacat ».
 
-- `!reset_channel` (EXIGE LES AUTORISATIONS DE L'ADMINISTRATEUR)
+- `/reset_channel` (EXIGE LES AUTORISATIONS DE L'ADMINISTRATEUR)
   - Réinitialiser tous les messages de la chaîne (à utiliser avec prudence).
 
-- `!help_cat`
+- `/help_cat`
   - Récupérer une liste de toutes les commandes du bot
 
 ### 📝 Remarque
