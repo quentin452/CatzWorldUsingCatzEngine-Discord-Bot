@@ -9,3 +9,5 @@ download_channel_ids.json
 last_download_entries.json
 rss_channel_ids.json
 last_rss_entries.json
+sent_download_ids.json
+sent_rss_titles.json
