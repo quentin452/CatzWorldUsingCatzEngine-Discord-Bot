@@ -4,7 +4,6 @@ import sys
 import discord
 from discord.ext import commands
 from config import load_config
-from commands.rss_commands import RssCommands  # Assurez-vous d'importer RssCommands depuis le bon chemin
 
 current_path = os.path.dirname(os.path.abspath(__file__))
 config = load_config()
@@ -44,17 +43,10 @@ async def load_extensions():
         except Exception as e:
             print(f'Erreur lors du chargement de {extension}: {type(e).__name__} - {e}')
 
-
 @bot.event
 async def on_ready():
     print(f'Connecté en tant que {bot.user}')
     await load_extensions()
-
-    rss_cog = bot.get_cog('RssCommands')
-    if rss_cog:
-        rss_cog.rss_task = bot.loop.create_task(rss_cog.run_rss_loop())
-    else:
-        print("Impossible de trouver le Cog RssCommands.")
 
 @bot.event
 async def on_command_error(ctx, error):
