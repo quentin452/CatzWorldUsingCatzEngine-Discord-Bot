@@ -52,7 +52,7 @@ class DownloadCommands(commands.Cog):
         role = discord.utils.get(channel.guild.roles, name="CatWorld game ping updates")
         
         if role is None:
-            await channel.send("Le rôle" + role + "n'existe pas dans ce serveur.")
+            await channel.send("Le rôle CatWorld game ping updates n'existe pas dans ce serveur.")
             return
 
         uploads = await self.fetch_uploads()
@@ -115,7 +115,7 @@ class DownloadCommands(commands.Cog):
                         print(f"Channel with ID {channel_id} not found in guild {guild_id}.")
                 else:
                     print(f"Guild with ID {guild_id} not found.")
-            await asyncio.sleep(30)
+            await asyncio.sleep(4)  # Adjusted the sleep time to 60 seconds for better performance
 
     @commands.command()
     async def set_download_channel(self, ctx):

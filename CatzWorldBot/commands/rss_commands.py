@@ -46,21 +46,22 @@ class RssCommands(commands.Cog):
     async def get_last_rss(self, channel):
         # Obtenez le rôle que vous voulez mentionner
         role = discord.utils.get(channel.guild.roles, name="CatWorld game ping updates")
-        
+
         if role is None:
-            await channel.send("Le rôle" + role + "n'existe pas dans ce serveur.")
+            await channel.send("Le rôle CatWorld game ping updates n'existe pas dans ce serveur.")
             return
 
         rss_url = 'https://iamacatfrdev.itch.io/catzworld/devlog.rss'
         feed = feedparser.parse(rss_url)
         if 'entries' in feed:
-            for entry in feed.entries:
+            new_entries = [entry for entry in feed.entries if entry.get('title', 'Pas de titre') not in self.sent_rss_titles]
+
+            if not new_entries:
+                return
+
+            for entry in new_entries:
                 title = entry.get('title', 'Pas de titre')
                 link = entry.get('link', 'Pas de lien')
-
-                # Check if the entry has already been sent
-                if title in self.sent_rss_titles:
-                    continue
 
                 response = requests.get(link)
                 if response.status_code == 200:
@@ -77,8 +78,7 @@ class RssCommands(commands.Cog):
                 # Update sent RSS titles
                 self.sent_rss_titles.append(title)
                 self.save_sent_rss_titles()  # Save sent RSS titles to file
-
-                break  # Only process the first entry for now
+                break  # Only process the first new entry for now
         else:
             await channel.send(f'{role.mention} Impossible de récupérer le flux RSS.')
 
@@ -124,7 +124,7 @@ class RssCommands(commands.Cog):
                         print(f"Channel with ID {channel_id} not found in guild {guild_id}.")
                 else:
                     print(f"Guild with ID {guild_id} not found.")
-            await asyncio.sleep(30)
+            await asyncio.sleep(4)
 
 async def setup(bot):
     await bot.add_cog(RssCommands(bot))
