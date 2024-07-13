@@ -55,6 +55,10 @@ class DownloadCommands(commands.Cog):
     async def get_last_download(self, channel):
         # Obtenez le rôle que vous voulez mentionner
         role = discord.utils.get(channel.guild.roles, name="CatWorld game ping updates")
+        
+        if role is None:
+            await channel.send("Le rôle 'CatWorld game ping updates' n'existe pas dans ce serveur.")
+            return
 
         uploads = await self.fetch_uploads()
         if not uploads:
@@ -77,7 +81,6 @@ class DownloadCommands(commands.Cog):
 
         self.last_download_entries[str(channel.id)] = last_upload
         self.save_last_download_entries()
-
 
 
     @commands.command()

@@ -47,6 +47,10 @@ class RssCommands(commands.Cog):
         # Obtenez le rôle que vous voulez mentionner
         role = discord.utils.get(channel.guild.roles, name="CatWorld game ping updates")
 
+        if role is None:
+            await channel.send("Le rôle 'CatWorld game ping updates' n'existe pas dans ce serveur.")
+            return
+
         rss_url = 'https://iamacatfrdev.itch.io/catzworld/devlog.rss'
         feed = feedparser.parse(rss_url)
         if 'entries' in feed:
@@ -58,7 +62,7 @@ class RssCommands(commands.Cog):
                     if self.last_rss_entries.get(str(channel.id)) == link:
                         break
                 except AttributeError as e:
-                    print(f"Erreur lors de l'accès à l'ID du canal : {e}")
+                    print(f"Erreur lors de l'accès à l'ID du canal: {e}")
                     break  # Exit the loop if there's an error accessing ctx.channel.id
 
                 response = requests.get(link)
