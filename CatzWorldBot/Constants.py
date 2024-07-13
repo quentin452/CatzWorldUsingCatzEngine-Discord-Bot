@@ -6,3 +6,8 @@ class ConstantsClass:
     ROLE_NAME = "CatWorld game ping updates"
     URL_GAME_NAME = "catzworld"
     RSS_URL = f"https://iamacatfrdev.itch.io/{URL_GAME_NAME}/devlog.rss"
+    RSS_CHANNEL_IDS_JSON_FILE ="rss_channel_ids.json"
+    SENT_RSS_TITLES_JSON_FILE = "sent_rss_titles.json"
+
+    READ_FILE = "r"
+    WRITE_TO_FILE = "w"

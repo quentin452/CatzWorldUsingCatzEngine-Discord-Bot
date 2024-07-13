@@ -24,20 +24,26 @@ if __name__ == "__main__":
     install_modules(required_modules)
 
 async def load_extensions():
-    initial_extensions = [
-        'commands.basic_commands',
-        'commands.admin_commands',
-        'commands.rss_commands',
-        'commands.get_download_commands',
-        'commands.help_commands'
-    ]
-
-    for extension in initial_extensions:
+    current_folder = os.path.dirname(__file__) 
+    extensions_folder = os.path.join(current_folder, 'commands')  
+    
+    if not os.path.exists(extensions_folder):
+        print(f"Le dossier '{extensions_folder}' n'existe pas. Assurez-vous que le chemin est correct.")
+        return
+    
+    extensions = []
+    for filename in os.listdir(extensions_folder):
+        if filename.endswith('.py') and not filename.startswith('__'):
+            module_name = f'commands.{filename[:-3]}'
+            extensions.append(module_name)
+    
+    for extension in extensions:
         try:
-            await bot.load_extension(extension) 
+            await bot.load_extension(extension)  
             print(f'Extension chargée : {extension}')
         except Exception as e:
             print(f'Erreur lors du chargement de {extension}: {type(e).__name__} - {e}')
+
 
 @bot.event
 async def on_ready():

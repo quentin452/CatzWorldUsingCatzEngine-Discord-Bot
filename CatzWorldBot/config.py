@@ -28,9 +28,9 @@ def load_config():
 
 def create_file_if_not_exists(file_path, default_content=''):
     if not os.path.exists(file_path):
-        with open(file_path, 'w') as f:
+        with open(file_path, ConstantsClass.WRITE_TO_FILE) as f:
             f.write(default_content)
 
 def read_file(file_path):
-    with open(file_path, 'r') as f:
+    with open(file_path, ConstantsClass.READ_FILE) as f:
         return f.read().strip()
