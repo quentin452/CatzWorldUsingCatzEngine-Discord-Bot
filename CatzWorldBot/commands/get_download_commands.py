@@ -53,9 +53,12 @@ class DownloadCommands(commands.Cog):
         return []
     
     async def get_last_download(self, channel):
+        # Obtenez le rôle que vous voulez mentionner
+        role = discord.utils.get(channel.guild.roles, name="CatWorld game ping updates")
+
         uploads = await self.fetch_uploads()
         if not uploads:
-            await channel.send('Aucun fichier téléchargeable trouvé.')
+            await channel.send(f'{role.mention} Aucun fichier téléchargeable trouvé.')
             return
 
         uploads_sorted = sorted(uploads, key=lambda upload: upload.get('position', 0), reverse=True)
@@ -69,10 +72,12 @@ class DownloadCommands(commands.Cog):
         keys_reverse = list(last_upload.keys())[::-1]
         info_str = "\n".join(f"{key}: {last_upload[key]}" for key in keys_reverse)
 
-        await channel.send(f"```\n{info_str}\n```")
+        # Ajoutez la mention du rôle au début du message
+        await channel.send(f"{role.mention}\n```\n{info_str}\n```")
 
         self.last_download_entries[str(channel.id)] = last_upload
         self.save_last_download_entries()
+
 
 
     @commands.command()

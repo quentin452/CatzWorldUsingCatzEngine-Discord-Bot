@@ -44,6 +44,9 @@ class RssCommands(commands.Cog):
             json.dump(self.last_rss_entries, f)
 
     async def get_last_rss(self, channel):
+        # Obtenez le rôle que vous voulez mentionner
+        role = discord.utils.get(channel.guild.roles, name="CatWorld game ping updates")
+
         rss_url = 'https://iamacatfrdev.itch.io/catzworld/devlog.rss'
         feed = feedparser.parse(rss_url)
         if 'entries' in feed:
@@ -64,11 +67,12 @@ class RssCommands(commands.Cog):
                     section = soup.find('section', {'class': 'object_text_widget_widget base_widget user_formatted post_body'})
                     if section:
                         content = "\n".join([line.strip() for line in section.get_text(separator='\n').splitlines() if line.strip()])
-                        await channel.send(f"**{title}**\n```\n{content}\n```\n`{link}`")  # Encapsulate link in backticks
+                        # Ajoutez la mention du rôle au début du message
+                        await channel.send(f"{role.mention}\n**{title}**\n```\n{content}\n```\n`{link}`")  # Encapsulate link in backticks
                     else:
-                        await channel.send(f"**{title}**\nContenu non trouvé.\n`{link}`")  # Encapsulate link in backticks
+                        await channel.send(f"{role.mention}\n**{title}**\nContenu non trouvé.\n`{link}`")  # Encapsulate link in backticks
                 else:
-                    await channel.send(f"**{title}**\nImpossible de récupérer la page liée.\n`{link}`")  # Encapsulate link in backticks
+                    await channel.send(f"{role.mention}\n**{title}**\nImpossible de récupérer la page liée.\n`{link}`")  # Encapsulate link in backticks
 
                 # Update last_rss_entries for this channel
                 self.last_rss_entries[str(channel.id)] = link
@@ -76,7 +80,7 @@ class RssCommands(commands.Cog):
 
                 break  # Only process the first entry for now
         else:
-            await channel.send('Impossible de récupérer le flux RSS.')
+            await channel.send(f'{role.mention} Impossible de récupérer le flux RSS.')
 
     @commands.command()
     async def set_rss_channel(self, ctx):
