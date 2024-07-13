@@ -124,7 +124,7 @@ class RssCommands(commands.Cog):
                         print(f"Channel with ID {channel_id} not found in guild {guild_id}.")
                 else:
                     print(f"Guild with ID {guild_id} not found.")
-            await asyncio.sleep(4)
+            await asyncio.sleep(60)
 
 async def setup(bot):
     await bot.add_cog(RssCommands(bot))

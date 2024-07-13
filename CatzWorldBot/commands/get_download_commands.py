@@ -115,7 +115,7 @@ class DownloadCommands(commands.Cog):
                         print(f"Channel with ID {channel_id} not found in guild {guild_id}.")
                 else:
                     print(f"Guild with ID {guild_id} not found.")
-            await asyncio.sleep(4)  # Adjusted the sleep time to 60 seconds for better performance
+            await asyncio.sleep(60)
 
     @commands.command()
     async def set_download_channel(self, ctx):
