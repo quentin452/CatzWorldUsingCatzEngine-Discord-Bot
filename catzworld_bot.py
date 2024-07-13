@@ -53,10 +53,33 @@ async def get_rss(ctx):
     else:
         await ctx.send('Impossible de récupérer le flux RSS.')
 
+@bot.command()
+@commands.has_permissions(administrator=True)
+async def reset_channel(ctx):
+    def check_message(message):
+        return True
+
+    deleted = 0
+    while True:
+        deleted_messages = await ctx.channel.purge(limit=100, check=check_message)
+        deleted += len(deleted_messages)
+        if len(deleted_messages) < 100:
+            break
+    await ctx.send(f"Le salon a été réinitialisé. {deleted} messages ont été supprimés.")
+
 @hello.error
 async def hello_error(ctx, error):
     if isinstance(error, commands.MissingRequiredArgument):
         await ctx.send('Veuillez fournir un nom après la commande !hello.')
+    else:
+        await ctx.send(f'Une erreur est survenue : {error}')
+
+@reset_channel.error
+async def reset_channel_error(ctx, error):
+    if isinstance(error, commands.MissingPermissions):
+        await ctx.send('Vous n\'avez pas la permission d\'utiliser cette commande.')
+    else:
+        await ctx.send(f'Une erreur est survenue : {error}')
 
 with open(token_file, 'r') as f:
     token = f.read().strip()
