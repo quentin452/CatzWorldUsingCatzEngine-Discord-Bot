@@ -28,7 +28,8 @@ async def load_extensions():
         'commands.basic_commands',
         'commands.admin_commands',
         'commands.rss_commands',
-        'commands.get_download_commands'
+        'commands.get_download_commands',
+        'commands.help_commands'
     ]
 
     for extension in initial_extensions:

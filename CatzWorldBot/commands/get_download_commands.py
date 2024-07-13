@@ -47,7 +47,7 @@ class DownloadCommands(commands.Cog):
             return response.json().get('uploads', [])
         return []
 
-    async def get_last_download(self, channel):
+    async def last_download_loop(self, channel):
         # Obtenez le rôle que vous voulez mentionner
         role = discord.utils.get(channel.guild.roles, name="CatWorld game ping updates")
         
@@ -80,7 +80,8 @@ class DownloadCommands(commands.Cog):
         self.save_sent_download_ids()
 
     @commands.command()
-    async def get_download(self, ctx):
+    @commands.has_permissions(administrator=True)
+    async def get_all_download(self, ctx):
         url = f'https://itch.io/api/1/{api_key}/game/{game_id}/uploads'
         response = requests.get(url)
         if response.status_code == 200:
@@ -99,6 +100,26 @@ class DownloadCommands(commands.Cog):
         else:
             await ctx.send('Impossible de récupérer les fichiers téléchargeables.')
 
+    @commands.command()
+    async def get_last_download(self, ctx):
+        url = f'https://itch.io/api/1/{api_key}/game/{game_id}/uploads'
+        response = requests.get(url)
+        if response.status_code == 200:
+            data = response.json()
+            if 'uploads' in data:
+                # Tri des uploads par position décroissante
+                uploads_sorted = sorted(data['uploads'], key=lambda upload: upload.get('position', 0), reverse=True)
+                
+                # Récupérer uniquement le dernier upload
+                last_upload = uploads_sorted[0]
+                keys_reverse = list(last_upload.keys())[::-1]
+                info_str = "\n".join(f"{key}: {last_upload[key]}" for key in keys_reverse)
+                await ctx.send(f"```\n{info_str}\n```")
+            else:
+                await ctx.send('Aucun fichier téléchargeable trouvé.')
+        else:
+            await ctx.send('Impossible de récupérer les fichiers téléchargeables.')
+
     async def run_download_loop(self):
         await self.bot.wait_until_ready()
         while not self.bot.is_closed():
@@ -109,7 +130,7 @@ class DownloadCommands(commands.Cog):
                     if channel:
                         if not self.getting_download:
                             self.getting_download = True
-                            await self.get_last_download(channel)
+                            await self.last_download_loop(channel)
                             self.getting_download = False
                     else:
                         print(f"Channel with ID {channel_id} not found in guild {guild_id}.")

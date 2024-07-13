@@ -43,7 +43,7 @@ class RssCommands(commands.Cog):
         with open('sent_rss_titles.json', 'w') as f:
             json.dump(self.sent_rss_titles, f)
 
-    async def get_last_rss(self, channel):
+    async def last_rss_loop(self, channel):
         # Obtenez le rôle que vous voulez mentionner
         role = discord.utils.get(channel.guild.roles, name="CatWorld game ping updates")
 
@@ -89,7 +89,8 @@ class RssCommands(commands.Cog):
         await ctx.send(f"L'ID du salon pour les messages RSS a été défini sur {ctx.channel.id} pour le serveur {ctx.guild.name}")
         
     @commands.command()
-    async def get_rss(self, ctx):
+    @commands.has_permissions(administrator=True)
+    async def get_all_rss(self, ctx):
         rss_url = 'https://iamacatfrdev.itch.io/catzworld/devlog.rss'
         feed = feedparser.parse(rss_url)
         if 'entries' in feed:
@@ -107,6 +108,50 @@ class RssCommands(commands.Cog):
                         await ctx.send(f"**{title}**\nContenu non trouvé.\n<{link}>")  # Encapsulate link in angle brackets
                 else:
                     await ctx.send(f"**{title}**\nImpossible de récupérer la page liée.\n<{link}>")  # Encapsulate link in angle brackets
+        else:
+            await ctx.send('Impossible de récupérer le flux RSS.')
+
+    @commands.command()
+    async def get_last_rss(self, ctx):
+        rss_url = 'https://iamacatfrdev.itch.io/catzworld/devlog.rss'
+        feed = feedparser.parse(rss_url)
+        if 'entries' in feed:
+            # Récupérer uniquement le dernier article RSS
+            last_entry = feed.entries[0]
+            title = last_entry.get('title', 'Pas de titre')
+            link = last_entry.get('link', 'Pas de lien')
+            response = requests.get(link)
+            if response.status_code == 200:
+                soup = BeautifulSoup(response.content, 'html.parser')
+                section = soup.find('section', {'class': 'object_text_widget_widget base_widget user_formatted post_body'})
+                if section:
+                    content = "\n".join([line.strip() for line in section.get_text(separator='\n').splitlines() if line.strip()])
+                    await ctx.send(f"**{title}**\n```\n{content}\n```\n<{link}>")  # Encapsulate content in code block and link in angle brackets
+                else:
+                    await ctx.send(f"**{title}**\nContenu non trouvé.\n<{link}>")  # Encapsulate link in angle brackets
+            else:
+                await ctx.send(f"**{title}**\nImpossible de récupérer la page liée.\n<{link}>")  # Encapsulate link in angle brackets
+
+    @commands.command()
+    async def get_last_rss(self, ctx):
+        rss_url = 'https://iamacatfrdev.itch.io/catzworld/devlog.rss'
+        feed = feedparser.parse(rss_url)
+        if 'entries' in feed:
+            # Récupérer uniquement le dernier article RSS
+            last_entry = feed.entries[0]
+            title = last_entry.get('title', 'Pas de titre')
+            link = last_entry.get('link', 'Pas de lien')
+            response = requests.get(link)
+            if response.status_code == 200:
+                soup = BeautifulSoup(response.content, 'html.parser')
+                section = soup.find('section', {'class': 'object_text_widget_widget base_widget user_formatted post_body'})
+                if section:
+                    content = "\n".join([line.strip() for line in section.get_text(separator='\n').splitlines() if line.strip()])
+                    await ctx.send(f"**{title}**\n```\n{content}\n```\n<{link}>")  # Encapsulate content in code block and link in angle brackets
+                else:
+                    await ctx.send(f"**{title}**\nContenu non trouvé.\n<{link}>")  # Encapsulate link in angle brackets
+            else:
+                await ctx.send(f"**{title}**\nImpossible de récupérer la page liée.\n<{link}>")  # Encapsulate link in angle brackets
 
     async def run_rss_loop(self):
         await self.bot.wait_until_ready()
@@ -118,7 +163,7 @@ class RssCommands(commands.Cog):
                     if channel:
                         if not self.getting_rss:
                             self.getting_rss = True
-                            await self.get_last_rss(channel)
+                            await self.last_rss_loop(channel)
                             self.getting_rss = False
                     else:
                         print(f"Channel with ID {channel_id} not found in guild {guild_id}.")
