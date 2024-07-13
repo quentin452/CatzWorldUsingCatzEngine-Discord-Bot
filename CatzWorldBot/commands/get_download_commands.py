@@ -1,18 +1,49 @@
 import discord
 from discord.ext import commands
-import feedparser
 import requests
-from bs4 import BeautifulSoup
+import json
+import asyncio
+
 from config import load_config
 
 config = load_config()
 api_key = config['api_key']
 game_id = config['game_id']
 
-class GetDownloadCommands(commands.Cog):
+class DownloadCommands(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.download_task = None
+        self.getting_download = False
+        self.download_channel_ids = self.load_download_channel_ids()
+        self.last_download_entries = self.load_last_download_entries()
+        self.bot.loop.create_task(self.run_download_loop())
 
+    def load_download_channel_ids(self):
+        try:
+            with open('download_channel_ids.json', 'r') as f:
+                return json.load(f)
+        except FileNotFoundError:
+            return {}
+
+    def save_download_channel_ids(self):
+        with open('download_channel_ids.json', 'w') as f:
+            json.dump(self.download_channel_ids, f)
+
+    def load_last_download_entries(self):
+        try:
+            with open('last_download_entries.json', 'r') as f:
+                data = json.load(f)
+                if data is None:
+                    return {}
+                else:
+                    return data
+        except FileNotFoundError:
+            return {}
+
+    def save_last_download_entries(self):
+        with open('last_download_entries.json', 'w') as f:
+            json.dump(self.last_download_entries, f)
 
     async def fetch_uploads(self):
         url = f'https://itch.io/api/1/{api_key}/game/{game_id}/uploads'
@@ -20,31 +51,35 @@ class GetDownloadCommands(commands.Cog):
         if response.status_code == 200:
             return response.json().get('uploads', [])
         return []
-
+    
     @commands.command()
-    async def get_last_download(self, ctx):
+    async def get_last_download(self, channel):
         uploads = await self.fetch_uploads()
         if not uploads:
-            await ctx.send('Aucun fichier téléchargeable trouvé.')
+            await channel.send('Aucun fichier téléchargeable trouvé.')
             return
 
-        # Tri des uploads par position décroissante (optionnel si déjà triés par l'API)
         uploads_sorted = sorted(uploads, key=lambda upload: upload.get('position', 0), reverse=True)
-
-        # Récupération du dernier upload
         last_upload = uploads_sorted[0]
+
+        last_upload_id = last_upload.get('id')
+
+        if any(entry is None or last_upload_id == entry.get('id') for entry in self.last_download_entries.values() if entry is not None):
+            return  # Exit if the id has already been sent recently
         
-        # Récupérer les clés dans l'ordre inverse pour affichage
         keys_reverse = list(last_upload.keys())[::-1]
         info_str = "\n".join(f"{key}: {last_upload[key]}" for key in keys_reverse)
-        
-        await ctx.send(f"```\n{info_str}\n```")
-        
+
+        await channel.send(f"```\n{info_str}\n```")
+
+        self.last_download_entries[str(channel.id)] = last_upload
+        self.save_last_download_entries()
+
+
     @commands.command()
     async def get_download(self, ctx):
                 url = f'https://itch.io/api/1/{api_key}/game/{game_id}/uploads'
                 response = requests.get(url)
-
                 if response.status_code == 200:
                     data = response.json()
                     if 'uploads' in data:
@@ -61,5 +96,29 @@ class GetDownloadCommands(commands.Cog):
                 else:
                     await ctx.send('Impossible de récupérer les fichiers téléchargeables.')
 
+    async def run_download_loop(self):
+        await self.bot.wait_until_ready()
+        while not self.bot.is_closed():
+            for guild_id, channel_id in self.download_channel_ids.items():
+                guild = self.bot.get_guild(int(guild_id))
+                if guild:
+                    channel = guild.get_channel(int(channel_id))
+                    if channel:
+                        if not self.getting_download:
+                            self.getting_download = True
+                            await self.get_last_download(channel)
+                            self.getting_download = False
+                    else:
+                        print(f"Channel with ID {channel_id} not found in guild {guild_id}.")
+                else:
+                    print(f"Guild with ID {guild_id} not found.")
+            await asyncio.sleep(30)
+
+    @commands.command()
+    async def set_download_channel(self, ctx):
+        self.download_channel_ids[str(ctx.guild.id)] = ctx.channel.id
+        self.save_download_channel_ids()
+        await ctx.send(f"L'ID du salon pour les téléchargements a été défini sur {ctx.channel.id} pour le serveur {ctx.guild.name}")
+
 async def setup(bot):
-         await bot.add_cog(GetDownloadCommands(bot))
+    await bot.add_cog(DownloadCommands(bot))
