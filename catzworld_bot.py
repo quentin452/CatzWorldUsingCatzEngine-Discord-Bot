@@ -18,6 +18,7 @@ if missing_modules:
     print(f"Modules manquants détectés : {', '.join(missing_modules)}. Installation en cours...")
     install_modules(missing_modules)
 
+import os
 import discord
 from discord.ext import commands
 import feedparser
@@ -28,14 +29,42 @@ intents = discord.Intents.all()
 
 bot = commands.Bot(command_prefix='!', intents=intents)
 
-token_file = '!security/discord_bot_token.txt'
-itch_io_api_key_file = '!security/discord_bot_token.txt'
+itch_io_api_key_file = '!security/itch_io_api_key.txt'
 itch_io_game_id_file = '!security/itch_io_game_id.txt'
+token_file = '!security/discord_bot_token.txt'
+
+# Vérifier et créer les fichiers si nécessaire pour l'API key itch.io
+if not os.path.exists(itch_io_api_key_file):
+    with open(itch_io_api_key_file, 'w') as f:
+        f.write('itch_io_api_key')
+
+# Vérifier et créer les fichiers si nécessaire pour l'ID de jeu itch.io
+if not os.path.exists(itch_io_game_id_file):
+    with open(itch_io_game_id_file, 'w') as f:
+        f.write('itch_io_game_id')
+
+# Vérifier et créer les fichiers si nécessaire pour le token Discord
+if not os.path.exists(token_file):
+    with open(token_file, 'w') as f:
+        f.write('discord_bot_token_id')
+
+# Lire les valeurs depuis les fichiers
 with open(itch_io_api_key_file, 'r') as f:
     api_key = f.read().strip()
 
 with open(itch_io_game_id_file, 'r') as f:
     game_id = f.read().strip()
+
+with open(token_file, 'r') as f:
+    token = f.read().strip()
+
+# Vérifier si les valeurs sont vides et afficher un message approprié si nécessaire
+if not api_key:
+    print("Veuillez mettre votre API key de votre jeu d'itch.io dans le fichier '!security/itch_io_api_key.txt'.")
+if not game_id:
+    print("Veuillez mettre l'ID de votre jeu itch.io dans le fichier '!security/itch_io_game_id.txt'.")
+if not token:
+    print("Veuillez mettre le token de votre bot discord dans le fichier '!security/discord_bot_token.txt'.")
 
 @bot.event
 async def on_ready():
@@ -124,8 +153,5 @@ async def reset_channel_error(ctx, error):
         await ctx.send('Vous n\'avez pas la permission d\'utiliser cette commande.')
     else:
         await ctx.send(f'Une erreur est survenue : {error}')
-
-with open(token_file, 'r') as f:
-    token = f.read().strip()
 
 bot.run(token)
