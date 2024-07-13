@@ -1,3 +1,5 @@
+## ATTENTION THIS BOT COULD BE BUGGED
+
 # Discord Bot Readme
 
 ## English Translation
