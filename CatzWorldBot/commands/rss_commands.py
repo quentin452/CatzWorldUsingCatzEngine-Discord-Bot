@@ -102,11 +102,11 @@ class RssCommands(commands.Cog):
                     section = soup.find('section', {'class': 'object_text_widget_widget base_widget user_formatted post_body'})
                     if section:
                         content = "\n".join([line.strip() for line in section.get_text(separator='\n').splitlines() if line.strip()])
-                        await ctx.send(f"**{title}**\n{content}\n{link}")
+                        await ctx.send(f"**{title}**\n```\n{content}\n```\n<{link}>")  # Encapsulate content in code block and link in angle brackets
                     else:
-                        await ctx.send(f"**{title}**\nContenu non trouvé.\n{link}")
+                        await ctx.send(f"**{title}**\nContenu non trouvé.\n<{link}>")  # Encapsulate link in angle brackets
                 else:
-                    await ctx.send(f"**{title}**\nImpossible de récupérer la page liée.\n{link}")
+                    await ctx.send(f"**{title}**\nImpossible de récupérer la page liée.\n<{link}>")  # Encapsulate link in angle brackets
 
     async def run_rss_loop(self):
         await self.bot.wait_until_ready()
