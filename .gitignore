@@ -5,3 +5,7 @@ token.txt
 \!security/itch_io_game_id.txt
 /CatzWorldBot/__pycache__
 /CatzWorldBot/commands/__pycache__
+download_channel_ids.json
+last_download_entries.json
+rss_channel_ids.json
+last_rss_entries.json
