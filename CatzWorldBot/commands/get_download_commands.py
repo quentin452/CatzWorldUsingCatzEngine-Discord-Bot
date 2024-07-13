@@ -3,7 +3,6 @@ from discord.ext import commands
 import requests
 import json
 import asyncio
-
 from config import load_config
 
 config = load_config()
@@ -16,7 +15,7 @@ class DownloadCommands(commands.Cog):
         self.download_task = None
         self.getting_download = False
         self.download_channel_ids = self.load_download_channel_ids()
-        self.last_download_entries = self.load_last_download_entries()
+        self.sent_download_ids = self.load_sent_download_ids()
         self.bot.loop.create_task(self.run_download_loop())
 
     def load_download_channel_ids(self):
@@ -30,20 +29,16 @@ class DownloadCommands(commands.Cog):
         with open('download_channel_ids.json', 'w') as f:
             json.dump(self.download_channel_ids, f)
 
-    def load_last_download_entries(self):
+    def load_sent_download_ids(self):
         try:
-            with open('last_download_entries.json', 'r') as f:
-                data = json.load(f)
-                if data is None:
-                    return {}
-                else:
-                    return data
+            with open('sent_download_ids.json', 'r') as f:
+                return json.load(f)
         except FileNotFoundError:
-            return {}
+            return []
 
-    def save_last_download_entries(self):
-        with open('last_download_entries.json', 'w') as f:
-            json.dump(self.last_download_entries, f)
+    def save_sent_download_ids(self):
+        with open('sent_download_ids.json', 'w') as f:
+            json.dump(self.sent_download_ids, f)
 
     async def fetch_uploads(self):
         url = f'https://itch.io/api/1/{api_key}/game/{game_id}/uploads'
@@ -51,13 +46,13 @@ class DownloadCommands(commands.Cog):
         if response.status_code == 200:
             return response.json().get('uploads', [])
         return []
-    
+
     async def get_last_download(self, channel):
         # Obtenez le rôle que vous voulez mentionner
         role = discord.utils.get(channel.guild.roles, name="CatWorld game ping updates")
         
         if role is None:
-            await channel.send("Le rôle 'CatWorld game ping updates' n'existe pas dans ce serveur.")
+            await channel.send("Le rôle" + role + "n'existe pas dans ce serveur.")
             return
 
         uploads = await self.fetch_uploads()
@@ -70,7 +65,8 @@ class DownloadCommands(commands.Cog):
 
         last_upload_id = last_upload.get('id')
 
-        if any(entry is None or last_upload_id == entry.get('id') for entry in self.last_download_entries.values() if entry is not None):
+        # Check if the last upload ID has already been sent
+        if last_upload_id in self.sent_download_ids:
             return  # Exit if the id has already been sent recently
         
         keys_reverse = list(last_upload.keys())[::-1]
@@ -79,29 +75,29 @@ class DownloadCommands(commands.Cog):
         # Ajoutez la mention du rôle au début du message
         await channel.send(f"{role.mention}\n```\n{info_str}\n```")
 
-        self.last_download_entries[str(channel.id)] = last_upload
-        self.save_last_download_entries()
-
+        # Save the last upload ID for this channel
+        self.sent_download_ids.append(last_upload_id)
+        self.save_sent_download_ids()
 
     @commands.command()
     async def get_download(self, ctx):
-                url = f'https://itch.io/api/1/{api_key}/game/{game_id}/uploads'
-                response = requests.get(url)
-                if response.status_code == 200:
-                    data = response.json()
-                    if 'uploads' in data:
-                        # Tri des uploads par position décroissante
-                        uploads_sorted = sorted(data['uploads'], key=lambda upload: upload.get('position', 0), reverse=True)
-                        
-                        for upload in uploads_sorted:
-                            # Récupérer les clés dans l'ordre inverse
-                            keys_reverse = list(upload.keys())[::-1]
-                            info_str = "\n".join(f"{key}: {upload[key]}" for key in keys_reverse)
-                            await ctx.send(f"```\n{info_str}\n```")
-                    else:
-                        await ctx.send('Aucun fichier téléchargeable trouvé.')
-                else:
-                    await ctx.send('Impossible de récupérer les fichiers téléchargeables.')
+        url = f'https://itch.io/api/1/{api_key}/game/{game_id}/uploads'
+        response = requests.get(url)
+        if response.status_code == 200:
+            data = response.json()
+            if 'uploads' in data:
+                # Tri des uploads par position décroissante
+                uploads_sorted = sorted(data['uploads'], key=lambda upload: upload.get('position', 0), reverse=True)
+                
+                for upload in uploads_sorted:
+                    # Récupérer les clés dans l'ordre inverse
+                    keys_reverse = list(upload.keys())[::-1]
+                    info_str = "\n".join(f"{key}: {upload[key]}" for key in keys_reverse)
+                    await ctx.send(f"```\n{info_str}\n```")
+            else:
+                await ctx.send('Aucun fichier téléchargeable trouvé.')
+        else:
+            await ctx.send('Impossible de récupérer les fichiers téléchargeables.')
 
     async def run_download_loop(self):
         await self.bot.wait_until_ready()
