@@ -52,7 +52,6 @@ class DownloadCommands(commands.Cog):
             return response.json().get('uploads', [])
         return []
     
-    @commands.command()
     async def get_last_download(self, channel):
         uploads = await self.fetch_uploads()
         if not uploads:

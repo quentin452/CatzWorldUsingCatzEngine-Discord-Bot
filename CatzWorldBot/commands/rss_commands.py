@@ -50,26 +50,30 @@ class RssCommands(commands.Cog):
             for entry in feed.entries:
                 title = entry.get('title', 'Pas de titre')
                 link = entry.get('link', 'Pas de lien')
+
                 try:
                     if self.last_rss_entries.get(str(channel.id)) == link:
                         break
                 except AttributeError as e:
                     print(f"Erreur lors de l'accès à l'ID du canal : {e}")
                     break  # Exit the loop if there's an error accessing ctx.channel.id
+
                 response = requests.get(link)
                 if response.status_code == 200:
                     soup = BeautifulSoup(response.content, 'html.parser')
                     section = soup.find('section', {'class': 'object_text_widget_widget base_widget user_formatted post_body'})
                     if section:
                         content = "\n".join([line.strip() for line in section.get_text(separator='\n').splitlines() if line.strip()])
-                        await channel.send(f"**{title}**\n{content}\n{link}")
+                        await channel.send(f"**{title}**\n```\n{content}\n```\n{link}")
                     else:
                         await channel.send(f"**{title}**\nContenu non trouvé.\n{link}")
                 else:
                     await channel.send(f"**{title}**\nImpossible de récupérer la page liée.\n{link}")
+
                 # Update last_rss_entries for this channel
                 self.last_rss_entries[str(channel.id)] = link
                 self.save_last_rss_entries()  # Save last_rss_entries to file
+
                 break  # Only process the first entry for now
         else:
             await channel.send('Impossible de récupérer le flux RSS.')
