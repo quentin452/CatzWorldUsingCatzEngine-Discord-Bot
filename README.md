@@ -1,1 +1,1 @@
-# Owner-avatar-CatzWorldUsingCatzEngine-Discord-Bot
+CatzWorldUsingCatzEngine-Discord-Bot
