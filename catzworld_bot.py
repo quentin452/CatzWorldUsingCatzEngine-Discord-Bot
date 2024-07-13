@@ -1,15 +1,41 @@
+import subprocess
+import sys
+
+required_modules = ['discord', 'feedparser', 'requests', 'beautifulsoup4', 'black']
+
+def install_modules(modules):
+    for module in modules:
+        subprocess.check_call([sys.executable, "-m", "pip", "install", module])
+
+missing_modules = []
+for module in required_modules:
+    try:
+        __import__(module)
+    except ImportError:
+        missing_modules.append(module)
+
+if missing_modules:
+    print(f"Modules manquants détectés : {', '.join(missing_modules)}. Installation en cours...")
+    install_modules(missing_modules)
+
 import discord
 from discord.ext import commands
 import feedparser
 import requests
 from bs4 import BeautifulSoup
 
-intents = discord.Intents.all()  # Activer tous les intents disponibles
+intents = discord.Intents.all()
 
-# Créer une instance de bot avec les intents spécifiés
 bot = commands.Bot(command_prefix='!', intents=intents)
 
-token_file = 'token.txt'
+token_file = '!security/discord_bot_token.txt'
+itch_io_api_key_file = '!security/discord_bot_token.txt'
+itch_io_game_id_file = '!security/itch_io_game_id.txt'
+with open(itch_io_api_key_file, 'r') as f:
+    api_key = f.read().strip()
+
+with open(itch_io_game_id_file, 'r') as f:
+    game_id = f.read().strip()
 
 @bot.event
 async def on_ready():
@@ -24,18 +50,36 @@ async def ping(ctx):
     await ctx.send('Pong!')
 
 @bot.command()
+async def get_downloads(ctx):
+    url = f'https://itch.io/api/1/{api_key}/game/{game_id}/uploads'
+    response = requests.get(url)
+
+    if response.status_code == 200:
+        data = response.json()
+        if 'uploads' in data:
+            for upload in data['uploads']:
+                title = upload.get('filename', 'Pas de titre')
+                download_url = upload.get('url', 'Pas de lien')
+                await ctx.send(f"**{title}**\n{download_url}")
+        else:
+            await ctx.send('Aucun fichier téléchargeable trouvé.')
+    else:
+        await ctx.send('Impossible de récupérer les fichiers téléchargeables.')
+
+
+@bot.command()
 async def get_rss(ctx):
     # URL du flux RSS
     rss_url = 'https://iamacatfrdev.itch.io/catzworld/devlog.rss'
-    
+
     # Récupérer et analyser le flux RSS
     feed = feedparser.parse(rss_url)
-    
+
     if 'entries' in feed:
         for entry in feed.entries:
             title = entry.get('title', 'Pas de titre')
             link = entry.get('link', 'Pas de lien')
-            
+
             # Récupérer le contenu de la page liée
             response = requests.get(link)
             if response.status_code == 200:
