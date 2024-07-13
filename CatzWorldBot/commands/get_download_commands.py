@@ -13,6 +13,33 @@ class GetDownloadCommands(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+
+    async def fetch_uploads(self):
+        url = f'https://itch.io/api/1/{api_key}/game/{game_id}/uploads'
+        response = requests.get(url)
+        if response.status_code == 200:
+            return response.json().get('uploads', [])
+        return []
+
+    @commands.command()
+    async def get_last_download(self, ctx):
+        uploads = await self.fetch_uploads()
+        if not uploads:
+            await ctx.send('Aucun fichier téléchargeable trouvé.')
+            return
+
+        # Tri des uploads par position décroissante (optionnel si déjà triés par l'API)
+        uploads_sorted = sorted(uploads, key=lambda upload: upload.get('position', 0), reverse=True)
+
+        # Récupération du dernier upload
+        last_upload = uploads_sorted[0]
+        
+        # Récupérer les clés dans l'ordre inverse pour affichage
+        keys_reverse = list(last_upload.keys())[::-1]
+        info_str = "\n".join(f"{key}: {last_upload[key]}" for key in keys_reverse)
+        
+        await ctx.send(f"```\n{info_str}\n```")
+        
     @commands.command()
     async def get_download(self, ctx):
                 url = f'https://itch.io/api/1/{api_key}/game/{game_id}/uploads'
