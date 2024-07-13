@@ -80,24 +80,6 @@ class RssCommands(commands.Cog):
         self.save_rss_channel_ids()
         await ctx.send(f"L'ID du salon pour les messages RSS a été défini sur {ctx.channel.id} pour le serveur {ctx.guild.name}")
         
-    async def run_rss_loop(self):
-        await self.bot.wait_until_ready()
-        while not self.bot.is_closed():
-            for guild_id, channel_id in self.rss_channel_ids.items():
-                guild = self.bot.get_guild(int(guild_id))
-                if guild:
-                    channel = guild.get_channel(int(channel_id))
-                    if channel:
-                        if not self.getting_rss:
-                            self.getting_rss = True
-                            await self.get_last_rss(channel)
-                            self.getting_rss = False
-                    else:
-                        print(f"Channel with ID {channel_id} not found in guild {guild_id}.")
-                else:
-                    print(f"Guild with ID {guild_id} not found.")
-            await asyncio.sleep(5)
-
     @commands.command()
     async def get_rss(self, ctx):
         rss_url = 'https://iamacatfrdev.itch.io/catzworld/devlog.rss'
@@ -118,5 +100,22 @@ class RssCommands(commands.Cog):
                 else:
                     await ctx.send(f"**{title}**\nImpossible de récupérer la page liée.\n{link}")
 
+    async def run_rss_loop(self):
+            await self.bot.wait_until_ready()
+            while not self.bot.is_closed():
+                for guild_id, channel_id in self.rss_channel_ids.items():
+                    guild = self.bot.get_guild(int(guild_id))
+                    if guild:
+                        channel = guild.get_channel(int(channel_id))
+                        if channel:
+                            if not self.getting_rss:
+                                self.getting_rss = True
+                                await self.get_last_rss(channel)
+                                self.getting_rss = False
+                        else:
+                            print(f"Channel with ID {channel_id} not found in guild {guild_id}.")
+                    else:
+                        print(f"Guild with ID {guild_id} not found.")
+                await asyncio.sleep(30)
 async def setup(bot):
     await bot.add_cog(RssCommands(bot))
