@@ -2,8 +2,10 @@ import discord
 from discord.ext import commands
 import feedparser
 import requests
+import asyncio
 from bs4 import BeautifulSoup
 from config import load_config
+
 
 config = load_config()
 api_key = config['api_key']
@@ -12,6 +14,10 @@ game_id = config['game_id']
 class RssCommands(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.rss_task = None
+        self.rss_channel_id = 0
+        self.getting_rss = False 
+        self.bot.loop.create_task(self.run_rss_loop())
 
     @commands.command()
     async def get_last_rss(self, ctx):
@@ -44,6 +50,25 @@ class RssCommands(commands.Cog):
                 break
         else:
             await ctx.send('Impossible de récupérer le flux RSS.')
+
+    @commands.command()
+    async def set_rss_channel(self, ctx):
+        self.rss_channel_id = ctx.channel.id
+        await ctx.send(f"L'ID du salon pour les messages RSS a été défini sur {self.rss_channel_id}")
+
+    async def run_rss_loop(self):
+        await self.bot.wait_until_ready()
+        while not self.bot.is_closed():
+            channel = self.bot.get_channel(self.rss_channel_id)
+            if channel:
+                if not self.getting_rss:
+                    self.getting_rss = True
+                    await self.get_last_rss(channel)
+                    self.getting_rss = False
+            else:
+                if self.rss_channel_id == 0:
+                    print(f"Channel with ID {self.rss_channel_id} not found.")                   
+            await asyncio.sleep(5)
 
     @commands.command()
     async def get_rss(self, ctx):
