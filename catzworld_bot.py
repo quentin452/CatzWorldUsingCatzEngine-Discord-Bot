@@ -86,16 +86,19 @@ async def get_downloads(ctx):
     if response.status_code == 200:
         data = response.json()
         if 'uploads' in data:
-            for upload in data['uploads']:
-                title = upload.get('filename', 'Pas de titre')
-                download_url = upload.get('url', 'Pas de lien')
-                await ctx.send(f"**{title}**\n{download_url}")
+            # Tri des uploads par position décroissante
+            uploads_sorted = sorted(data['uploads'], key=lambda upload: upload.get('position', 0), reverse=True)
+            
+            for upload in uploads_sorted:
+                # Récupérer les clés dans l'ordre inverse
+                keys_reverse = list(upload.keys())[::-1]
+                info_str = "\n".join(f"{key}: {upload[key]}" for key in keys_reverse)
+                await ctx.send(f"```\n{info_str}\n```")
         else:
             await ctx.send('Aucun fichier téléchargeable trouvé.')
     else:
         await ctx.send('Impossible de récupérer les fichiers téléchargeables.')
-
-
+        
 @bot.command()
 async def get_rss(ctx):
     # URL du flux RSS
