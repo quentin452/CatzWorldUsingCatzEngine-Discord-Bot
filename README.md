@@ -52,10 +52,27 @@ This bot is essential if you have an itch.io game and want to keep your server m
 - `/get_last_download`
   - Retrieve the last downloadable file from your itch.io game.
 
+### Itch.io feedbacks and reports
+
+- `set_ticket_channel` (REQUIRE ADMINISTRATOR PERMISSIONS) 
+  - Set the channel where ticket dashboard/embed for ticket will be displayed.
+
+- `close_ticket` (REQUIRE ADMINISTRATOR PERMISSIONS)
+  - Close a Ticket
+
+- `set_feedback_channel` (REQUIRE ADMINISTRATOR PERMISSIONS)
+  - Set the channel where ticket dashboard/embed for feedback will be displayed.
+
+- `submit_feedback [query]`
+  - Give feedback for the itch io game.
+
+- `view_feedbacks` (REQUIRE ADMINISTRATOR PERMISSIONS)
+  - See all feedbacks given by users
+
 #### Other
 
-- `/hello [iamacat]`
-  - Simply say hello to `iamacat`.
+- `/hello [query]`
+  - Simply say hello to `query`.
 
 - `/reset_channel` (REQUIRE ADMINISTRATOR PERMISSIONS)
   - Reset all messages from the channel (use with caution).
@@ -121,10 +138,27 @@ Ce bot est essentiel si vous avez un jeu sur itch.io et que vous souhaitez tenir
 - `/get_last_download`
   - Récupérez le dernier fichier téléchargeable de votre jeu itch.io.
 
+### Commentaires et rapports Itch.io
+
+- `set_ticket_channel` (EXIGER LES AUTORISATIONS DE L'ADMINISTRATEUR) 
+  - Définissez le canal sur lequel le tableau de bord du ticket/l'intégration du ticket sera affiché.
+
+- `close_ticket` (EXIGER LES AUTORISATIONS DE L'ADMINISTRATEUR)
+  - Fermer un ticket
+
+- `set_feedback_channel` (EXIGENCE DES AUTORISATIONS D'ADMINISTRATEUR)
+  - Définissez le canal sur lequel le tableau de bord des tickets/l'intégration des commentaires sera affiché.
+
+- `submit_feedback [requête]`
+  - Donnez votre avis sur le jeu itch io.
+
+- `view_feedbacks` (EXIGENCE DES AUTORISATIONS D'ADMINISTRATEUR)
+  - Voir tous les commentaires donnés par les utilisateurs
+
 #### Autre
 
-- `/bonjour [iamacat]`
-  - Dites simplement bonjour à « iamacat ».
+- `/bonjour [requête]`
+  - Dites simplement bonjour à « requête ».
 
 - `/reset_channel` (EXIGE LES AUTORISATIONS DE L'ADMINISTRATEUR)
   - Réinitialiser tous les messages de la chaîne (à utiliser avec prudence).
