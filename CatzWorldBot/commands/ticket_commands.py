@@ -16,11 +16,14 @@ class TicketCommands(commands.Cog):
         self.ticket_channel_id = self.load_ticket_channel_id()
         self.cooldowns = {}
         self.cooldown_time = 10
-        self.ticket_messages = {}  # Dictionary to store ticket messages
-
+        self.ticket_messages = self.load_ticket_messages()  # Load ticket messages
+        
         if self.ticket_channel_id:
             bot.loop.create_task(self.delete_bot_messages())
 
+        # Send close ticket buttons after loading tickets and messages
+        bot.loop.create_task(self.send_close_ticket_buttons())
+        
     def load_ticket_channel_id(self):
         try:
             with open('ticket_channel_id.json', 'r') as f:
@@ -65,6 +68,27 @@ class TicketCommands(commands.Cog):
         with open('ticket_messages.json', 'w') as f:
             json.dump(self.ticket_messages, f)
 
+    async def send_close_ticket_buttons(self):
+        for ticket in self.tickets:
+            channel_id = ticket['channel_id']
+            channel = self.bot.get_channel(channel_id)
+            if channel:
+                message_id = self.ticket_messages.get(ticket['ticket_id'])
+                if message_id:
+                    try:
+                        message = await channel.fetch_message(message_id)
+                        if message:
+                            view = TicketView(self)
+                            view.add_item(CloseTicketButton(self, ticket['ticket_id']))
+                            await message.edit(view=view)
+                        else:
+                            print(f"Failed to fetch ticket message for ticket ID {ticket['ticket_id']}")
+                    except discord.HTTPException as e:
+                        print(f"Failed to edit ticket message for ticket ID {ticket['ticket_id']}: {e}")
+                else:
+                    print(f"Ticket message ID not found for ticket ID {ticket['ticket_id']}")
+
+
     async def delete_bot_messages(self):
         async with self.delete_lock:
             while self.delete_messages:
@@ -104,19 +128,24 @@ class TicketCommands(commands.Cog):
 
     async def send_ticket_creation_message(self, channel):
         try:
-            embed = discord.Embed(
-                title="Open A Ticket",
-                description="If you need help / want to apply as staff,\nthen open a ticket!\n\nTo open a ticket, press the button.",
-                color=discord.Color.blue()
-            )
-            view = TicketView(self)
-            await channel.send(embed=embed, view=view)
-            await channel.send(f"Ticket channel set to {channel.mention}")
+            if channel.id != self.ticket_channel_id:
+                return
+            
+            ticket_exists = any(ticket['channel_id'] == channel.id for ticket in self.tickets)
+            
+            if not ticket_exists:
+                embed = discord.Embed(
+                    title="Open A Ticket",
+                    description="If you need help / want to apply as staff,\nthen open a ticket!\n\nTo open a ticket, press the button.",
+                    color=discord.Color.blue()
+                )
+                view = TicketView(self)
+                await channel.send(embed=embed, view=view)
+                await channel.send(f"Ticket channel set to {channel.mention}")
         except discord.HTTPException as e:
             print(f"Failed to send ticket creation message: {e}")
         except Exception as e:
             print(f"An error occurred while sending ticket creation message: {e}")
-
     @commands.Cog.listener()
     async def on_interaction(self, interaction):
         if interaction.type == discord.InteractionType.component:
@@ -192,7 +221,8 @@ class TicketCommands(commands.Cog):
 
                 self.cooldowns[user.id] = now
 
-                await interaction.followup.send("Ticket created!", ephemeral=True)
+                channel = self.bot.get_channel(self.ticket_channel_id)
+                await channel.send("Ticket created!")  # Removed ephemeral=True
 
             except discord.HTTPException as e:
                 print(f"Failed to create ticket: {e}")
@@ -250,7 +280,7 @@ class TicketView(discord.ui.View):
 
 class OpenTicketModal(discord.ui.Modal):
     def __init__(self, cog):
-        super().__init__(title="Open a Ticket")
+        super().__init__(title="None")
         self.cog = cog
         self.add_item(discord.ui.TextInput(label="Description"))
 
