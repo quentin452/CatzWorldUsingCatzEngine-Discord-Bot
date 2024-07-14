@@ -3,6 +3,7 @@ from discord.ext import commands
 import json
 import asyncio
 from datetime import datetime
+from Constants import ConstantsClass 
 
 class FeedbackCommands(commands.Cog):
     def __init__(self, bot):
@@ -16,29 +17,33 @@ class FeedbackCommands(commands.Cog):
 
     def load_feedback_channel_id(self):
         try:
-            with open('feedback_channel_id.json', 'r') as f:
+            with open(ConstantsClass.FEED_BACK_SAVE_FOLDER + '/feedback_channel_id.json', 'r') as f:
                 return json.load(f)
         except FileNotFoundError:
             return None
 
     def save_feedback_channel_id(self):
-        with open('feedback_channel_id.json', 'w') as f:
+        with open(ConstantsClass.FEED_BACK_SAVE_FOLDER + '/feedback_channel_id.json', 'w') as f:
             json.dump(self.feedback_channel_id, f)
 
     def load_feedback_counter(self):
         try:
-            with open('feedback_counter.json', 'r') as f:
+            with open(ConstantsClass.FEED_BACK_SAVE_FOLDER + '/feedback_counter.json', 'r') as f:
                 return json.load(f)
         except FileNotFoundError:
             return 0
 
     def save_feedback_counter(self):
-        with open('feedback_counter.json', 'w') as f:
+        with open(ConstantsClass.FEED_BACK_SAVE_FOLDER + '/feedback_counter.json', 'w') as f:
             json.dump(self.feedback_counter, f)
+
+    def save_feedbacks(self):
+            with open(ConstantsClass.FEED_BACK_SAVE_FOLDER + '/feedbacks.json', 'w') as f:
+                json.dump(self.feedbacks, f, default=str) 
 
     def load_feedbacks(self):
         try:
-            with open('feedbacks.json', 'r') as f:
+            with open(ConstantsClass.FEED_BACK_SAVE_FOLDER + '/feedbacks.json', 'r') as f:
                 return json.load(f)
         except FileNotFoundError:
             return []

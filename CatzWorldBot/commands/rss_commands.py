@@ -24,24 +24,24 @@ class RssCommands(commands.Cog):
 
     def load_rss_channel_ids(self):
         try:
-            with open(ConstantsClass.RSS_CHANNEL_IDS_JSON_FILE, ConstantsClass.READ_FILE) as f:
+            with open(ConstantsClass.RSS_SAVE_FOLDER +ConstantsClass.RSS_CHANNEL_IDS_JSON_FILE, ConstantsClass.READ_FILE) as f:
                 return json.load(f)
         except FileNotFoundError:
             return {}
 
     def save_rss_channel_ids(self):
-        with open(ConstantsClass.RSS_CHANNEL_IDS_JSON_FILE, ConstantsClass.WRITE_TO_FILE) as f:
+        with open(ConstantsClass.RSS_SAVE_FOLDER +ConstantsClass.RSS_CHANNEL_IDS_JSON_FILE, ConstantsClass.WRITE_TO_FILE) as f:
             json.dump(self.rss_channel_ids, f)
 
     def load_sent_rss_titles(self):
         try:
-            with open(ConstantsClass.SENT_RSS_TITLES_JSON_FILE, ConstantsClass.READ_FILE) as f:
+            with open(ConstantsClass.RSS_SAVE_FOLDER +ConstantsClass.SENT_RSS_TITLES_JSON_FILE, ConstantsClass.READ_FILE) as f:
                 return json.load(f)
         except FileNotFoundError:
             return []
 
     def save_sent_rss_titles(self):
-        with open(ConstantsClass.SENT_RSS_TITLES_JSON_FILE, ConstantsClass.WRITE_TO_FILE) as f:
+        with open(ConstantsClass.RSS_SAVE_FOLDER +ConstantsClass.SENT_RSS_TITLES_JSON_FILE, ConstantsClass.WRITE_TO_FILE) as f:
             json.dump(self.sent_rss_titles, f)
 
     async def last_rss_loop(self, channel):

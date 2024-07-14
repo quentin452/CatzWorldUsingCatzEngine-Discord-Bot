@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 import json
 import asyncio
+from Constants import ConstantsClass
 
 class TicketCommands(commands.Cog):
     def __init__(self, bot):
@@ -23,46 +24,46 @@ class TicketCommands(commands.Cog):
         
     def load_ticket_channel_id(self):
         try:
-            with open('ticket_channel_id.json', 'r') as f:
+            with open(ConstantsClass.TICKET_SAVE_FOLDER + '/ticket_channel_id.json', 'r') as f:
                 return int(json.load(f))  # Return the channel ID as an integer
         except FileNotFoundError:
             return None  # Return None if file not found
 
     def save_ticket_channel_id(self):
-        with open('ticket_channel_id.json', 'w') as f:
+        with open(ConstantsClass.TICKET_SAVE_FOLDER + '/ticket_channel_id.json', 'w') as f:
             json.dump(self.ticket_channel_id, f)
 
     def load_ticket_counter(self):
         try:
-            with open('ticket_counter.json', 'r') as f:
+            with open(ConstantsClass.TICKET_SAVE_FOLDER + '/ticket_counter.json', 'r') as f:
                 return json.load(f)
         except FileNotFoundError:
             return 0
 
     def save_ticket_counter(self):
-        with open('ticket_counter.json', 'w') as f:
+        with open(ConstantsClass.TICKET_SAVE_FOLDER + '/ticket_counter.json', 'w') as f:
             json.dump(self.ticket_counter, f)
 
     def load_tickets(self):
         try:
-            with open('tickets.json', 'r') as f:
+            with open(ConstantsClass.TICKET_SAVE_FOLDER + '/tickets.json', 'r') as f:
                 return json.load(f)
         except FileNotFoundError:
             return []
 
     def save_tickets(self):
-        with open('tickets.json', 'w') as f:
+        with open(ConstantsClass.TICKET_SAVE_FOLDER + '/tickets.json', 'w') as f:
             json.dump(self.tickets, f)
 
     def load_ticket_messages(self):
         try:
-            with open('ticket_messages.json', 'r') as f:
+            with open(ConstantsClass.TICKET_SAVE_FOLDER + '/ticket_messages.json', 'r') as f:
                 return json.load(f)
         except FileNotFoundError:
             return {}
 
     def save_ticket_messages(self):
-        with open('ticket_messages.json', 'w') as f:
+        with open(ConstantsClass.TICKET_SAVE_FOLDER + '/ticket_messages.json', 'w') as f:
             json.dump(self.ticket_messages, f)
 
     async def send_close_ticket_buttons(self):

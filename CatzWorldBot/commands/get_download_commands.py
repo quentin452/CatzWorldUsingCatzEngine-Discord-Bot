@@ -21,24 +21,24 @@ class DownloadCommands(commands.Cog):
 
     def load_download_channel_ids(self):
         try:
-            with open('download_channel_ids.json', ConstantsClass.READ_FILE) as f:
+            with open(ConstantsClass.DOWNLOAD_SAVE_FOLDER + '/download_channel_ids.json', ConstantsClass.READ_FILE) as f:
                 return json.load(f)
         except FileNotFoundError:
             return {}
 
     def save_download_channel_ids(self):
-        with open('download_channel_ids.json', ConstantsClass.WRITE_TO_FILE) as f:
+        with open(ConstantsClass.DOWNLOAD_SAVE_FOLDER + '/download_channel_ids.json', ConstantsClass.WRITE_TO_FILE) as f:
             json.dump(self.download_channel_ids, f)
 
     def load_sent_download_ids(self):
         try:
-            with open('sent_download_ids.json', ConstantsClass.READ_FILE) as f:
+            with open(ConstantsClass.DOWNLOAD_SAVE_FOLDER + '/sent_download_ids.json', ConstantsClass.READ_FILE) as f:
                 return json.load(f)
         except FileNotFoundError:
             return []
 
     def save_sent_download_ids(self):
-        with open('sent_download_ids.json', ConstantsClass.WRITE_TO_FILE) as f:
+        with open(ConstantsClass.DOWNLOAD_SAVE_FOLDER + '/sent_download_ids.json', ConstantsClass.WRITE_TO_FILE) as f:
             json.dump(self.sent_download_ids, f)
 
     async def fetch_uploads(self):

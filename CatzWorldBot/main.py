@@ -49,7 +49,7 @@ async def on_ready():
     await load_extensions()
 
 @bot.event
-async def on_command_error(ctx, error):
+async def on_commanderror(ctx, error):
     if isinstance(error, commands.CommandNotFound):
         await ctx.send("Commande introuvable.")
     elif isinstance(error, commands.MissingRequiredArgument):
