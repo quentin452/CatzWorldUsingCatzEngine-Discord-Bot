@@ -6,18 +6,20 @@ import asyncio
 class TicketCommands(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.ticket_channel_id = self.load_ticket_channel_id()  # Chargement initial du canal de ticket
         self.ticket_counter = self.load_ticket_counter()
         self.tickets = self.load_tickets()
         self.delete_lock = asyncio.Lock()
-        self.delete_messages = True  # Variable pour contrôler la suppression des messages
+        self.delete_messages = True 
+        self.ticket_channel_id = self.load_ticket_channel_id()
+        if self.ticket_channel_id:
+            bot.loop.create_task(self.delete_bot_messages())
 
     def load_ticket_channel_id(self):
         try:
             with open('ticket_channel_id.json', 'r') as f:
-                return int(json.load(f))  # Charger l'ID du canal en tant qu'entier
+                return int(json.load(f))  # Return the channel ID as an integer
         except FileNotFoundError:
-            return None
+            return None  # Return None if file not found
 
     def save_ticket_channel_id(self):
         with open('ticket_channel_id.json', 'w') as f:
@@ -66,7 +68,7 @@ class TicketCommands(commands.Cog):
                     if len(deleted) == 0:
                         print("No more bot messages to delete. Stopping message deletion.")
                         self.delete_messages = False
-                        await self.get_ticket_channel(channel)  # Call get_ticket_channel when stopping deletion
+                        await self.send_ticket_creation_message(channel)  # Call send_ticket_channel_info when stopping deletion
                         return
 
                 except discord.HTTPException as e:
@@ -82,19 +84,20 @@ class TicketCommands(commands.Cog):
                     print(f"An error occurred: {e}")
                     return
 
-    async def get_ticket_channel(self, channel):
-        embed = discord.Embed(
-            title="Ticket Channel Information",
-            description=f"The ticket channel is set to {channel.mention}. Message deletion has stopped.",
-            color=discord.Color.blue()
-        )
-        await channel.send(embed=embed)
-
-
-    @commands.Cog.listener()
-    async def on_ready(self):
-        await self.delete_bot_messages()
-        print('Bot is ready.')
+    async def send_ticket_creation_message(self, channel):
+        try:
+            embed = discord.Embed(
+                title="Open A Ticket",
+                description="If you need help / want to apply as staff,\nthen open a ticket!\n\nTo open a ticket, press the button.",
+                color=discord.Color.blue()
+            )
+            view = TicketView(self)
+            await channel.send(embed=embed, view=view)
+            await channel.send(f"Ticket channel set to {channel.mention}")
+        except discord.HTTPException as e:
+            print(f"Failed to send ticket creation message: {e}")
+        except Exception as e:
+            print(f"An error occurred while sending ticket creation message: {e}")
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -103,11 +106,23 @@ class TicketCommands(commands.Cog):
                 return  # Don't delete messages if delete_messages is False
             await self.delete_bot_messages()
 
+    @commands.Cog.listener()
+    async def on_interaction(self, interaction):
+        if interaction.type == discord.InteractionType.component:
+            if interaction.data["custom_id"] == "close_ticket":
+                ctx = await self.bot.get_context(interaction.message)
+                ticket_id = int(interaction.data["values"][0])
+                await self.close_ticket(ctx, ticket_id=ticket_id)
+                await interaction.response.send_message("Ticket fermé", ephemeral=True)
+
     @commands.command()
     @commands.has_permissions(administrator=True)
     async def set_ticket_channel(self, ctx):
         self.ticket_channel_id = ctx.channel.id
         self.save_ticket_channel_id()
+        if not self.delete_messages:
+            self.delete_messages = True  # Activer la suppression des messages si ce n'était pas déjà le cas
+            await self.delete_bot_messages()  # Démarre le processus de suppression des messages
         embed = discord.Embed(
             title="Open A Ticket",
             description="If you need help / want to apply as staff,\nthen open a ticket!\n\nTo open a ticket, press the button.",
@@ -116,9 +131,9 @@ class TicketCommands(commands.Cog):
         view = TicketView(self)
         await ctx.send(embed=embed, view=view)
         await ctx.send(f"Ticket channel set to {ctx.channel.mention}")
-
+        
     @commands.command()
-    async def create_ticket(self, ctx, *, description):
+    async def create_ticket(self, user, ctx, *, description):
         async with self.delete_lock:
             if not self.ticket_channel_id:
                 await ctx.send("Ticket channel not set.")
@@ -131,14 +146,15 @@ class TicketCommands(commands.Cog):
             new_ticket_channel = await guild.create_text_channel(f'ticket-{self.ticket_counter}', category=category)
 
             await new_ticket_channel.set_permissions(guild.default_role, read_messages=False)
-            await new_ticket_channel.set_permissions(ctx.author, read_messages=True, send_messages=True)
+            await new_ticket_channel.set_permissions(user, read_messages=True, send_messages=True)
             for role in guild.roles:
                 if role.permissions.administrator:
                     await new_ticket_channel.set_permissions(role, read_messages=True, send_messages=True)
 
             ticket = {
                 'ticket_id': self.ticket_counter,
-                'user_id': ctx.author.id,
+                'user_id': user.id,
+                'user': user.name,
                 'description': description,
                 'channel_id': new_ticket_channel.id
             }
@@ -146,14 +162,17 @@ class TicketCommands(commands.Cog):
             self.save_tickets()
 
             ticket_embed = discord.Embed(title=f"Ticket #{self.ticket_counter}", description=description, color=discord.Color.blue())
-            ticket_embed.set_author(name=ctx.author.name, icon_url=ctx.author.avatar.url)
+            ticket_embed.set_author(name=user.name, icon_url=user.avatar.url)
             view = discord.ui.View()
             view.add_item(CloseTicketButton(self, self.ticket_counter))
-            await new_ticket_channel.send(embed=ticket_embed, view=view)
+
+            # Construction du message sans mention automatique
+            ticket_message = f"{user.mention}, votre ticket a été créé!"
+            await new_ticket_channel.send(ticket_message, embed=ticket_embed, view=view)
 
             self.ticket_counter += 1
             self.save_ticket_counter()
-
+            
     @commands.command()
     @commands.has_permissions(administrator=True)
     async def close_ticket(self, ctx, ticket_id: int):
@@ -169,11 +188,19 @@ class TicketCommands(commands.Cog):
                 await ctx.send(f"Ticket channel for ticket #{ticket_id} not found. It might have already been deleted.")
                 return
 
+            # Fetching user who created the ticket
+            user_id = ticket['user_id']
+            user = self.bot.get_user(user_id)
+
             try:
                 await channel.delete()
                 self.tickets = [t for t in self.tickets if t['ticket_id'] != ticket_id]
                 self.save_tickets()
-                await ctx.send(f"Ticket #{ticket_id} closed and deleted.")
+
+                if user:
+                    await ctx.send(f"Ticket #{ticket_id} closed and deleted. {user.mention} a été pingé.", allowed_mentions=discord.AllowedMentions(users=True))
+                else:
+                    await ctx.send(f"Ticket #{ticket_id} closed and deleted. (User not found)")
             except discord.errors.NotFound:
                 pass
             except discord.errors.Forbidden:
@@ -190,7 +217,6 @@ class TicketView(discord.ui.View):
     async def open_ticket_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         modal = OpenTicketModal(self.cog)
         try:
-            await interaction.response.send_message("Opening Ticket...", ephemeral=True)
             await modal.callback(interaction)
         except discord.HTTPException as e:
             await interaction.response.send_message(f"Failed to open ticket: {e}", ephemeral=True)
@@ -206,8 +232,17 @@ class OpenTicketModal(discord.ui.Modal):
     async def callback(self, interaction: discord.Interaction):
         description = self.children[0].value
         ctx = await self.cog.bot.get_context(interaction.message)
-        await self.cog.create_ticket(ctx, description=description)
-        await interaction.followup.send("Ticket created!", ephemeral=True)
+        
+        try:
+            # Create the ticket using the cog's create_ticket method
+            await self.cog.create_ticket(interaction.user, ctx, description=description)
+            
+            # Send an ephemeral follow-up message to the interaction to indicate success
+            await interaction.response.send_message("Ticket created!", ephemeral=True)
+        except discord.HTTPException as e:
+            await interaction.followup.send(f"Failed to send follow-up message: {e}", ephemeral=True)
+        except Exception as e:
+            await interaction.followup.send(f"An unexpected error occurred: {e}", ephemeral=True)
 
 class CloseTicketButton(discord.ui.Button):
     def __init__(self, cog, ticket_id):
