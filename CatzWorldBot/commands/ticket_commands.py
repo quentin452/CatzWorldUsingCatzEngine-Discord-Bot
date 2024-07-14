@@ -1,3 +1,5 @@
+# fix "Ticket created!" print can be created multiple at once 
+# fix cannot use  await interaction.response.send_modal(modal)
 # fix when relaunching bot , cannot clicks on buttons like Close Ticket/Open Ticket
 # add persistant data structure to save tickets messages
 import discord
@@ -73,7 +75,7 @@ class TicketCommands(commands.Cog):
                     if len(deleted) == 0:
                         print("No more bot messages to delete. Stopping message deletion.")
                         self.delete_messages = False
-                        await self.send_ticket_creation_message(channel)  # Call send_ticket_channel_info when stopping deletion
+                        await self.send_ticket_creation_message(channel)
                         return
 
                 except discord.HTTPException as e:
@@ -107,11 +109,10 @@ class TicketCommands(commands.Cog):
     @commands.Cog.listener()
     async def on_interaction(self, interaction):
         if interaction.type == discord.InteractionType.component:
-            if interaction.data["custom_id"] == "close_ticket":
-                ctx = await self.bot.get_context(interaction.message)
-                ticket_id = int(interaction.data["values"][0])
-                await self.close_ticket(ctx, ticket_id=ticket_id)
-                await interaction.response.send_message("Ticket fermé", ephemeral=True)
+            if interaction.data["custom_id"].startswith("close_ticket"):
+                ticket_id = int(interaction.data["custom_id"].split("_")[-1])
+                await self.close_ticket(interaction, ticket_id=ticket_id)
+                await interaction.response.send_message("Ticket fermé", phemeral=True)
 
     @commands.command()
     @commands.has_permissions(administrator=True)
@@ -119,61 +120,74 @@ class TicketCommands(commands.Cog):
         self.ticket_channel_id = ctx.channel.id
         self.save_ticket_channel_id()
         if not self.delete_messages:
-            self.delete_messages = True  # Activer la suppression des messages si ce n'était pas déjà le cas
-            await self.delete_bot_messages()  # Démarre le processus de suppression des messages
+            self.delete_messages = True
+            await self.delete_bot_messages()
             
-    @commands.command()
-    async def create_ticket(self, user, ctx, *, description):
+    async def create_ticket(self, user, interaction, description):
         async with self.delete_lock:
-            if not self.ticket_channel_id:
-                await ctx.send("Ticket channel not set.")
-                return
+            try:
+                if not self.ticket_channel_id:
+                    await interaction.followup.send("Ticket channel not set.", ephemeral=True)
+                    return
 
-            now = discord.utils.utcnow()
-            last_ticket_time = self.cooldowns.get(user.id)
+                now = discord.utils.utcnow()
+                last_ticket_time = self.cooldowns.get(user.id)
 
-            if last_ticket_time and (now - last_ticket_time).total_seconds() < self.cooldown_time:
-                wait_time = self.cooldown_time - (now - last_ticket_time).total_seconds()
-                await ctx.send(f"Please wait {int(wait_time)} seconds before creating another ticket.")
-                return
+                if last_ticket_time and (now - last_ticket_time).total_seconds() < self.cooldown_time:
+                    wait_time = self.cooldown_time - (now - last_ticket_time).total_seconds()
+                    await interaction.followup.send(f"Please wait {int(wait_time)} seconds before creating another ticket.", ephemeral=True)
+                    return
 
-            guild = ctx.guild
-            ticket_channel = self.bot.get_channel(self.ticket_channel_id)
-            category = ticket_channel.category
+                guild = interaction.guild
+                ticket_channel = self.bot.get_channel(self.ticket_channel_id)
+                if not ticket_channel:
+                    await interaction.followup.send("Ticket channel not found.", ephemeral=True)
+                    return
 
-            new_ticket_channel = await guild.create_text_channel(f'ticket-{self.ticket_counter}', category=category)
+                category = ticket_channel.category
 
-            await new_ticket_channel.set_permissions(guild.default_role, read_messages=False)
-            await new_ticket_channel.set_permissions(user, read_messages=True, send_messages=True)
-            for role in guild.roles:
-                if role.permissions.administrator:
-                    await new_ticket_channel.set_permissions(role, read_messages=True, send_messages=True)
+                new_ticket_channel = await guild.create_text_channel(f'ticket-{self.ticket_counter}', category=category)
 
-            ticket = {
-                'ticket_id': self.ticket_counter,
-                'user_id': user.id,
-                'user': user.name,
-                'description': description,
-                'channel_id': new_ticket_channel.id
-            }
-            self.tickets.append(ticket)
-            self.save_tickets()
+                await new_ticket_channel.set_permissions(guild.default_role, read_messages=False)
+                await new_ticket_channel.set_permissions(user, read_messages=True, send_messages=True)
+                for role in guild.roles:
+                    if role.permissions.administrator:
+                        await new_ticket_channel.set_permissions(role, read_messages=True, send_messages=True)
 
-            ticket_embed = discord.Embed(title=f"Ticket #{self.ticket_counter}", description=description, color=discord.Color.blue())
-            ticket_embed.set_author(name=user.name, icon_url=user.avatar.url)
-            view = discord.ui.View()
-            view.add_item(CloseTicketButton(self, self.ticket_counter))
+                ticket_message = f"{user.mention}, votre ticket a été créé!"
+                ticket_embed = discord.Embed(title=f"Ticket #{self.ticket_counter}", description=description, color=discord.Color.blue())
+                ticket_embed.set_author(name=user.name, icon_url=user.avatar.url)
+                view = TicketView(self)
+                view.add_item(CloseTicketButton(self, self.ticket_counter))
 
-            # Construction du message sans mention automatique
-            ticket_message = f"{user.mention}, votre ticket a été créé!"
-            await new_ticket_channel.send(ticket_message, embed=ticket_embed, view=view)
+                await new_ticket_channel.send(ticket_message, embed=ticket_embed, view=view)
 
-            self.ticket_counter += 1
-            self.save_ticket_counter()
+                # Save ticket details to JSON
+                ticket = {
+                    'ticket_id': self.ticket_counter,
+                    'user_id': user.id,
+                    'user': user.name,
+                    'description': description,
+                    'channel_id': new_ticket_channel.id
+                }
+                self.tickets.append(ticket)
+                self.save_tickets()
 
-            # Update the last ticket creation time for the user
-            self.cooldowns[user.id] = now
-            
+                self.ticket_counter += 1
+                self.save_ticket_counter()
+
+                self.cooldowns[user.id] = now
+
+                await interaction.followup.send("Ticket created!", ephemeral=True)
+
+            except discord.HTTPException as e:
+                print(f"Failed to create ticket: {e}")
+                await interaction.followup.send(f"Failed to create ticket: {e}", ephemeral=True)
+
+            except Exception as e:
+                print(f"An unexpected error occurred: {e}")
+                await interaction.followup.send(f"An unexpected error occurred: {e}", ephemeral=True)
+
     @commands.command()
     @commands.has_permissions(administrator=True)
     async def close_ticket(self, ctx, ticket_id: int):
@@ -189,7 +203,6 @@ class TicketCommands(commands.Cog):
                 await ctx.send(f"Ticket channel for ticket #{ticket_id} not found. It might have already been deleted.")
                 return
 
-            # Fetching user who created the ticket
             user_id = ticket['user_id']
             user = self.bot.get_user(user_id)
 
@@ -208,6 +221,57 @@ class TicketCommands(commands.Cog):
                 await ctx.send(f"Failed to delete ticket channel for ticket #{ticket_id}: Permission denied.")
             except discord.HTTPException as e:
                 await ctx.send(f"Failed to delete ticket channel for ticket #{ticket_id}: {e}")
+
+class TicketView(discord.ui.View):
+    def __init__(self, cog):
+        super().__init__(timeout=None)
+        self.cog = cog
+
+    @discord.ui.button(label="Open a Ticket", style=discord.ButtonStyle.primary, custom_id="open_ticket_button")
+    async def open_ticket_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        modal = OpenTicketModal(self.cog)
+        await interaction.response.send_modal(modal)
+        
+class OpenTicketModal(discord.ui.Modal):       
+    def __init__(self, cog):
+        super().__init__(title="Open a Ticket")
+        self.cog = cog
+        self.add_item(discord.ui.TextInput(label="Description"))
+
+    async def callback(self, interaction: discord.Interaction):
+        description = self.children[0].value
+
+        now = discord.utils.utcnow()
+        last_ticket_time = self.cog.cooldowns.get(interaction.user.id)
+
+        if last_ticket_time and (now - last_ticket_time).total_seconds() < self.cog.cooldown_time:
+            wait_time = self.cog.cooldown_time - (now - last_ticket_time).total_seconds()
+            await interaction.followup.send(f"Please wait {int(wait_time)} seconds before creating another ticket.", ephemeral=True)
+            return
+
+        try:
+            await interaction.response.defer()
+            await self.cog.create_ticket(interaction.user, interaction, description=description)
+
+        except discord.HTTPException as e:
+            print(f"Failed to create ticket: {e}")
+            await interaction.followup.send(f"Failed to create ticket: {e}", ephemeral=True)
+            await self.cog.ticket_logger.log_failure(interaction.user, e)
+
+        except Exception as e:
+            print(f"An unexpected error occurred: {e}")
+            await interaction.followup.send(f"An unexpected error occurred: {e}", ephemeral=True)
+            await self.cog.ticket_logger.log_error(interaction.user, e)
+
+class CloseTicketButton(discord.ui.Button):
+    def __init__(self, cog, ticket_id):
+        super().__init__(style=discord.ButtonStyle.danger, label="Close Ticket", custom_id=f"close_ticket_{ticket_id}")
+        self.cog = cog
+        self.ticket_id = ticket_id
+
+    async def callback(self, interaction: discord.Interaction):
+        ctx = await self.cog.bot.get_context(interaction.message)
+        await self.cog.close_ticket(ctx, ticket_id=self.ticket_id)
 
 class TicketView(discord.ui.View):
     def __init__(self, cog):
@@ -271,3 +335,58 @@ class CloseTicketButton(discord.ui.Button):
 
 async def setup(bot):
     await bot.add_cog(TicketCommands(bot))
+
+"""
+
+class TicketView(discord.ui.View):
+    def __init__(self, cog):
+        super().__init__(timeout=None)
+        self.cog = cog
+
+    @discord.ui.button(label="Open a Ticket", style=discord.ButtonStyle.primary, custom_id="open_ticket_button")
+    async def open_ticket_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        modal = OpenTicketModal(self.cog)
+        await interaction.response.send_modal(modal)
+        
+class OpenTicketModal(discord.ui.Modal):       
+    def __init__(self, cog):
+        super().__init__(title="Open a Ticket")
+        self.cog = cog
+        self.add_item(discord.ui.TextInput(label="Description"))
+
+    async def callback(self, interaction: discord.Interaction):
+        description = self.children[0].value
+
+        now = discord.utils.utcnow()
+        last_ticket_time = self.cog.cooldowns.get(interaction.user.id)
+
+        if last_ticket_time and (now - last_ticket_time).total_seconds() < self.cog.cooldown_time:
+            wait_time = self.cog.cooldown_time - (now - last_ticket_time).total_seconds()
+            await interaction.followup.send(f"Please wait {int(wait_time)} seconds before creating another ticket.", ephemeral=True)
+            return
+
+        try:
+            await interaction.response.defer()
+            await self.cog.create_ticket(interaction.user, interaction, description=description)
+
+        except discord.HTTPException as e:
+            print(f"Failed to create ticket: {e}")
+            await interaction.followup.send(f"Failed to create ticket: {e}", ephemeral=True)
+            await self.cog.ticket_logger.log_failure(interaction.user, e)
+
+        except Exception as e:
+            print(f"An unexpected error occurred: {e}")
+            await interaction.followup.send(f"An unexpected error occurred: {e}", ephemeral=True)
+            await self.cog.ticket_logger.log_error(interaction.user, e)
+
+class CloseTicketButton(discord.ui.Button):
+    def __init__(self, cog, ticket_id):
+        super().__init__(style=discord.ButtonStyle.danger, label="Close Ticket", custom_id=f"close_ticket_{ticket_id}")
+        self.cog = cog
+        self.ticket_id = ticket_id
+
+    async def callback(self, interaction: discord.Interaction):
+        ctx = await self.cog.bot.get_context(interaction.message)
+        await self.cog.close_ticket(ctx, ticket_id=self.ticket_id)
+
+"""
