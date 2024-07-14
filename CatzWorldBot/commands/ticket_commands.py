@@ -1,6 +1,3 @@
-# fix "Ticket created!" print can be created multiple at once 
-# fix when relaunching bot , cannot clicks on buttons like Close Ticket/Open Ticket
-# add persistant data structure to save tickets messages
 import discord
 from discord.ext import commands
 import json
