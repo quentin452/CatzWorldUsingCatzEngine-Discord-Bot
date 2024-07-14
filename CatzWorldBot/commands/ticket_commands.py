@@ -1,4 +1,3 @@
-# todo add a timer to not create alot of tickets at the same time
 # fix when relaunching bot , cannot clicks on buttons like Close Ticket/Open Ticket
 # add persistant data structure to save tickets messages
 import discord
@@ -12,8 +11,11 @@ class TicketCommands(commands.Cog):
         self.ticket_counter = self.load_ticket_counter()
         self.tickets = self.load_tickets()
         self.delete_lock = asyncio.Lock()
-        self.delete_messages = True 
+        self.delete_messages = True
         self.ticket_channel_id = self.load_ticket_channel_id()
+        self.cooldowns = {}
+        self.cooldown_time = 10
+
         if self.ticket_channel_id:
             bot.loop.create_task(self.delete_bot_messages())
 
@@ -119,20 +121,20 @@ class TicketCommands(commands.Cog):
         if not self.delete_messages:
             self.delete_messages = True  # Activer la suppression des messages si ce n'était pas déjà le cas
             await self.delete_bot_messages()  # Démarre le processus de suppression des messages
-        embed = discord.Embed(
-            title="Open A Ticket",
-            description="If you need help / want to apply as staff,\nthen open a ticket!\n\nTo open a ticket, press the button.",
-            color=discord.Color.blue()
-        )
-        view = TicketView(self)
-        await ctx.send(embed=embed, view=view)
-        await ctx.send(f"Ticket channel set to {ctx.channel.mention}")
-        
+            
     @commands.command()
     async def create_ticket(self, user, ctx, *, description):
         async with self.delete_lock:
             if not self.ticket_channel_id:
                 await ctx.send("Ticket channel not set.")
+                return
+
+            now = discord.utils.utcnow()
+            last_ticket_time = self.cooldowns.get(user.id)
+
+            if last_ticket_time and (now - last_ticket_time).total_seconds() < self.cooldown_time:
+                wait_time = self.cooldown_time - (now - last_ticket_time).total_seconds()
+                await ctx.send(f"Please wait {int(wait_time)} seconds before creating another ticket.")
                 return
 
             guild = ctx.guild
@@ -168,6 +170,9 @@ class TicketCommands(commands.Cog):
 
             self.ticket_counter += 1
             self.save_ticket_counter()
+
+            # Update the last ticket creation time for the user
+            self.cooldowns[user.id] = now
             
     @commands.command()
     @commands.has_permissions(administrator=True)
@@ -215,9 +220,9 @@ class TicketView(discord.ui.View):
         try:
             await modal.callback(interaction)
         except discord.HTTPException as e:
-            await interaction.response.send_message(f"Failed to open ticket: {e}", ephemeral=True)
+            await interaction.followup.send(f"Failed to open ticket: {e}", ephemeral=True)
         except Exception as e:
-            await interaction.response.send_message(f"An unexpected error occurred: {e}", ephemeral=True)
+            await interaction.followup.send(f"An unexpected error occurred: {e}", ephemeral=True)
 
 class OpenTicketModal(discord.ui.Modal):
     def __init__(self, cog):
@@ -228,16 +233,28 @@ class OpenTicketModal(discord.ui.Modal):
     async def callback(self, interaction: discord.Interaction):
         description = self.children[0].value
         ctx = await self.cog.bot.get_context(interaction.message)
-        
+
+        now = discord.utils.utcnow()
+        last_ticket_time = self.cog.cooldowns.get(interaction.user.id)
+
+        if last_ticket_time and (now - last_ticket_time).total_seconds() < self.cog.cooldown_time:
+            wait_time = self.cog.cooldown_time - (now - last_ticket_time).total_seconds()
+            await interaction.followup.send(f"Please wait {int(wait_time)} seconds before creating another ticket.", ephemeral=True)
+            return
+
         try:
-            # Defer the interaction response
+            # Defer the interaction response only after the cooldown check
             await interaction.response.defer()
-            
+
             # Create the ticket using the cog's create_ticket method
             await self.cog.create_ticket(interaction.user, ctx, description=description)
-            
+
+            # Update the last ticket creation time for the user
+            self.cog.cooldowns[interaction.user.id] = now
+
             # Send a follow-up message to the interaction to indicate success
             await interaction.followup.send("Ticket created!")
+
         except discord.HTTPException as e:
             await interaction.followup.send(f"Failed to create ticket: {e}")
         except Exception as e:
