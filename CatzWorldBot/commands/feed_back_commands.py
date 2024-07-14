@@ -119,7 +119,7 @@ class FeedbackCommands(commands.Cog):
         if channel:
             embed = discord.Embed(
                 title="How to submit feedback",
-                description="To submit feedback, use the command:\n\n`!submit_feedback Your feedback message here`",
+                description="To submit feedback, use the command:\n\n`/submit_feedback Your feedback message here`",
                 color=discord.Color.blue()
             )
             await channel.send(embed=embed)
