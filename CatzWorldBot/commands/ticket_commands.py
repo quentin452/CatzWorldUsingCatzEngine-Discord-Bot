@@ -1,3 +1,6 @@
+# todo add a timer to not create alot of tickets at the same time
+# fix when relaunching bot , cannot clicks on buttons like Close Ticket/Open Ticket
+# add persistant data structure to save tickets messages
 import discord
 from discord.ext import commands
 import json
@@ -98,13 +101,6 @@ class TicketCommands(commands.Cog):
             print(f"Failed to send ticket creation message: {e}")
         except Exception as e:
             print(f"An error occurred while sending ticket creation message: {e}")
-
-    @commands.Cog.listener()
-    async def on_message(self, message):
-        if message.channel.id == self.ticket_channel_id and message.author.id == self.bot.user.id:
-            if not self.delete_messages:
-                return  # Don't delete messages if delete_messages is False
-            await self.delete_bot_messages()
 
     @commands.Cog.listener()
     async def on_interaction(self, interaction):
@@ -234,22 +230,24 @@ class OpenTicketModal(discord.ui.Modal):
         ctx = await self.cog.bot.get_context(interaction.message)
         
         try:
+            # Defer the interaction response
+            await interaction.response.defer()
+            
             # Create the ticket using the cog's create_ticket method
             await self.cog.create_ticket(interaction.user, ctx, description=description)
             
-            # Send an ephemeral follow-up message to the interaction to indicate success
-            await interaction.response.send_message("Ticket created!", ephemeral=True)
+            # Send a follow-up message to the interaction to indicate success
+            await interaction.followup.send("Ticket created!")
         except discord.HTTPException as e:
-            await interaction.followup.send(f"Failed to send follow-up message: {e}", ephemeral=True)
+            await interaction.followup.send(f"Failed to create ticket: {e}")
         except Exception as e:
-            await interaction.followup.send(f"An unexpected error occurred: {e}", ephemeral=True)
+            await interaction.followup.send(f"An unexpected error occurred: {e}")
 
 class CloseTicketButton(discord.ui.Button):
     def __init__(self, cog, ticket_id):
-        super().__init__(style=discord.ButtonStyle.danger, label="Close Ticket")
+        super().__init__(style=discord.ButtonStyle.danger, label="Close Ticket", custom_id="close_ticket")
         self.cog = cog
         self.ticket_id = ticket_id
-
     async def callback(self, interaction: discord.Interaction):
         ctx = await self.cog.bot.get_context(interaction.message)
         await self.cog.close_ticket(ctx, ticket_id=self.ticket_id)
