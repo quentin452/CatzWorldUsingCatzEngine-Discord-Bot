@@ -130,26 +130,6 @@ class RssCommands(commands.Cog):
             else:
                 await ctx.send(f"**{title}**\nImpossible de récupérer la page liée.\n<{link}>")  # Encapsulate link in angle brackets
 
-    @commands.command()
-    async def get_last_rss(self, ctx):
-        feed = feedparser.parse(ConstantsClass.RSS_URL)
-        if 'entries' in feed:
-            # Récupérer uniquement le dernier article RSS
-            last_entry = feed.entries[0]
-            title = last_entry.get('title', 'Pas de titre')
-            link = last_entry.get('link', 'Pas de lien')
-            response = requests.get(link)
-            if response.status_code == 200:
-                soup = BeautifulSoup(response.content, 'html.parser')
-                section = soup.find('section', {'class': 'object_text_widget_widget base_widget user_formatted post_body'})
-                if section:
-                    content = "\n".join([line.strip() for line in section.get_text(separator='\n').splitlines() if line.strip()])
-                    await ctx.send(f"**{title}**\n```\n{content}\n```\n<{link}>")  # Encapsulate content in code block and link in angle brackets
-                else:
-                    await ctx.send(f"**{title}**\nContenu non trouvé.\n<{link}>")  # Encapsulate link in angle brackets
-            else:
-                await ctx.send(f"**{title}**\nImpossible de récupérer la page liée.\n<{link}>")  # Encapsulate link in angle brackets
-
     async def run_rss_loop(self):
         await self.bot.wait_until_ready()
         while not self.bot.is_closed():
