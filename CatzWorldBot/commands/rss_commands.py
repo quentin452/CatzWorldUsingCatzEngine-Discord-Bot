@@ -91,9 +91,9 @@ class RssCommands(commands.Cog):
                 if other:
                     embed.add_field(name="Other", value="\n".join(other), inline=False)
 
+                embed.set_image(url="https://cdn.discordapp.com/attachments/1261580670057316453/1262477940843745422/DEVLOGS.webp?ex=6696bdb4&is=66956c34&hm=ec81d9d015b61327ab4d1e2bfb5f9638c148879429a0d9c76a3c6832138f8117&")
                 # Add link to the devlog directly in the embed
                 embed.add_field(name="See the Complete Devlog", value=f"[Click Here to see details]({link})", inline=False)
-
                 return embed
             else:
                 return f"**{title}**\nContenu non trouvé.\n<{link}>"
