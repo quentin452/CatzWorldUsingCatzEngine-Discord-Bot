@@ -49,7 +49,7 @@ class RssCommands(commands.Cog):
         role = discord.utils.get(channel.guild.roles, name=ConstantsClass.ROLE_NAME)
 
         if role is None:
-            await channel.send("Le rôle " + ConstantsClass.ROLE_NAME + "n'existe pas dans ce serveur.")
+            await channel.send("Le rôle " + ConstantsClass.ROLE_NAME + " n'existe pas dans ce serveur.")
             return
 
         feed = feedparser.parse(ConstantsClass.RSS_URL)
@@ -68,12 +68,12 @@ class RssCommands(commands.Cog):
                     soup = BeautifulSoup(response.content, 'html.parser')
                     section = soup.find('section', {'class': 'object_text_widget_widget base_widget user_formatted post_body'})
                     if section:
-                        content = "\n".join([line.strip() for line in section.get_text(separator='\n').splitlines() if line.strip()])
-                        await channel.send(f"{role.mention}\n**{title}**\n```\n{content}\n```\n`{link}`")  # Encapsulate link in backticks
+                        content = section.get_text(separator='\n')  # Get the text with newlines
+                        await channel.send(f"{role.mention}\n**{title}**\n```\n{content}\n```\n<{link}>")  # Use code block and angle brackets for link
                     else:
-                        await channel.send(f"{role.mention}\n**{title}**\nContenu non trouvé.\n`{link}`")  # Encapsulate link in backticks
+                        await channel.send(f"{role.mention}\n**{title}**\nContenu non trouvé.\n<{link}>")  # Use angle brackets for link
                 else:
-                    await channel.send(f"{role.mention}\n**{title}**\nImpossible de récupérer la page liée.\n`{link}`")  # Encapsulate link in backticks
+                    await channel.send(f"{role.mention}\n**{title}**\nImpossible de récupérer la page liée.\n<{link}>")  # Use angle brackets for link
 
                 # Update sent RSS titles
                 self.sent_rss_titles.append(title)
@@ -123,13 +123,13 @@ class RssCommands(commands.Cog):
                 soup = BeautifulSoup(response.content, 'html.parser')
                 section = soup.find('section', {'class': 'object_text_widget_widget base_widget user_formatted post_body'})
                 if section:
-                    content = "\n".join([line.strip() for line in section.get_text(separator='\n').splitlines() if line.strip()])
-                    await ctx.send(f"**{title}**\n```\n{content}\n```\n<{link}>")  # Encapsulate content in code block and link in angle brackets
+                    content = section.get_text(separator='\n')  # Obtenir le texte avec des sauts de ligne
+                    await ctx.send(f"**{title}**\n```\n{content}\n```\n<{link}>")  # Utiliser des blocs de code et des chevrons pour le lien
                 else:
-                    await ctx.send(f"**{title}**\nContenu non trouvé.\n<{link}>")  # Encapsulate link in angle brackets
+                    await ctx.send(f"**{title}**\nContenu non trouvé.\n<{link}>")  # Utiliser des chevrons pour le lien
             else:
-                await ctx.send(f"**{title}**\nImpossible de récupérer la page liée.\n<{link}>")  # Encapsulate link in angle brackets
-
+                await ctx.send(f"**{title}**\nImpossible de récupérer la page liée.\n<{link}>")  # Utiliser des chevrons pour le lien
+                
     async def run_rss_loop(self):
         await self.bot.wait_until_ready()
         while not self.bot.is_closed():
