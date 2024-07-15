@@ -2,13 +2,12 @@ import discord
 from discord.ext import commands
 import feedparser
 import requests
-import asyncio
+import re
 from bs4 import BeautifulSoup
 import json
-import re
 from Constants import ConstantsClass
-
 from config import load_config
+import asyncio
 
 config = load_config()
 api_key = config['api_key']
@@ -22,39 +21,93 @@ class RssCommands(commands.Cog):
         self.rss_channel_ids = self.load_rss_channel_ids()
         self.sent_rss_titles = self.load_sent_rss_titles()  # Load sent RSS titles from file
         self.bot.loop.create_task(self.run_rss_loop())
+        self.sent_rss_titles = []  # Initialize as needed
+        self.rss_channel_ids = {}  # Initialize as needed
 
     def load_rss_channel_ids(self):
         try:
-            with open(ConstantsClass.RSS_SAVE_FOLDER +ConstantsClass.RSS_CHANNEL_IDS_JSON_FILE, ConstantsClass.READ_FILE) as f:
+            with open(ConstantsClass.RSS_SAVE_FOLDER + ConstantsClass.RSS_CHANNEL_IDS_JSON_FILE, ConstantsClass.READ_FILE) as f:
                 return json.load(f)
         except FileNotFoundError:
             return {}
 
     def save_rss_channel_ids(self):
-        with open(ConstantsClass.RSS_SAVE_FOLDER +ConstantsClass.RSS_CHANNEL_IDS_JSON_FILE, ConstantsClass.WRITE_TO_FILE) as f:
+        with open(ConstantsClass.RSS_SAVE_FOLDER + ConstantsClass.RSS_CHANNEL_IDS_JSON_FILE, ConstantsClass.WRITE_TO_FILE) as f:
             json.dump(self.rss_channel_ids, f)
 
     def load_sent_rss_titles(self):
         try:
-            with open(ConstantsClass.RSS_SAVE_FOLDER +ConstantsClass.SENT_RSS_TITLES_JSON_FILE, ConstantsClass.READ_FILE) as f:
+            with open(ConstantsClass.RSS_SAVE_FOLDER + ConstantsClass.SENT_RSS_TITLES_JSON_FILE, ConstantsClass.READ_FILE) as f:
                 return json.load(f)
         except FileNotFoundError:
             return []
 
     def save_sent_rss_titles(self):
-        with open(ConstantsClass.RSS_SAVE_FOLDER +ConstantsClass.SENT_RSS_TITLES_JSON_FILE, ConstantsClass.WRITE_TO_FILE) as f:
+        with open(ConstantsClass.RSS_SAVE_FOLDER + ConstantsClass.SENT_RSS_TITLES_JSON_FILE, ConstantsClass.WRITE_TO_FILE) as f:
             json.dump(self.sent_rss_titles, f)
 
     def remove_extra_newlines(self, text):
-            # Replace multiple newlines with a single newline
-            return re.sub(r'\n\s*\n+', '\n\n', text)
-            
+        # Replace multiple newlines with a single newline
+        return re.sub(r'\n\s*\n+', '\n\n', text)
+
+    async def generate_embed_from_entry(self, entry):
+        title = entry.get('title', 'Pas de titre')
+        link = entry.get('link', 'Pas de lien')
+        response = requests.get(link)
+
+        if response.status_code == 200:
+            soup = BeautifulSoup(response.content, 'html.parser')
+            section = soup.find('section', {'class': 'object_text_widget_widget base_widget user_formatted post_body'})
+
+            if section:
+                content = section.get_text(separator='\n')
+                content = self.remove_extra_newlines(content)
+
+                added = []
+                fixed = []
+                removed = []
+                other = []
+
+                for line in content.split('\n'):
+                    stripped_line = line.strip()
+                    if stripped_line:
+                        if 'Added' in stripped_line or 'Add' in stripped_line:
+                            added.append(f"<:Added:1262441172580831253> {stripped_line}")
+                        elif 'Fixed' in stripped_line or 'Fix' in stripped_line or 'HotFix' in stripped_line:
+                            fixed.append(f"<:Fixed:1262441171339448451> {stripped_line}")
+                        elif 'Removed' in stripped_line or 'Delete' in stripped_line or 'Remove' in stripped_line:
+                            removed.append(f"<:Removed:1262441169904730142> {stripped_line}")
+                        else:
+                            other.append(f"<:Other:1262453577872576554> {stripped_line}")
+
+                embed = discord.Embed(title=title, url=link, color=discord.Color.blue())
+
+                if added:
+                    embed.add_field(name="Added", value="\n".join(added), inline=False)
+                if fixed:
+                    embed.add_field(name="Fixed", value="\n".join(fixed), inline=False)
+                if removed:
+                    embed.add_field(name="Removed", value="\n".join(removed), inline=False)
+                if other:
+                    embed.add_field(name="Other", value="\n".join(other), inline=False)
+
+                embed.add_field(name="See the Complete Devlog", value=f"[Click Here]({link})", inline=False)
+
+                return embed
+            else:
+                return f"**{title}**\nContenu non trouvé.\n<{link}>"
+        else:
+            return f"**{title}**\nImpossible de récupérer la page liée.\n<{link}>"
+
+    async def send_button_message(self, channel, emoji, message, link):
+        message_content = f"{emoji} {message}"
+        await channel.send(message_content)
+
     async def last_rss_loop(self, channel):
-        # Obtenez le rôle que vous voulez mentionner
         role = discord.utils.get(channel.guild.roles, name=ConstantsClass.ROLE_NAME)
 
         if role is None:
-            await channel.send("Le rôle " + ConstantsClass.ROLE_NAME + " n'existe pas dans ce serveur.")
+            await channel.send(f"Le rôle {ConstantsClass.ROLE_NAME} n'existe pas dans ce serveur.")
             return
 
         feed = feedparser.parse(ConstantsClass.RSS_URL)
@@ -65,55 +118,37 @@ class RssCommands(commands.Cog):
                 return
 
             for entry in new_entries:
-                title = entry.get('title', 'Pas de titre')
-                link = entry.get('link', 'Pas de lien')
-
-                response = requests.get(link)
-                if response.status_code == 200:
-                    soup = BeautifulSoup(response.content, 'html.parser')
-                    section = soup.find('section', {'class': 'object_text_widget_widget base_widget user_formatted post_body'})
-                    if section:
-                        content = section.get_text(separator='\n')  # Get the text with newlines
-                        content = self.remove_extra_newlines(content)  # Remove extra newlines
-                        await channel.send(f"{role.mention}\n**{title}**\n```\n{content}\n```\n<{link}>")  # Use code block and angle brackets for link
-                    else:
-                        await channel.send(f"{role.mention}\n**{title}**\nContenu non trouvé.\n<{link}>")  # Use angle brackets for link
+                embed_or_message = await self.generate_embed_from_entry(entry)
+                if isinstance(embed_or_message, discord.Embed):
+                    await channel.send(content=f"{role.mention}", embed=embed_or_message)
                 else:
-                    await channel.send(f"{role.mention}\n**{title}**\nImpossible de récupérer la page liée.\n<{link}>")  # Use angle brackets for link
+                    await channel.send(f"{role.mention}\n{embed_or_message}")
 
                 # Update sent RSS titles
-                self.sent_rss_titles.append(title)
+                self.sent_rss_titles.append(entry.get('title'))
                 self.save_sent_rss_titles()  # Save sent RSS titles to file
                 break  # Only process the first new entry for now
         else:
-            await channel.send(f'{role.mention} Impossible de récupérer le flux RSS.')
+            await channel.send(f"{role.mention} Impossible de récupérer le flux RSS.")
 
     @commands.command()
     async def set_rss_channel(self, ctx):
         self.rss_channel_ids[str(ctx.guild.id)] = ctx.channel.id
         self.save_rss_channel_ids()
         await ctx.send(f"L'ID du salon pour les messages RSS a été défini sur {ctx.channel.id} pour le serveur {ctx.guild.name}")
-        
+
     @commands.command()
     @commands.has_permissions(administrator=True)
     async def get_all_rss(self, ctx):
         feed = feedparser.parse(ConstantsClass.RSS_URL)
         if 'entries' in feed:
             for entry in feed.entries:
-                title = entry.get('title', 'Pas de titre')
-                link = entry.get('link', 'Pas de lien')
-                response = requests.get(link)
-                if response.status_code == 200:
-                    soup = BeautifulSoup(response.content, 'html.parser')
-                    section = soup.find('section', {'class': 'object_text_widget_widget base_widget user_formatted post_body'})
-                    if section:
-                        content = section.get_text(separator='\n')  # Get the text with newlines
-                        content = self.remove_extra_newlines(content)  # Remove extra newlines
-                        await ctx.send(f"**{title}**\n```\n{content}\n```\n<{link}>")  # Encapsulate content in code block and link in angle brackets
-                    else:
-                        await ctx.send(f"**{title}**\nContenu non trouvé.\n<{link}>")  # Encapsulate link in angle brackets
+                embed_or_message = await self.generate_embed_from_entry(entry)
+                if isinstance(embed_or_message, discord.Embed):
+                    embed = embed_or_message
+                    await ctx.send(embed=embed)
                 else:
-                    await ctx.send(f"**{title}**\nImpossible de récupérer la page liée.\n<{link}>")  # Encapsulate link in angle brackets
+                    await ctx.send(embed_or_message)
         else:
             await ctx.send('Impossible de récupérer le flux RSS.')
 
@@ -121,23 +156,16 @@ class RssCommands(commands.Cog):
     async def get_last_rss(self, ctx):
         feed = feedparser.parse(ConstantsClass.RSS_URL)
         if 'entries' in feed:
-            # Récupérer uniquement le dernier article RSS
             last_entry = feed.entries[0]
-            title = last_entry.get('title', 'Pas de titre')
-            link = last_entry.get('link', 'Pas de lien')
-            response = requests.get(link)
-            if response.status_code == 200:
-                soup = BeautifulSoup(response.content, 'html.parser')
-                section = soup.find('section', {'class': 'object_text_widget_widget base_widget user_formatted post_body'})
-                if section:
-                    content = section.get_text(separator='\n')  # Obtenir le texte avec des sauts de ligne
-                    content = self.remove_extra_newlines(content)  # Remove extra newlines
-                    await ctx.send(f"**{title}**\n```\n{content}\n```\n<{link}>")  # Utiliser des blocs de code et des chevrons pour le lien
-                else:
-                    await ctx.send(f"**{title}**\nContenu non trouvé.\n<{link}>")  # Utiliser des chevrons pour le lien
+            embed_or_message = await self.generate_embed_from_entry(last_entry)
+            if isinstance(embed_or_message, discord.Embed):
+                embed = embed_or_message
+                await ctx.send(embed=embed)
             else:
-                await ctx.send(f"**{title}**\nImpossible de récupérer la page liée.\n<{link}>")  # Utiliser des chevrons pour le lien
-                
+                await ctx.send(embed_or_message)
+        else:
+            await ctx.send('Impossible de récupérer le flux RSS.')
+
     async def run_rss_loop(self):
         await self.bot.wait_until_ready()
         while not self.bot.is_closed():
