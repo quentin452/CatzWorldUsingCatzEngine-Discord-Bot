@@ -5,6 +5,7 @@ import requests
 import asyncio
 from bs4 import BeautifulSoup
 import json
+import re
 from Constants import ConstantsClass
 
 from config import load_config
@@ -44,6 +45,10 @@ class RssCommands(commands.Cog):
         with open(ConstantsClass.RSS_SAVE_FOLDER +ConstantsClass.SENT_RSS_TITLES_JSON_FILE, ConstantsClass.WRITE_TO_FILE) as f:
             json.dump(self.sent_rss_titles, f)
 
+    def remove_extra_newlines(self, text):
+            # Replace multiple newlines with a single newline
+            return re.sub(r'\n\s*\n+', '\n\n', text)
+            
     async def last_rss_loop(self, channel):
         # Obtenez le rôle que vous voulez mentionner
         role = discord.utils.get(channel.guild.roles, name=ConstantsClass.ROLE_NAME)
@@ -69,6 +74,7 @@ class RssCommands(commands.Cog):
                     section = soup.find('section', {'class': 'object_text_widget_widget base_widget user_formatted post_body'})
                     if section:
                         content = section.get_text(separator='\n')  # Get the text with newlines
+                        content = self.remove_extra_newlines(content)  # Remove extra newlines
                         await channel.send(f"{role.mention}\n**{title}**\n```\n{content}\n```\n<{link}>")  # Use code block and angle brackets for link
                     else:
                         await channel.send(f"{role.mention}\n**{title}**\nContenu non trouvé.\n<{link}>")  # Use angle brackets for link
@@ -101,7 +107,8 @@ class RssCommands(commands.Cog):
                     soup = BeautifulSoup(response.content, 'html.parser')
                     section = soup.find('section', {'class': 'object_text_widget_widget base_widget user_formatted post_body'})
                     if section:
-                        content = "\n".join([line.strip() for line in section.get_text(separator='\n').splitlines() if line.strip()])
+                        content = section.get_text(separator='\n')  # Get the text with newlines
+                        content = self.remove_extra_newlines(content)  # Remove extra newlines
                         await ctx.send(f"**{title}**\n```\n{content}\n```\n<{link}>")  # Encapsulate content in code block and link in angle brackets
                     else:
                         await ctx.send(f"**{title}**\nContenu non trouvé.\n<{link}>")  # Encapsulate link in angle brackets
@@ -124,6 +131,7 @@ class RssCommands(commands.Cog):
                 section = soup.find('section', {'class': 'object_text_widget_widget base_widget user_formatted post_body'})
                 if section:
                     content = section.get_text(separator='\n')  # Obtenir le texte avec des sauts de ligne
+                    content = self.remove_extra_newlines(content)  # Remove extra newlines
                     await ctx.send(f"**{title}**\n```\n{content}\n```\n<{link}>")  # Utiliser des blocs de code et des chevrons pour le lien
                 else:
                     await ctx.send(f"**{title}**\nContenu non trouvé.\n<{link}>")  # Utiliser des chevrons pour le lien
