@@ -91,7 +91,8 @@ class RssCommands(commands.Cog):
                 if other:
                     embed.add_field(name="Other", value="\n".join(other), inline=False)
 
-                embed.add_field(name="See the Complete Devlog", value=f"[Click Here]({link})", inline=False)
+                # Add link to the devlog directly in the embed
+                embed.add_field(name="See the Complete Devlog", value=f"[Click Here to see details]({link})", inline=False)
 
                 return embed
             else:
@@ -99,9 +100,34 @@ class RssCommands(commands.Cog):
         else:
             return f"**{title}**\nImpossible de récupérer la page liée.\n<{link}>"
 
-    async def send_button_message(self, channel, emoji, message, link):
-        message_content = f"{emoji} {message}"
-        await channel.send(message_content)
+    @commands.command()
+    async def get_last_rss(self, ctx):
+        feed = feedparser.parse(ConstantsClass.RSS_URL)
+        if 'entries' in feed:
+            last_entry = feed.entries[0]
+            embed_or_message = await self.generate_embed_from_entry(last_entry)
+            if isinstance(embed_or_message, discord.Embed):
+                embed = embed_or_message
+                message = await ctx.send(embed=embed)
+            else:
+                await ctx.send(embed_or_message)
+        else:
+            await ctx.send('Impossible de récupérer le flux RSS.')
+
+    @commands.command()
+    @commands.has_permissions(administrator=True)
+    async def get_all_rss(self, ctx):
+        feed = feedparser.parse(ConstantsClass.RSS_URL)
+        if 'entries' in feed:
+            for entry in feed.entries:
+                embed_or_message = await self.generate_embed_from_entry(entry)
+                if isinstance(embed_or_message, discord.Embed):
+                    embed = embed_or_message
+                    message = await ctx.send(embed=embed)
+                else:
+                    await ctx.send(embed_or_message)
+        else:
+            await ctx.send('Impossible de récupérer le flux RSS.')
 
     async def last_rss_loop(self, channel):
         role = discord.utils.get(channel.guild.roles, name=ConstantsClass.ROLE_NAME)
@@ -131,40 +157,9 @@ class RssCommands(commands.Cog):
         else:
             await channel.send(f"{role.mention} Impossible de récupérer le flux RSS.")
 
-    @commands.command()
-    async def set_rss_channel(self, ctx):
-        self.rss_channel_ids[str(ctx.guild.id)] = ctx.channel.id
-        self.save_rss_channel_ids()
-        await ctx.send(f"L'ID du salon pour les messages RSS a été défini sur {ctx.channel.id} pour le serveur {ctx.guild.name}")
-
-    @commands.command()
-    @commands.has_permissions(administrator=True)
-    async def get_all_rss(self, ctx):
-        feed = feedparser.parse(ConstantsClass.RSS_URL)
-        if 'entries' in feed:
-            for entry in feed.entries:
-                embed_or_message = await self.generate_embed_from_entry(entry)
-                if isinstance(embed_or_message, discord.Embed):
-                    embed = embed_or_message
-                    await ctx.send(embed=embed)
-                else:
-                    await ctx.send(embed_or_message)
-        else:
-            await ctx.send('Impossible de récupérer le flux RSS.')
-
-    @commands.command()
-    async def get_last_rss(self, ctx):
-        feed = feedparser.parse(ConstantsClass.RSS_URL)
-        if 'entries' in feed:
-            last_entry = feed.entries[0]
-            embed_or_message = await self.generate_embed_from_entry(last_entry)
-            if isinstance(embed_or_message, discord.Embed):
-                embed = embed_or_message
-                await ctx.send(embed=embed)
-            else:
-                await ctx.send(embed_or_message)
-        else:
-            await ctx.send('Impossible de récupérer le flux RSS.')
+    async def send_button_message(self, channel, emoji, message, link):
+        message_content = f"{emoji} {message}"
+        await channel.send(message_content)
 
     async def run_rss_loop(self):
         await self.bot.wait_until_ready()
