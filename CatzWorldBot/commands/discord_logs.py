@@ -2,6 +2,7 @@ import json
 from discord.ext import commands
 import discord
 import os
+import asyncio
 from datetime import datetime
 
 class DiscordLogs(commands.Cog):
@@ -41,6 +42,170 @@ class DiscordLogs(commands.Cog):
         discord.ChannelType.public_thread: 'Public thread',
     # Ajoutez d'autres types de canaux ici si nécessaire
     }
+
+    @commands.Cog.listener()
+    async def on_member_join(self, member):
+        log_channel = self.bot.get_channel(self.log_channel_id)
+        if log_channel:
+            try:
+                embed = discord.Embed(
+                    title='Member Joined',
+                    description=f'{member.name}#{member.discriminator} has joined the server',
+                    color=discord.Color.green()
+                )
+                embed.set_thumbnail(url=member.avatar.url)
+                embed.add_field(name='Member ID', value=member.id, inline=True)
+                embed.add_field(name='Joined At', value=member.joined_at.strftime('%Y-%m-%d %H:%M:%S'), inline=True)
+                await log_channel.send(embed=embed)
+            except Exception as e:
+                print(f"Error logging member join: {e}")
+
+    @commands.Cog.listener()
+    async def on_member_remove(self, member):
+        log_channel = self.bot.get_channel(self.log_channel_id)
+        if log_channel:
+            try:
+                embed = discord.Embed(
+                    title='Member Left',
+                    description=f'{member.name}#{member.discriminator} has left the server',
+                    color=discord.Color.red()
+                )
+                embed.set_thumbnail(url=member.avatar.url)
+                embed.add_field(name='Member ID', value=member.id, inline=True)
+                await log_channel.send(embed=embed)
+            except Exception as e:
+                print(f"Error logging member leave: {e}")
+
+    @commands.Cog.listener()
+    async def on_voice_state_update(self, member, before, after):
+        log_channel = self.bot.get_channel(self.log_channel_id)
+        if log_channel:
+            try:
+                if before.channel != after.channel:
+                    if before.channel and after.channel:
+                        # Member moved from one voice channel to another
+                        embed = discord.Embed(
+                            title='Member Moved Voice Channels',
+                            description=f'{member.name}#{member.discriminator} moved from {before.channel.name} to {after.channel.name}',
+                            color=discord.Color.dark_magenta()
+                        )
+                        await log_channel.send(embed=embed)
+                    elif before.channel:
+                        # Member left a voice channel
+                        embed = discord.Embed(
+                            title='Member Left Voice Channel',
+                            description=f'{member.name}#{member.discriminator} left voice channel {before.channel.name}',
+                            color=discord.Color.red()
+                        )
+                        await log_channel.send(embed=embed)
+                    elif after.channel:
+                        # Member joined a voice channel
+                        embed = discord.Embed(
+                            title='Member Joined Voice Channel',
+                            description=f'{member.name}#{member.discriminator} joined voice channel {after.channel.name}',
+                            color=discord.Color.green()
+                        )
+                        await log_channel.send(embed=embed)
+                elif before.self_deaf != after.self_deaf:
+                    # Member muted or unmuted themselves
+                    action = 'Muted' if after.self_deaf else 'Unmuted'
+                    embed = discord.Embed(
+                        title=f'Member {action}',
+                        description=f'{member.name}#{member.discriminator} {action.lower()} themselves in {after.channel.name}',
+                        color=discord.Color.blue()
+                    )
+                    await log_channel.send(embed=embed)
+            except Exception as e:
+                print(f"Error logging voice state update: {e}")
+
+    @commands.Cog.listener()
+    async def on_member_update(self, before, after):
+        log_channel = self.bot.get_channel(self.log_channel_id)
+        if log_channel:
+            try:
+                await asyncio.sleep(1)  # Wait for a second before fetching the audit logs
+                async for entry in after.guild.audit_logs(action=discord.AuditLogAction.member_update, limit=1):
+                    user = entry.user
+                    if before.nick != after.nick:
+                        embed = discord.Embed(
+                            title='Nickname Changed',
+                            description=f'{after.name}#{after.discriminator} changed nickname',
+                            color=discord.Color.blue()
+                        )
+                        embed.set_thumbnail(url=user.avatar.url)
+                        embed.add_field(name='Before', value=before.nick if before.nick else 'None', inline=True)
+                        embed.add_field(name='After', value=after.nick if after.nick else 'None', inline=True)
+                        await log_channel.send(embed=embed)
+                    if before.roles != after.roles:
+                        added_roles = [role for role in after.roles if role not in before.roles]
+                        removed_roles = [role for role in before.roles if role not in after.roles]
+                        if added_roles:
+                            roles_str = ', '.join([role.name for role in added_roles])
+                            embed = discord.Embed(
+                                title='Roles Added',
+                                description=f'Roles added to {after.name}#{after.discriminator}: {roles_str}',
+                                color=discord.Color.gold()
+                            )
+                            embed.set_thumbnail(url=user.avatar.url)
+                            await log_channel.send(embed=embed)
+                        if removed_roles:
+                            roles_str = ', '.join([role.name for role in removed_roles])
+                            embed = discord.Embed(
+                                title='Roles Removed',
+                                description=f'Roles removed from {after.name}#{after.discriminator}: {roles_str}',
+                                color=discord.Color.dark_gold()
+                            )
+                            embed.set_thumbnail(url=user.avatar.url)
+                            await log_channel.send(embed=embed)
+            except Exception as e:
+                print(f"Error logging member update: {e}")
+
+    @commands.Cog.listener()
+    async def on_member_ban(self, guild, user):
+        log_channel = self.bot.get_channel(self.log_channel_id)
+        if log_channel:
+            try:
+                embed = discord.Embed(
+                    title='Member Banned',
+                    description=f'{user.name}#{user.discriminator} has been banned from the server',
+                    color=discord.Color.dark_red()
+                )
+                embed.set_thumbnail(url=user.avatar.url)
+                embed.add_field(name='Member ID', value=user.id, inline=True)
+                await log_channel.send(embed=embed)
+            except Exception as e:
+                print(f"Error logging member ban: {e}")
+
+    @commands.Cog.listener()
+    async def on_member_unban(self, guild, user):
+        log_channel = self.bot.get_channel(self.log_channel_id)
+        if log_channel:
+            try:
+                embed = discord.Embed(
+                    title='Member Unbanned',
+                    description=f'{user.name}#{user.discriminator} has been unbanned from the server',
+                    color=discord.Color.green()
+                )
+                embed.set_thumbnail(url=user.avatar.url)
+                embed.add_field(name='Member ID', value=user.id, inline=True)
+                await log_channel.send(embed=embed)
+            except Exception as e:
+                print(f"Error logging member unban: {e}")
+
+    @commands.Cog.listener() # UNTESTED
+    async def on_member_boost(self, member):
+        log_channel = self.bot.get_channel(self.log_channel_id)
+        if log_channel:
+            try:
+                embed = discord.Embed(
+                    title='Member Boosted Server',
+                    description=f'{member.name}#{member.discriminator} has boosted the server!',
+                    color=discord.Color.gold()
+                )
+                embed.set_thumbnail(url=member.avatar.url)
+                await log_channel.send(embed=embed)
+            except Exception as e:
+                print(f"Error logging member boost: {e}")
 
     @commands.Cog.listener()
     async def on_bulk_message_delete(self, messages):
@@ -175,65 +340,6 @@ class DiscordLogs(commands.Cog):
                     break  # We have found the relevant entry, let's break the loop
             except Exception as e:
                 print(f"Error while logging the audit log: {e}")
-
-    @commands.Cog.listener()
-    async def on_member_update(self, before, after):
-        if before.nick != after.nick:
-            log_channel = self.bot.get_channel(self.log_channel_id)
-            if log_channel:
-                try:
-                    user = after
-                    embed = discord.Embed(
-                        title='Nickname Changed',
-                        description=f'{user.name} has changed their nickname',
-                        color=discord.Color.blue()
-                    )
-                    embed.set_thumbnail(url=user.avatar.url)
-                    embed.add_field(name='Old Nickname', value=before.nick if before.nick else 'None', inline=True)
-                    embed.add_field(name='New Nickname', value=after.nick if after.nick else 'None', inline=True)
-                    embed.add_field(name='Date', value=datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'), inline=True)
-                    await log_channel.send(embed=embed)
-                except Exception as e:
-                    print(f"Error logging nickname change: {e}")
-
-    # TODO FIX NOT WORK
-    @commands.Cog.listener()
-    async def on_user_update(self, before, after):
-        log_channel = self.bot.get_channel(self.log_channel_id)
-        if log_channel:
-            if not log_channel.permissions_for(log_channel.guild.me).send_messages:
-                print(f"Le bot n'a pas la permission d'envoyer des messages dans {log_channel.name}")
-                return
-            if not log_channel.permissions_for(log_channel.guild.me).embed_links:
-                print(f"Le bot n'a pas la permission d'envoyer des embeds dans {log_channel.name}")
-                return
-
-            if before.name != after.name:
-                embed = discord.Embed(title='Nom d\'utilisateur modifié', description=f'{before.name} a changé son nom en {after.name}', color=discord.Color.blue())
-                embed.set_footer(text=f"Date : {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')}")
-                await log_channel.send(embed=embed)
-            if before.avatar != after.avatar:
-                embed = discord.Embed(title='Avatar modifié', description=f'{before.name} a changé son avatar', color=discord.Color.blue())
-                embed.set_footer(text=f"Date : {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')}")
-                await log_channel.send(embed=embed)
-
-    # TODO FIX NOT WORK
-    @commands.Cog.listener()
-    async def on_member_update(self, before, after):
-        log_channel = self.bot.get_channel(self.log_channel_id)
-        if log_channel:
-            if not log_channel.permissions_for(log_channel.guild.me).send_messages:
-                print(f"Le bot n'a pas la permission d'envoyer des messages dans {log_channel.name}")
-                return
-            if not log_channel.permissions_for(log_channel.guild.me).embed_links:
-                print(f"Le bot n'a pas la permission d'envoyer des embeds dans {log_channel.name}")
-                return
-
-            if before.status != after.status:
-                embed = discord.Embed(title='Statut modifié', description=f'{before.name} est passé de {before.status} à {after.status}', color=discord.Color.blue())
-                embed.set_footer(text=f"Date : {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')}")
-                await log_channel.send(embed=embed)
-
 
 async def setup(bot):
     await bot.add_cog(DiscordLogs(bot))
