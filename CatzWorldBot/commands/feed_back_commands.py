@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 import json
 from datetime import datetime
-from Constants import ConstantsClass
+from utils.Constants import ConstantsClass
 
 class FeedbackCommands(commands.Cog):
     def __init__(self, bot):

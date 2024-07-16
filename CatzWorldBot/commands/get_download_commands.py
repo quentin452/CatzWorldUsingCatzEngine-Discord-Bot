@@ -3,8 +3,8 @@ from discord.ext import commands
 import requests
 import json
 import asyncio
-from Constants import ConstantsClass
-from config import load_config
+from utils.Constants import ConstantsClass
+from utils.config import load_config
 
 config = load_config()
 api_key = config['api_key']
@@ -134,9 +134,9 @@ class DownloadCommands(commands.Cog):
                             await self.last_download_loop(channel)
                             self.getting_download = False
                     else:
-                        print(f"Channel with ID {channel_id} not found in guild {guild_id}.")
+                        await LogMessageAsync.LogAsync(f"Channel with ID {channel_id} not found in guild {guild_id}.")
                 else:
-                    print(f"Guild with ID {guild_id} not found.")
+                    await LogMessageAsync.LogAsync(f"Guild with ID {guild_id} not found.")
             await asyncio.sleep(60)
 
     @commands.command(help="Sets the current channel as the download channel for automatic updates.")

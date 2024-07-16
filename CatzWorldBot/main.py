@@ -3,7 +3,8 @@ import subprocess
 import sys
 import discord
 from discord.ext import commands
-from config import load_config
+from utils.config import load_config
+from utils.async_logs import LogMessageAsync
 import time
 
 current_path = os.path.dirname(os.path.abspath(__file__))
@@ -19,7 +20,7 @@ def install_modules(modules):
     subprocess.check_call([sys.executable, "-m", "pip", "install", *modules])
 
 if __name__ == "__main__":
-    required_modules = ['discord', 'feedparser', 'requests', 'beautifulsoup4', 'black']
+    required_modules = ['aiofiles', 'discord', 'feedparser', 'requests', 'beautifulsoup4', 'black']
     install_modules(required_modules)
     
 async def load_extensions():
@@ -27,7 +28,7 @@ async def load_extensions():
     extensions_folder = os.path.join(current_folder, 'commands')  
     
     if not os.path.exists(extensions_folder):
-        print(f"Le dossier '{extensions_folder}' n'existe pas. Assurez-vous que le chemin est correct.")
+        await LogMessageAsync.LogAsync(f"Le dossier '{extensions_folder}' n'existe pas. Assurez-vous que le chemin est correct.")
         return
     
     extensions = []
@@ -42,12 +43,13 @@ async def load_extensions():
             await bot.load_extension(extension)  
             end_time = time.time()
             elapsed_time = (end_time - start_time) * 1000  # Conversion en millisecondes
-            print(f'Extension chargée : {extension} en {elapsed_time:.2f} millisecondes')
+            await LogMessageAsync.LogAsync(f'Extension chargée : {extension} en {elapsed_time:.2f} millisecondes')
         except Exception as e:
-            print(f'Erreur lors du chargement de {extension}: {type(e).__name__} - {e}')
+            await LogMessageAsync.LogAsync(f'Erreur lors du chargement de {extension}: {type(e).__name__} - {e}')
 
 @bot.event
 async def on_ready():
+    await LogMessageAsync.reset_log_file()
     # Setting `Playing ` status
     await bot.change_presence(activity=discord.Game(name="https://iamacatfrdev.itch.io/catzworld"))
 
@@ -76,6 +78,7 @@ async def on_ready():
         ticket_menu_view = ticket_cog.get_menu_view()
         bot.add_view(ticket_menu_view)
 
+
     # Feedback Commands
    # feedback_cog = bot.get_cog('FeedbackCommands')
    # if feedback_cog is not None:
@@ -88,6 +91,18 @@ async def on_ready():
     #    rss_menu_view = rss_cog.get_menu_view()
     #    bot.add_view(rss_menu_view)
 
+    discord_log_cog = bot.get_cog('DiscordLogs')
+    if discord_log_cog is None:
+        await LogMessageAsync.LogAsync("L'extension 'DiscordLogs' n'est pas chargée.")
+    else:
+        if hasattr(discord_log_cog, 'log_channel_id'):
+            channel = bot.get_channel(discord_log_cog.log_channel_id)
+            if channel is None:
+                await LogMessageAsync.LogAsync("Le salon avec l'ID donné n'existe pas ou le bot n'a pas la permission de le voir.")
+            else:
+                await channel.send("The bot has successfully started/restarted.")
+        else:
+            await LogMessageAsync.LogAsync("L'extension 'DiscordLogs' ne contient pas d'attribut 'log_channel_id'.")
 @bot.event
 async def on_commanderror(ctx, error):
     if isinstance(error, commands.CommandNotFound):

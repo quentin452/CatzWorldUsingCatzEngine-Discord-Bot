@@ -1,4 +1,6 @@
 import os
+#from async_logs import LogMessageAsync
+
 class ConstantsClass:
     @staticmethod
     def get_github_project_directory():
@@ -19,9 +21,10 @@ class ConstantsClass:
     RSS_SAVE_FOLDER = get_github_project_directory() + "/CatzWorldBot/saves/rss"
     TICKET_SAVE_FOLDER = get_github_project_directory() + "/CatzWorldBot/saves/tickets"
     ROLE_SAVE_FOLDER = get_github_project_directory() + "/CatzWorldBot/saves/free_roles"
+    LOGS_SAVE_FOLDER = get_github_project_directory() + "/CatzWorldBot/saves/free_roles"
 
     READ_FILE = "r"
     WRITE_TO_FILE = "w"
 
     
-print("The github Project Directory is :", ConstantsClass.get_github_project_directory())
+#LogMessageAsync.LogAsync("The github Project Directory is :", ConstantsClass.get_github_project_directory())

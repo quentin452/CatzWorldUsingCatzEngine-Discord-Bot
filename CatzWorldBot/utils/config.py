@@ -1,5 +1,6 @@
 import os
-from Constants import ConstantsClass
+from utils.Constants import ConstantsClass
+from utils.async_logs import LogMessageAsync
 
 def load_config():
     # Vérifier et créer les fichiers si nécessaire pour l'API key itch.io
@@ -14,11 +15,11 @@ def load_config():
 
     # Vérifier si les valeurs sont vides et afficher un message approprié si nécessaire
     if not api_key:
-        print("Veuillez mettre votre API key de votre jeu d'itch.io dans le fichier " + ConstantsClass.SECURITY_FOLDER + ConstantsClass.ITCH_IO_GAME_API_KEY + ".txt")
+        LogMessageAsync.LogAsync("Veuillez mettre votre API key de votre jeu d'itch.io dans le fichier " + ConstantsClass.SECURITY_FOLDER + ConstantsClass.ITCH_IO_GAME_API_KEY + ".txt")
     if not game_id:
-        print("Veuillez mettre l'ID de votre jeu itch.io dans le fichier " + ConstantsClass.SECURITY_FOLDER + ConstantsClass.ITCH_IO_GAME_ID + ".txt")
+        LogMessageAsync.LogAsync("Veuillez mettre l'ID de votre jeu itch.io dans le fichier " + ConstantsClass.SECURITY_FOLDER + ConstantsClass.ITCH_IO_GAME_ID + ".txt")
     if not token:
-        print("Veuillez mettre le token de votre bot discord dans le fichier " + ConstantsClass.SECURITY_FOLDER + ConstantsClass.DISCORD_BOT_TOKEN + ".txt")
+        LogMessageAsync.LogAsync("Veuillez mettre le token de votre bot discord dans le fichier " + ConstantsClass.SECURITY_FOLDER + ConstantsClass.DISCORD_BOT_TOKEN + ".txt")
 
     return {
         'api_key': api_key,

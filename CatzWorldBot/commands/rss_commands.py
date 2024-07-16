@@ -5,8 +5,8 @@ import requests
 import re
 from bs4 import BeautifulSoup
 import json
-from Constants import ConstantsClass
-from config import load_config
+from utils.Constants import ConstantsClass
+from utils.config import load_config
 import asyncio
 
 config = load_config()
@@ -174,9 +174,9 @@ class RssCommands(commands.Cog):
                             await self.last_rss_loop(channel)
                             self.getting_rss = False
                     else:
-                        print(f"Channel with ID {channel_id} not found in guild {guild_id}.")
+                        await LogMessageAsync.LogAsync(f"Channel with ID {channel_id} not found in guild {guild_id}.")
                 else:
-                    print(f"Guild with ID {guild_id} not found.")
+                    await LogMessageAsync.LogAsync(f"Guild with ID {guild_id} not found.")
             await asyncio.sleep(60)
 
 async def setup(bot):

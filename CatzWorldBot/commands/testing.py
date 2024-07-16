@@ -28,7 +28,7 @@ class Testing(commands.Cog):
                 embed.set_thumbnail(url=member.avatar.url)
                 await log_channel.send(embed=embed)
             except Exception as e:
-                print(f"Error logging member boost: {e}")
+                await LogMessageAsync.LogAsync(f"Error logging member boost: {e}")
 
 # Add this cog to your bot
 async def setup(bot):

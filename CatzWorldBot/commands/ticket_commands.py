@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 import json
 import asyncio
-from Constants import ConstantsClass
+from utils.Constants import ConstantsClass
 
 class TicketCommands(commands.Cog):
     def __init__(self, bot):
@@ -80,11 +80,11 @@ class TicketCommands(commands.Cog):
                             view.add_item(CloseTicketButton(self, ticket['ticket_id']))
                             await message.edit(view=view)
                         else:
-                            print(f"Failed to fetch ticket message for ticket ID {ticket['ticket_id']}")
+                            await LogMessageAsync.LogAsync(f"Failed to fetch ticket message for ticket ID {ticket['ticket_id']}")
                     except discord.HTTPException as e:
-                        print(f"Failed to edit ticket message for ticket ID {ticket['ticket_id']}: {e}")
+                        await LogMessageAsync.LogAsync(f"Failed to edit ticket message for ticket ID {ticket['ticket_id']}: {e}")
                 else:
-                    print(f"Ticket message ID not found for ticket ID {ticket['ticket_id']}")
+                    await LogMessageAsync.LogAsync(f"Ticket message ID not found for ticket ID {ticket['ticket_id']}")
 
     async def send_ticket_creation_message(self, channel):
         try:
@@ -103,9 +103,9 @@ class TicketCommands(commands.Cog):
                 await channel.send(embed=embed, view=view)
                 await channel.send(f"Ticket channel set to {channel.mention}")
         except discord.HTTPException as e:
-            print(f"Failed to send ticket creation message: {e}")
+            await LogMessageAsync.LogAsync(f"Failed to send ticket creation message: {e}")
         except Exception as e:
-            print(f"An error occurred while sending ticket creation message: {e}")
+            await LogMessageAsync.LogAsync(f"An error occurred while sending ticket creation message: {e}")
     @commands.Cog.listener()
     async def on_interaction(self, interaction):
         if interaction.type == discord.InteractionType.component:
@@ -184,11 +184,11 @@ class TicketCommands(commands.Cog):
                 await channel.send("Ticket created!")  # Removed ephemeral=True
 
             except discord.HTTPException as e:
-                print(f"Failed to create ticket: {e}")
+                await LogMessageAsync.LogAsync(f"Failed to create ticket: {e}")
                 await interaction.followup.send(f"Failed to create ticket: {e}", ephemeral=True)
 
             except Exception as e:
-                print(f"An unexpected error occurred: {e}")
+                await LogMessageAsync.LogAsync(f"An unexpected error occurred: {e}")
                 await interaction.followup.send(f"An unexpected error occurred: {e}", ephemeral=True)
 
     @commands.command(help="Closes a ticket and deletes its associated channel based on the provided ticket ID. Requires administrator permissions.")
@@ -259,10 +259,10 @@ class OpenTicketModal(discord.ui.Modal):
             await self.cog.create_ticket(interaction.user, interaction, description=description)
 
         except discord.HTTPException as e:
-            print(f"Failed to create ticket: {e}")
+            await LogMessageAsync.LogAsync(f"Failed to create ticket: {e}")
             await interaction.followup.send(f"Failed to create ticket: {e}", ephemeral=True)
         except Exception as e:
-            print(f"An unexpected error occurred: {e}")
+            await LogMessageAsync.LogAsync(f"An unexpected error occurred: {e}")
             await interaction.followup.send(f"An unexpected error occurred: {e}", ephemeral=True)
         
 class CloseTicketButton(discord.ui.Button):

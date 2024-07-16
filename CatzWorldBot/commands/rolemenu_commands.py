@@ -1,9 +1,6 @@
 import discord
 from discord.ext import commands
 from discord.ext.commands import has_permissions
-import json
-import signal
-import asyncio
 
 class RoleMenuView(discord.ui.View):
     def __init__(self, roles_with_descriptions):

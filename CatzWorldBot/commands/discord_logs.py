@@ -4,23 +4,23 @@ import discord
 import os
 import asyncio
 from datetime import datetime
-
+from utils.Constants import ConstantsClass
 class DiscordLogs(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.log_channel_id = self.load_log_channel()
 
     def load_log_channel(self):
-        if os.path.exists('log_channel.json'):
-            with open('log_channel.json', 'r') as f:
+        if os.path.exists(ConstantsClass.LOGS_SAVE_FOLDER + 'log_channel.json'):
+            with open(ConstantsClass.LOGS_SAVE_FOLDER + 'log_channel.json', 'r') as f:
                 return json.load(f).get('log_channel_id')
         else:
             # Si le fichier n'existe pas, retourne None
             return None
 
     def save_log_channel(self, channel_id):
-        with open('log_channel.json', 'w') as f:
-            json.dump({'log_channel_id': channel_id}, f)
+        with open(ConstantsClass.LOGS_SAVE_FOLDER + 'log_channel.json', 'w') as f:
+            json.dump({ConstantsClass.LOGS_SAVE_FOLDER + 'log_channel_id': channel_id}, f)
 
     @commands.command(help="Sets the log channel for logging events. Requires administrator permissions.")
     @commands.has_permissions(administrator=True)
@@ -59,7 +59,7 @@ class DiscordLogs(commands.Cog):
                 embed.add_field(name='Joined At', value=member.joined_at.strftime('%Y-%m-%d %H:%M:%S'), inline=True)
                 await log_channel.send(embed=embed)
             except Exception as e:
-                print(f"Error logging member join: {e}")
+                await LogMessageAsync.LogAsync(f"Error logging member join: {e}")
 
     async def log_reaction_change(self, reaction, user, action):
         log_channel = self.bot.get_channel(self.log_channel_id)
@@ -79,7 +79,7 @@ class DiscordLogs(commands.Cog):
                 embed.add_field(name='Date', value=datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'), inline=True)
                 await log_channel.send(embed=embed)
             except Exception as e:
-                print(f"Error logging reaction {action}: {e}")
+                await LogMessageAsync.LogAsync(f"Error logging reaction {action}: {e}")
 
     @commands.Cog.listener() #TODO FIX CREATED MESSAGES BEFORE LAUNCHING THE BOT CANNOT BE LOGGED
     async def on_reaction_add(self, reaction, user):
@@ -108,7 +108,7 @@ class DiscordLogs(commands.Cog):
                 embed.add_field(name='Date', value=datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'), inline=True)
                 await log_channel.send(embed=embed)
             except Exception as e:
-                print(f"Error logging reaction {action}: {e}")
+                await LogMessageAsync.LogAsync(f"Error logging reaction {action}: {e}")
 
     @commands.Cog.listener() # TODO add log server exclusion/expulsions
     async def on_member_remove(self, member):
@@ -124,7 +124,7 @@ class DiscordLogs(commands.Cog):
                 embed.add_field(name='Member ID', value=member.id, inline=True)
                 await log_channel.send(embed=embed)
             except Exception as e:
-                print(f"Error logging member leave: {e}")
+                await LogMessageAsync.LogAsync(f"Error logging member leave: {e}")
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
@@ -184,7 +184,7 @@ class DiscordLogs(commands.Cog):
                     await log_channel.send(embed=embed)
 
             except Exception as e:
-                print(f"Error logging voice state update: {e}")
+                await LogMessageAsync.LogAsync(f"Error logging voice state update: {e}")
 
     @commands.Cog.listener()
     async def on_member_update(self, before, after):
@@ -226,7 +226,7 @@ class DiscordLogs(commands.Cog):
                             embed.set_thumbnail(url=user.avatar.url)
                             await log_channel.send(embed=embed)
             except Exception as e:
-                print(f"Error logging member update: {e}")
+                await LogMessageAsync.LogAsync(f"Error logging member update: {e}")
 
     @commands.Cog.listener()
     async def on_member_ban(self, guild, user):
@@ -242,7 +242,7 @@ class DiscordLogs(commands.Cog):
                 embed.add_field(name='Member ID', value=user.id, inline=True)
                 await log_channel.send(embed=embed)
             except Exception as e:
-                print(f"Error logging member ban: {e}")
+                await LogMessageAsync.LogAsync(f"Error logging member ban: {e}")
 
     @commands.Cog.listener()
     async def on_member_unban(self, guild, user):
@@ -258,7 +258,7 @@ class DiscordLogs(commands.Cog):
                 embed.add_field(name='Member ID', value=user.id, inline=True)
                 await log_channel.send(embed=embed)
             except Exception as e:
-                print(f"Error logging member unban: {e}")
+                await LogMessageAsync.LogAsync(f"Error logging member unban: {e}")
 
     @commands.Cog.listener()
     async def on_member_boost(self, member):
@@ -273,7 +273,7 @@ class DiscordLogs(commands.Cog):
                 embed.set_thumbnail(url=member.avatar.url)
                 await log_channel.send(embed=embed)
             except Exception as e:
-                print(f"Error logging member boost: {e}")
+                await LogMessageAsync.LogAsync(f"Error logging member boost: {e}")
 
     @commands.Cog.listener()
     async def on_bulk_message_delete(self, messages):
@@ -294,7 +294,7 @@ class DiscordLogs(commands.Cog):
                     await log_channel.send(embed=embed)
                     break  # Nous avons trouvé l'entrée pertinente, sortons de la boucle
             except Exception as e:
-                print(f"Erreur lors du logging de la suppression en masse : {e}")
+                await LogMessageAsync.LogAsync(f"Erreur lors du logging de la suppression en masse : {e}")
 
 
     @commands.Cog.listener() # UNTESTED AND DONT KNOW HOW TO TEST TODO
@@ -312,7 +312,7 @@ class DiscordLogs(commands.Cog):
                 embed.add_field(name='Date', value=datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'), inline=False)
                 await log_channel.send(embed=embed)
             except Exception as e:
-                print(f"Error logging file watch event: {e}")
+                await LogMessageAsync.LogAsync(f"Error logging file watch event: {e}")
 
     #TODO FIX CREATED MESSAGES BEFORE LAUNCHING THE BOT CANNOT BE LOGGED
     @commands.Cog.listener()
@@ -332,7 +332,7 @@ class DiscordLogs(commands.Cog):
                 embed.add_field(name='Date', value=datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'), inline=True)
                 await log_channel.send(embed=embed)
             except Exception as e:
-                print(f"Erreur lors du logging de la suppression : {e}")
+                await LogMessageAsync.LogAsync(f"Erreur lors du logging de la suppression : {e}")
 
 
     @commands.Cog.listener()
@@ -356,7 +356,7 @@ class DiscordLogs(commands.Cog):
                 embed.add_field(name='Date', value=datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'), inline=True)
                 await log_channel.send(embed=embed)
             except Exception as e:
-                print(f"Erreur lors du logging de la commande : {e}")
+                await LogMessageAsync.LogAsync(f"Erreur lors du logging de la commande : {e}")
 
     @commands.Cog.listener()
     async def on_audit_log_entry_create(self, entry):
@@ -380,7 +380,7 @@ class DiscordLogs(commands.Cog):
                     embed.add_field(name='Date', value=datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'), inline=True)
                     await log_channel.send(embed=embed)
             except Exception as e:
-                print(f"Erreur lors du logging de l'audit log : {e}")
+                await LogMessageAsync.LogAsync(f"Erreur lors du logging de l'audit log : {e}")
 
     @commands.Cog.listener()
     async def on_guild_channel_delete(self, channel):
@@ -402,7 +402,7 @@ class DiscordLogs(commands.Cog):
                     await log_channel.send(embed=embed)
                     break  # Nous avons trouvé l'entrée pertinente, sortons de la boucle
             except Exception as e:
-                print(f"Erreur lors du logging de l'audit log : {e}")
+                await LogMessageAsync.LogAsync(f"Erreur lors du logging de l'audit log : {e}")
 
 
     @commands.Cog.listener()
@@ -424,7 +424,7 @@ class DiscordLogs(commands.Cog):
                     await log_channel.send(embed=embed)
                     break  # We have found the relevant entry, let's break the loop
             except Exception as e:
-                print(f"Error while logging the audit log: {e}")
+                await LogMessageAsync.LogAsync(f"Error while logging the audit log: {e}")
 
 async def setup(bot):
     await bot.add_cog(DiscordLogs(bot))

@@ -1,4 +1,5 @@
 /!security
 /*/**/__pycache__
-*.json
-*.txt
+/*/**/.json
+/*/**/.txt
+CatzWorldBot/logs/catz_bot_logs.log
