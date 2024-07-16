@@ -2,7 +2,7 @@ import json
 from discord.ext import commands
 import discord
 import os
-from datetime import datetime, timedelta
+from datetime import datetime
 
 class DiscordLogs(commands.Cog):
     def __init__(self, bot):
@@ -176,8 +176,27 @@ class DiscordLogs(commands.Cog):
             except Exception as e:
                 print(f"Error while logging the audit log: {e}")
 
-    # NOT WORK
+    @commands.Cog.listener()
+    async def on_member_update(self, before, after):
+        if before.nick != after.nick:
+            log_channel = self.bot.get_channel(self.log_channel_id)
+            if log_channel:
+                try:
+                    user = after
+                    embed = discord.Embed(
+                        title='Nickname Changed',
+                        description=f'{user.name} has changed their nickname',
+                        color=discord.Color.blue()
+                    )
+                    embed.set_thumbnail(url=user.avatar.url)
+                    embed.add_field(name='Old Nickname', value=before.nick if before.nick else 'None', inline=True)
+                    embed.add_field(name='New Nickname', value=after.nick if after.nick else 'None', inline=True)
+                    embed.add_field(name='Date', value=datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'), inline=True)
+                    await log_channel.send(embed=embed)
+                except Exception as e:
+                    print(f"Error logging nickname change: {e}")
 
+    # TODO FIX NOT WORK
     @commands.Cog.listener()
     async def on_user_update(self, before, after):
         log_channel = self.bot.get_channel(self.log_channel_id)
@@ -198,8 +217,7 @@ class DiscordLogs(commands.Cog):
                 embed.set_footer(text=f"Date : {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')}")
                 await log_channel.send(embed=embed)
 
-    # NOT WORK
-
+    # TODO FIX NOT WORK
     @commands.Cog.listener()
     async def on_member_update(self, before, after):
         log_channel = self.bot.get_channel(self.log_channel_id)
