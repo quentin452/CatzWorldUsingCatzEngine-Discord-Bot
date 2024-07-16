@@ -80,7 +80,7 @@ class DownloadCommands(commands.Cog):
         self.sent_download_ids.append(last_upload_id)
         self.save_sent_download_ids()
 
-    @commands.command()
+    @commands.command(help="Fetches and displays all downloadable files for the game from itch.io API. Requires administrator permissions.")
     @commands.has_permissions(administrator=True)
     async def get_all_download(self, ctx):
         url = f'https://itch.io/api/1/{api_key}/game/{game_id}/uploads'
@@ -101,7 +101,7 @@ class DownloadCommands(commands.Cog):
         else:
             await ctx.send('Impossible de récupérer les fichiers téléchargeables.')
 
-    @commands.command()
+    @commands.command(help="Fetches and displays the latest downloadable file for the game from itch.io API.")
     async def get_last_download(self, ctx):
         url = f'https://itch.io/api/1/{api_key}/game/{game_id}/uploads'
         response = requests.get(url)
@@ -139,7 +139,7 @@ class DownloadCommands(commands.Cog):
                     print(f"Guild with ID {guild_id} not found.")
             await asyncio.sleep(60)
 
-    @commands.command()
+    @commands.command(help="Sets the current channel as the download channel for automatic updates.")
     async def set_download_channel(self, ctx):
         self.download_channel_ids[str(ctx.guild.id)] = ctx.channel.id
         self.save_download_channel_ids()

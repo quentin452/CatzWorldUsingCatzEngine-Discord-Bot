@@ -6,7 +6,7 @@ class Testing(commands.Cog):
         self.bot = bot
         self.log_channel_id = 1095180120232304641  # Replace with your log channel ID
 
-    @commands.command()
+    @commands.command(help="Simulates a boost event for the current user. Requires administrator permissions.")
     @commands.has_permissions(administrator=True)
     async def simulate_boost(self, ctx):
         # Replace with the member object you want to simulate boosting

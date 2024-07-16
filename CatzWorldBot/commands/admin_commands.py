@@ -4,7 +4,7 @@ class AdminCommands(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command()
+    @commands.command(help="Resets the channel by deleting all messages. Requires administrator permissions.")
     @commands.has_permissions(administrator=True)
     async def reset_channel(self, ctx):
         def check_message(message):

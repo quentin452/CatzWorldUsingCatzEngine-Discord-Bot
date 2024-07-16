@@ -22,7 +22,8 @@ class DiscordLogs(commands.Cog):
         with open('log_channel.json', 'w') as f:
             json.dump({'log_channel_id': channel_id}, f)
 
-    @commands.command()
+    @commands.command(help="Sets the log channel for logging events. Requires administrator permissions.")
+    @commands.has_permissions(administrator=True)
     async def set_log_channel(self, ctx, channel: discord.TextChannel):
         self.log_channel_id = channel.id
         self.save_log_channel(channel.id)

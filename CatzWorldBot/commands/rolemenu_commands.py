@@ -83,7 +83,7 @@ class RoleMenu(commands.Cog):
         }
         self.role_menu_view = RoleMenuView(self.free_roles_with_descriptions)
 
-    @commands.command()
+    @commands.command(help="Displays a role menu where users can choose roles using a drop-down menu. Requires administrator permissions.")
     @commands.has_permissions(administrator=True)
     async def role_menu(self, ctx):
         embed = discord.Embed(title="Roles menu", description="Choose your roles by interacting with the drop-down menu.", color=discord.Color.blue())

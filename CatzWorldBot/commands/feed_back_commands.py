@@ -47,14 +47,14 @@ class FeedbackCommands(commands.Cog):
         except FileNotFoundError:
             return []
 
-    @commands.command()
+    @commands.command(help="Sets the current channel as the feedback channel. Requires administrator permissions.")
     @commands.has_permissions(administrator=True)
     async def set_feedback_channel(self, ctx):
         self.feedback_channel_id = ctx.channel.id
         self.save_feedback_channel_id()
         await ctx.send(f"Feedback channel set to {ctx.channel.mention}")
 
-    @commands.command()
+    @commands.command(help="Submits feedback to the configured feedback channel.")
     async def submit_feedback(self, ctx, *, feedback):
         if not self.feedback_channel_id:
             await ctx.send("Feedback channel not set.")
@@ -78,7 +78,7 @@ class FeedbackCommands(commands.Cog):
 
         await ctx.send(f"Feedback submitted by {ctx.author.mention}:\n{feedback}")
 
-    @commands.command()
+    @commands.command(help="Views all feedbacks that have been submitted. Requires administrator permissions.")
     @commands.has_permissions(administrator=True)
     async def view_feedbacks(self, ctx):
         if not self.feedbacks:

@@ -100,7 +100,7 @@ class RssCommands(commands.Cog):
         else:
             return f"**{title}**\nImpossible de récupérer la page liée.\n<{link}>"
 
-    @commands.command()
+    @commands.command(help="Fetches and displays the latest entry from the RSS feed.")
     async def get_last_rss(self, ctx):
         feed = feedparser.parse(ConstantsClass.RSS_URL)
         if 'entries' in feed:
@@ -114,7 +114,7 @@ class RssCommands(commands.Cog):
         else:
             await ctx.send('Impossible de récupérer le flux RSS.')
 
-    @commands.command()
+    @commands.command(help="Fetches and displays all entries from the RSS feed. Requires administrator permissions.")
     @commands.has_permissions(administrator=True)
     async def get_all_rss(self, ctx):
         feed = feedparser.parse(ConstantsClass.RSS_URL)

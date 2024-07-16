@@ -114,7 +114,7 @@ class TicketCommands(commands.Cog):
                 await self.close_ticket(interaction, ticket_id=ticket_id)
                 await interaction.response.send_message("Ticket fermé", ephemeral=True)
 
-    @commands.command()
+    @commands.command(help="Sets the current channel as the ticket channel for creating and managing tickets. Requires administrator permissions.")
     @commands.has_permissions(administrator=True)
     async def set_ticket_channel(self, ctx):
         self.ticket_channel_id = ctx.channel.id
@@ -191,7 +191,7 @@ class TicketCommands(commands.Cog):
                 print(f"An unexpected error occurred: {e}")
                 await interaction.followup.send(f"An unexpected error occurred: {e}", ephemeral=True)
 
-    @commands.command()
+    @commands.command(help="Closes a ticket and deletes its associated channel based on the provided ticket ID. Requires administrator permissions.")
     @commands.has_permissions(administrator=True)
     async def close_ticket(self, ctx, ticket_id: int):
         async with self.delete_lock:
