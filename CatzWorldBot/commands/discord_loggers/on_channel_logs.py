@@ -70,7 +70,7 @@ class OnChannelLogs(commands.Cog):
     async def on_guild_channel_update(self, before, after):
         self.log_channel_id = self.get_log_channel_id()
         log_channel = self.bot.get_channel(self.log_channel_id)
-        if log_channel and before.name != after.name:
+        if log_channel and before.name is not None and before.name != after.name:
             try:
                 async for entry in after.guild.audit_logs(action=discord.AuditLogAction.channel_update, limit=1):
                     user = entry.user
