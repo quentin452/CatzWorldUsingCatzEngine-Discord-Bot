@@ -83,6 +83,8 @@ This bot is essential if you have an itch.io game and want to keep your server m
 - `/role_menu` (REQUIRE ADMINISTRATOR PERMISSIONS)
   - Add a sort of reaction role menu
 
+- `/simulate_boost` (REQUIRE ADMINISTRATOR PERMISSIONS)
+  - Simulate a boost
 
 ### 📝 Note
 
@@ -173,6 +175,9 @@ Ce bot est essentiel si vous avez un jeu sur itch.io et que vous souhaitez tenir
 - `/role_menu` (EXIGE LES AUTORISATIONS DE L'ADMINISTRATEUR)
   - Ajoute un genre de menu de reaction role
 
+- `/simulate_boost` (EXIGENCE DES AUTORISATIONS D'ADMINISTRATEUR)
+  - Simuler un boost
+  
 ### 📝 Remarque
 
 Ce bot code est (probablement) destiné à être utilisé uniquement pour un seul serveur en raison de la mise en cache JSON
