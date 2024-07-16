@@ -45,8 +45,10 @@ async def load_extensions():
 
 @bot.event
 async def on_ready():
-    print(f'Connecté en tant que {bot.user}')
     await load_extensions()
+    role_menu_cog = bot.get_cog('RoleMenu')
+    if role_menu_cog is not None:
+        bot.add_view(role_menu_cog.get_role_menu_view())  # Registers a View for persistent listening
 
 @bot.event
 async def on_commanderror(ctx, error):

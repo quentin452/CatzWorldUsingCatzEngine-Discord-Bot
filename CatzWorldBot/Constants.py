@@ -18,6 +18,7 @@ class ConstantsClass:
     DOWNLOAD_SAVE_FOLDER = get_github_project_directory() + "/CatzWorldBot/saves/downloads"
     RSS_SAVE_FOLDER = get_github_project_directory() + "/CatzWorldBot/saves/rss"
     TICKET_SAVE_FOLDER = get_github_project_directory() + "/CatzWorldBot/saves/tickets"
+    ROLE_SAVE_FOLDER = get_github_project_directory() + "/CatzWorldBot/saves/free_roles"
 
     READ_FILE = "r"
     WRITE_TO_FILE = "w"
