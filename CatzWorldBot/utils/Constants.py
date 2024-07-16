@@ -24,3 +24,7 @@ class ConstantsClass:
 
     READ_FILE = "r"
     WRITE_TO_FILE = "w"
+
+    async def doNotLogMessagesFromAnotherBot(before):
+        if before.author.bot:  # Ne pas logger les messages des autres bots
+            return

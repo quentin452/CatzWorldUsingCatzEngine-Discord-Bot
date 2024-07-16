@@ -28,7 +28,6 @@ def kill_old_instances():
             if proc.pid != current_process.pid:
                 proc.kill()
 
-
 def install_modules(modules):
     subprocess.check_call([sys.executable, "-m", "pip", "install", *modules])
 

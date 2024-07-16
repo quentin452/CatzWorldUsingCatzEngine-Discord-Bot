@@ -46,9 +46,7 @@ class DiscordLogs(commands.Cog):
 
     @commands.Cog.listener() #TODO FIX CREATED MESSAGES BEFORE LAUNCHING THE BOT CANNOT BE LOGGED
     async def on_message_edit(self, before, after):
-        if before.author.bot:  # Ne pas logger les messages des autres bots
-            return
-
+        ConstantsClass.doNotLogMessagesFromAnotherBot(before)
         log_channel = self.bot.get_channel(self.log_channel_id)
         if log_channel:
             try:
