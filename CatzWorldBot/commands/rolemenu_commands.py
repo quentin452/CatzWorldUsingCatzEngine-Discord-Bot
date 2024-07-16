@@ -7,6 +7,7 @@ class RoleMenuView(discord.ui.View):
         super().__init__(timeout=None)
         self.roles_with_descriptions = roles_with_descriptions
 
+        # Create and add the Select dropdown first
         select = discord.ui.Select(
             placeholder="Choose a free role",
             custom_id="role_select",
@@ -17,7 +18,31 @@ class RoleMenuView(discord.ui.View):
         )
         select.callback = self.select_callback
         self.add_item(select)
-        
+
+        # Then add the buttons
+        self.add_buttons()
+
+    def add_buttons(self):
+        # Add "Remove Free Roles" button
+        remove_button = discord.ui.Button(
+            label="Remove Free Roles",
+            style=discord.ButtonStyle.danger,
+            custom_id="remove_roles",
+            row=2  # Adjust the row if necessary
+        )
+        remove_button.callback = self.remove_button_callback
+        self.add_item(remove_button)
+
+        # Add "Add Free Roles" button
+        all_button = discord.ui.Button(
+            label="Add Free Roles",
+            style=discord.ButtonStyle.success,
+            custom_id="all_roles",
+            row=2  # Adjust the row if necessary
+        )
+        all_button.callback = self.all_button_callback
+        self.add_item(all_button)
+
     async def select_callback(self, interaction: discord.Interaction):
         role_name = interaction.data['values'][0]
         role = discord.utils.get(interaction.guild.roles, name=role_name)
@@ -27,8 +52,7 @@ class RoleMenuView(discord.ui.View):
         else:
             await interaction.response.send_message(f"Rôle {role_name} not found!", ephemeral=True)
 
-    @discord.ui.button(label="Remove Free Roles", style=discord.ButtonStyle.danger, custom_id="remove_roles")
-    async def remove_button_callback(self, interaction: discord.Interaction, button: discord.ui.Button):
+    async def remove_button_callback(self, interaction: discord.Interaction):
         roles_to_remove = [discord.utils.get(interaction.guild.roles, name=role) for role in self.roles_with_descriptions.keys()]
         roles_to_remove = [role for role in roles_to_remove if role in interaction.user.roles]
         if roles_to_remove:
@@ -37,8 +61,7 @@ class RoleMenuView(discord.ui.View):
         else:
             await interaction.response.send_message("You have no free roles to delete.", ephemeral=True)
 
-    @discord.ui.button(label="Add Free Roles", style=discord.ButtonStyle.success, custom_id="all_roles")
-    async def all_button_callback(self, interaction: discord.Interaction, button: discord.ui.Button):
+    async def all_button_callback(self, interaction: discord.Interaction):
         roles_to_add = [discord.utils.get(interaction.guild.roles, name=role) for role in self.roles_with_descriptions.keys()]
         roles_to_add = [role for role in roles_to_add if role and role not in interaction.user.roles]
         if roles_to_add:
