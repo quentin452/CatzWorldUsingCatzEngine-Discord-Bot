@@ -9,19 +9,10 @@ from utils.async_logs import LogMessageAsync
 class DiscordLogs(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.log_channel_id = self.load_log_channel()
+        self.log_channel_id = ConstantsClass.load_channel_template(self,ConstantsClass.LOGS_SAVE_FOLDER + '/log_channel.json','log_channel_id')
         
-       
-    def load_log_channel(self):
-        if os.path.exists(ConstantsClass.LOGS_SAVE_FOLDER + '/log_channel.json'):
-            with open(ConstantsClass.LOGS_SAVE_FOLDER + '/log_channel.json', 'r') as f:
-                return json.load(f).get('log_channel_id')
-        else:
-            return None
-
     def save_log_channel(self, channel_id):
-        with open(ConstantsClass.LOGS_SAVE_FOLDER + '/log_channel.json', 'w') as f:
-            json.dump({'log_channel_id': channel_id}, f)  # Corrected the key here
+        ConstantsClass.save_channel_template(self,ConstantsClass.LOGS_SAVE_FOLDER + '/log_channel.json','log_channel_id',channel_id)
 
     @commands.command(help="Sets the log channel for logging events. Requires administrator permissions.")
     @commands.has_permissions(administrator=True)
@@ -29,24 +20,9 @@ class DiscordLogs(commands.Cog):
         self.log_channel_id = ctx.channel.id
         self.save_log_channel(ctx.channel.id)
 
-    channel_type_map = {
-        discord.ChannelType.text: 'Text',
-        discord.ChannelType.voice: 'Voice',
-        discord.ChannelType.category: 'Category',
-        discord.ChannelType.forum: 'Forum',
-        discord.ChannelType.news: 'Announcement',
-        discord.ChannelType.stage_voice: 'Stage',
-        discord.ChannelType.media: 'Media',
-        discord.ChannelType.news_thread: 'Announcement Thread',
-        discord.ChannelType.private: 'Private',
-        discord.ChannelType.private_thread: 'Private Thread',
-        discord.ChannelType.public_thread: 'Public thread',
-    # Ajoutez d'autres types de canaux ici si nécessaire
-    }
-
     @commands.Cog.listener() #TODO FIX CREATED MESSAGES BEFORE LAUNCHING THE BOT CANNOT BE LOGGED
     async def on_message_edit(self, before, after):
-        ConstantsClass.doNotLogMessagesFromAnotherBot(before)
+        ConstantsClass.doNotLogMessagesFromAnotherBot(self,before)
         log_channel = self.bot.get_channel(self.log_channel_id)
         if log_channel:
             try:
@@ -63,7 +39,30 @@ class DiscordLogs(commands.Cog):
                 await log_channel.send(embed=embed)
             except Exception as e:
                 await log_channel.send(f"Error logging message edit: {e}")
-                
+
+    @commands.Cog.listener() #UNTESDED
+    async def on_user_update(self, before, after):
+        # Vérifiez si la photo de profil a changé
+        if before.avatar != after.avatar:
+            log_channel = self.bot.get_channel(self.log_channel_id)
+            if log_channel:
+                try:
+                    embed = discord.Embed(
+                        title='Profile Picture Changed',
+                        color=discord.Color.blue()
+                    )
+                    embed.set_author(name=f"{before.name}#{before.discriminator}", icon_url=after.avatar.url)
+                    embed.add_field(name='User', value=before.mention, inline=True)
+                    embed.add_field(name='User ID', value=before.id, inline=True)
+                    embed.add_field(name='Date', value=discord.utils.utcnow().strftime('%Y-%m-%d %H:%M:%S'), inline=True)
+                    embed.add_field(name='Before', value="Old profile picture below", inline=False)
+                    embed.set_image(url=before.avatar.url)
+                    embed.add_field(name='After', value="New profile picture below", inline=False)
+                    embed.set_thumbnail(url=after.avatar.url)
+                    await log_channel.send(embed=embed)
+                except Exception as e:
+                    await log_channel.send(f"Error logging profile picture change: {e}")
+
     @commands.Cog.listener()
     async def on_member_join(self, member):
         log_channel = self.bot.get_channel(self.log_channel_id)
@@ -382,7 +381,7 @@ class DiscordLogs(commands.Cog):
                 user = ctx.author
                 channel = ctx.channel
                 command = ctx.command
-                channel_type = self.channel_type_map.get(channel.type, 'Unknown')
+                channel_type = ConstantsClass.channel_type_map.get(channel.type, 'Unknown')
                 embed = discord.Embed(
                     title=f'Command used by {user.name}', 
                     description=f'{user.name} used the command : {command}', 
@@ -404,7 +403,7 @@ class DiscordLogs(commands.Cog):
             try:
                 if isinstance(entry.target, (discord.VoiceChannel, discord.TextChannel, discord.CategoryChannel)):
                     if entry.action == discord.AuditLogAction.channel_create:
-                        channel_type = self.channel_type_map.get(entry.target.type, 'Unknown')
+                        channel_type = ConstantsClass.channel_type_map.get(entry.target.type, 'Unknown')
                         embed = discord.Embed(title=f'{channel_type} Channel created by {entry.user.name}', description=f'{entry.user.name} created a new channel: {entry.target.name}', color=discord.Color.green())
                     elif entry.action == discord.AuditLogAction.channel_update:
                         changes = [f"{k}: {v[0]} -> {v[1]}" for k, v in entry.changes.items()]
@@ -428,7 +427,7 @@ class DiscordLogs(commands.Cog):
             try:
                 async for entry in channel.guild.audit_logs(action=discord.AuditLogAction.channel_delete, limit=1):
                     user = entry.user
-                    channel_type = self.channel_type_map.get(channel.type, 'Unknown')
+                    channel_type = ConstantsClass.channel_type_map.get(channel.type, 'Unknown')
                     embed = discord.Embed(
                         title=f'<:Removed:1262441169904730142> {channel_type} Channel removed by {user.name}', 
                         description=f'{user.name} deleted the channel : {channel.name}', 
@@ -451,7 +450,7 @@ class DiscordLogs(commands.Cog):
             try:
                 async for entry in after.guild.audit_logs(action=discord.AuditLogAction.channel_update, limit=1):
                     user = entry.user
-                    channel_type = self.channel_type_map.get(after.type, 'Unknown')
+                    channel_type = ConstantsClass.channel_type_map.get(after.type, 'Unknown')
                     embed = discord.Embed(
                         title=f'<:Fixed:1262441171339448451> {channel_type} Channel renamed by {user.name}',
                         description=f'The channel {before.name} has been renamed to {after.name}',

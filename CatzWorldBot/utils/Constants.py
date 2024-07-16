@@ -1,5 +1,6 @@
 import os
-
+import json
+import discord
 class ConstantsClass:
     @staticmethod
     def get_github_project_directory():
@@ -25,6 +26,33 @@ class ConstantsClass:
     READ_FILE = "r"
     WRITE_TO_FILE = "w"
 
-    async def doNotLogMessagesFromAnotherBot(before):
+
+    channel_type_map = {
+        discord.ChannelType.text: 'Text',
+        discord.ChannelType.voice: 'Voice',
+        discord.ChannelType.category: 'Category',
+        discord.ChannelType.forum: 'Forum',
+        discord.ChannelType.news: 'Announcement',
+        discord.ChannelType.stage_voice: 'Stage',
+        discord.ChannelType.media: 'Media',
+        discord.ChannelType.news_thread: 'Announcement Thread',
+        discord.ChannelType.private: 'Private',
+        discord.ChannelType.private_thread: 'Private Thread',
+        discord.ChannelType.public_thread: 'Public thread',
+    # Ajoutez d'autres types de canaux ici si nécessaire
+    }
+
+    async def doNotLogMessagesFromAnotherBot(self,before):
         if before.author.bot:  # Ne pas logger les messages des autres bots
             return
+                   
+    def load_channel_template(self,json_folder_and_name,key):
+        if os.path.exists(json_folder_and_name):
+            with open(json_folder_and_name, 'r') as f:
+                return json.load(f).get(key)
+        else:
+            return None
+
+    def save_channel_template(self, json_folder_and_name, key, channel_id):
+        with open(json_folder_and_name, 'w') as f:
+            json.dump({key: channel_id}, f)
