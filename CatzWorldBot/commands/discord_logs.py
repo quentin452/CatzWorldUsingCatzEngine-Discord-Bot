@@ -10,7 +10,8 @@ class DiscordLogs(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.log_channel_id = self.load_log_channel()
-
+        
+       
     def load_log_channel(self):
         if os.path.exists(ConstantsClass.LOGS_SAVE_FOLDER + 'log_channel.json'):
             with open(ConstantsClass.LOGS_SAVE_FOLDER + 'log_channel.json', 'r') as f:
@@ -24,10 +25,10 @@ class DiscordLogs(commands.Cog):
 
     @commands.command(help="Sets the log channel for logging events. Requires administrator permissions.")
     @commands.has_permissions(administrator=True)
-    async def set_log_channel(self, ctx, channel: discord.TextChannel):
-        self.log_channel_id = channel.id
-        self.save_log_channel(channel.id)
-        await ctx.send(f'Le channel de logs a été défini sur {channel.mention}')
+    async def set_log_channel(self, ctx):
+        self.log_channel_id = ctx.channel.id
+        self.save_log_channel(ctx.channel.id)
+        await ctx.send(f"Le canal de log a été défini sur {ctx.channel.name}")
 
     channel_type_map = {
         discord.ChannelType.text: 'Text',
@@ -59,10 +60,12 @@ class DiscordLogs(commands.Cog):
                 embed.add_field(name='Joined At', value=member.joined_at.strftime('%Y-%m-%d %H:%M:%S'), inline=True)
                 await log_channel.send(embed=embed)
             except Exception as e:
-                await LogMessageAsync.LogAsync(f"Error logging member join: {e}")
+                    await LogMessageAsync.LogAsync(f"Error logging member join: {e}")
 
-    @commands.Cog.listener()
     async def on_ready(self):
+        if self.log_channel_id is None:
+            self.log_channel_id = self.load_log_channel()
+
         log_channel = self.bot.get_channel(self.log_channel_id)
         if log_channel:
             try:
@@ -72,8 +75,11 @@ class DiscordLogs(commands.Cog):
                     color=discord.Color.green()
                 )
                 await log_channel.send(embed=embed)
+                await LogMessageAsync.LogAsync("Startup message sent successfully.")
             except Exception as e:
                 await LogMessageAsync.LogAsync(f"Error sending startup message: {e}")
+        else:
+            await LogMessageAsync.LogAsync(f"Log channel with ID {self.log_channel_id} not found.")
 
     async def log_reaction_change(self, reaction, user, action):
         log_channel = self.bot.get_channel(self.log_channel_id)

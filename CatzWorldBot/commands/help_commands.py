@@ -55,6 +55,5 @@ class CustomHelpCommand(commands.Cog):
             embed = discord.Embed(title="Aide du bot", description=page, color=discord.Color.blue())
             await destination.send(embed=embed)
 
-
 async def setup(bot):
     await bot.add_cog(CustomHelpCommand(bot))

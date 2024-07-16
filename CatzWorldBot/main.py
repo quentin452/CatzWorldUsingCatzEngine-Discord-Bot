@@ -80,6 +80,10 @@ async def on_ready():
         ticket_menu_view = ticket_cog.get_menu_view()
         bot.add_view(ticket_menu_view)
 
+    # DiscordLogs Commands
+    discord_logs_cog = bot.get_cog('DiscordLogs')
+    if discord_logs_cog is not None:
+         await discord_logs_cog.on_ready()
 
     # Feedback Commands
    # feedback_cog = bot.get_cog('FeedbackCommands')
