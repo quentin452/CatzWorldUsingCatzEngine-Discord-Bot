@@ -60,6 +60,55 @@ class DiscordLogs(commands.Cog):
             except Exception as e:
                 print(f"Error logging member join: {e}")
 
+    async def log_reaction_change(self, reaction, user, action):
+        log_channel = self.bot.get_channel(self.log_channel_id)
+        if log_channel:
+            try:
+                message = reaction.message
+                embed = discord.Embed(
+                    title=f'Reaction {action.capitalize()}',
+                    description=f'{user.name}#{user.discriminator} {action} a reaction',
+                    color=discord.Color.blue() if action == "added" else discord.Color.red()
+                )
+                embed.set_thumbnail(url=user.avatar.url)
+                embed.add_field(name='Reaction', value=str(reaction.emoji), inline=True)
+                embed.add_field(name='Message ID', value=message.id, inline=True)
+                embed.add_field(name='Channel', value=message.channel.name, inline=True)
+                embed.add_field(name='Message Content', value=message.content if message.content else 'Embed/Attachment', inline=True)
+                embed.add_field(name='Date', value=datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'), inline=True)
+                await log_channel.send(embed=embed)
+            except Exception as e:
+                print(f"Error logging reaction {action}: {e}")
+
+    @commands.Cog.listener() #TODO FIX CREATED MESSAGES BEFORE LAUNCHING THE BOT CANNOT BE LOGGED
+    async def on_reaction_add(self, reaction, user):
+        await self.log_reaction_change(reaction, user, "added")
+
+
+    @commands.Cog.listener() #TODO FIX CREATED MESSAGES BEFORE LAUNCHING THE BOT CANNOT BE LOGGED
+    async def on_reaction_remove(self, reaction, user):
+        await self.log_reaction_change(reaction, user, "removed")
+
+    async def log_reaction_change(self, reaction, user, action):
+        log_channel = self.bot.get_channel(self.log_channel_id)
+        if log_channel:
+            try:
+                message = reaction.message
+                embed = discord.Embed(
+                    title=f'Reaction {action.capitalize()}',
+                    description=f'{user.name}#{user.discriminator} {action} a reaction',
+                    color=discord.Color.green() if action == "added" else discord.Color.red()
+                )
+                embed.set_thumbnail(url=user.avatar.url)
+                embed.add_field(name='Reaction', value=str(reaction.emoji), inline=True)
+                embed.add_field(name='Message ID', value=message.id, inline=True)
+                embed.add_field(name='Channel', value=message.channel.name, inline=True)
+                embed.add_field(name='Message Content', value=message.content if message.content else 'Embed/Attachment', inline=True)
+                embed.add_field(name='Date', value=datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'), inline=True)
+                await log_channel.send(embed=embed)
+            except Exception as e:
+                print(f"Error logging reaction {action}: {e}")
+
     @commands.Cog.listener()
     async def on_member_remove(self, member):
         log_channel = self.bot.get_channel(self.log_channel_id)
@@ -192,7 +241,7 @@ class DiscordLogs(commands.Cog):
             except Exception as e:
                 print(f"Error logging member unban: {e}")
 
-    @commands.Cog.listener() # UNTESTED
+    @commands.Cog.listener()
     async def on_member_boost(self, member):
         log_channel = self.bot.get_channel(self.log_channel_id)
         if log_channel:
