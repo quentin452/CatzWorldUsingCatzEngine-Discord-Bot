@@ -3,9 +3,11 @@ from discord.ext import commands
 import discord
 import os
 import asyncio
+import time
 from datetime import datetime
 from utils.Constants import ConstantsClass
 from utils.async_logs import LogMessageAsync
+from utils.EmbedUtility import *
 class DiscordLogs(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -26,39 +28,18 @@ class DiscordLogs(commands.Cog):
         log_channel = self.bot.get_channel(self.log_channel_id)
         if log_channel:
             try:
-                embed = discord.Embed(
-                    title='Message Edited',
-                    color=discord.Color.gold()
-                )
-                embed.set_thumbnail(url=before.author.avatar.url)
-                embed.add_field(name='User', value=before.author.mention, inline=True)
-                embed.add_field(name='Channel', value=before.channel.mention, inline=True)
-                embed.add_field(name='Before', value=before.content or "*(Empty)*", inline=False)
-                embed.add_field(name='After', value=after.content or "*(Empty)*", inline=False)
-                embed.set_footer(text=f"User ID: {before.author.id}")
+                embed = MessageEditEmbed(before, after).create()
                 await log_channel.send(embed=embed)
             except Exception as e:
                 await log_channel.send(f"Error logging message edit: {e}")
 
-    @commands.Cog.listener() #UNTESDED
+    @commands.Cog.listener()
     async def on_user_update(self, before, after):
-        # Vérifiez si la photo de profil a changé
         if before.avatar != after.avatar:
             log_channel = self.bot.get_channel(self.log_channel_id)
             if log_channel:
                 try:
-                    embed = discord.Embed(
-                        title='Profile Picture Changed',
-                        color=discord.Color.blue()
-                    )
-                    embed.set_author(name=f"{before.name}#{before.discriminator}", icon_url=after.avatar.url)
-                    embed.add_field(name='User', value=before.mention, inline=True)
-                    embed.add_field(name='User ID', value=before.id, inline=True)
-                    embed.add_field(name='Date', value=discord.utils.utcnow().strftime('%Y-%m-%d %H:%M:%S'), inline=True)
-                    embed.add_field(name='Before', value="Old profile picture below", inline=False)
-                    embed.set_image(url=before.avatar.url)
-                    embed.add_field(name='After', value="New profile picture below", inline=False)
-                    embed.set_thumbnail(url=after.avatar.url)
+                    embed = ProfilePictureChangedEmbed(before, after).create()
                     await log_channel.send(embed=embed)
                 except Exception as e:
                     await log_channel.send(f"Error logging profile picture change: {e}")
@@ -68,14 +49,7 @@ class DiscordLogs(commands.Cog):
         log_channel = self.bot.get_channel(self.log_channel_id)
         if log_channel:
             try:
-                embed = discord.Embed(
-                    title='Member Joined',
-                    description=f'{member.name}#{member.discriminator} has joined the server',
-                    color=discord.Color.green()
-                )
-                embed.set_thumbnail(url=member.avatar.url)
-                embed.add_field(name='Member ID', value=member.id, inline=True)
-                embed.add_field(name='Joined At', value=member.joined_at.strftime('%Y-%m-%d %H:%M:%S'), inline=True)
+                embed = MemberJoinedEmbed(member).create()
                 await log_channel.send(embed=embed)
             except Exception as e:
                     await LogMessageAsync.LogAsync(f"Error logging member join: {e}")
@@ -83,17 +57,11 @@ class DiscordLogs(commands.Cog):
     async def on_ready(self):
         if self.log_channel_id is None:
             self.log_channel_id = self.load_log_channel()
-
         log_channel = self.bot.get_channel(self.log_channel_id)
         if log_channel:
             try:
-                embed = discord.Embed(
-                    title='Bot Started',
-                    description='The bot is now online and ready to be used.',
-                    color=discord.Color.green()
-                )
+                embed = BotStartedEmbed().create()
                 await log_channel.send(embed=embed)
-                await LogMessageAsync.LogAsync("Startup message sent successfully.")
             except Exception as e:
                 await LogMessageAsync.LogAsync(f"Error sending startup message: {e}")
         else:
@@ -104,17 +72,8 @@ class DiscordLogs(commands.Cog):
         if log_channel:
             try:
                 message = reaction.message
-                embed = discord.Embed(
-                    title=f'Reaction {action.capitalize()}',
-                    description=f'{user.name}#{user.discriminator} {action} a reaction',
-                    color=discord.Color.blue() if action == "added" else discord.Color.red()
-                )
-                embed.set_thumbnail(url=user.avatar.url)
-                embed.add_field(name='Reaction', value=str(reaction.emoji), inline=True)
-                embed.add_field(name='Message ID', value=message.id, inline=True)
-                embed.add_field(name='Channel', value=message.channel.name, inline=True)
-                embed.add_field(name='Message Content', value=message.content if message.content else 'Embed/Attachment', inline=True)
-                embed.add_field(name='Date', value=datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'), inline=True)
+                author = message.author
+                embed = ReactionAddedEmbed(author, reaction, user, action, message).create()
                 await log_channel.send(embed=embed)
             except Exception as e:
                 await LogMessageAsync.LogAsync(f"Error logging reaction {action}: {e}")
@@ -123,30 +82,9 @@ class DiscordLogs(commands.Cog):
     async def on_reaction_add(self, reaction, user):
         await self.log_reaction_change(reaction, user, "added")
 
-
     @commands.Cog.listener() #TODO FIX CREATED MESSAGES BEFORE LAUNCHING THE BOT CANNOT BE LOGGED
     async def on_reaction_remove(self, reaction, user):
         await self.log_reaction_change(reaction, user, "removed")
-
-    async def log_reaction_change(self, reaction, user, action):
-        log_channel = self.bot.get_channel(self.log_channel_id)
-        if log_channel:
-            try:
-                message = reaction.message
-                embed = discord.Embed(
-                    title=f'Reaction {action.capitalize()}',
-                    description=f'{user.name}#{user.discriminator} {action} a reaction',
-                    color=discord.Color.green() if action == "added" else discord.Color.red()
-                )
-                embed.set_thumbnail(url=user.avatar.url)
-                embed.add_field(name='Reaction', value=str(reaction.emoji), inline=True)
-                embed.add_field(name='Message ID', value=message.id, inline=True)
-                embed.add_field(name='Channel', value=message.channel.name, inline=True)
-                embed.add_field(name='Message Content', value=message.content if message.content else 'Embed/Attachment', inline=True)
-                embed.add_field(name='Date', value=datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'), inline=True)
-                await log_channel.send(embed=embed)
-            except Exception as e:
-                await LogMessageAsync.LogAsync(f"Error logging reaction {action}: {e}")
 
     @commands.Cog.listener() # TODO add log server exclusion/expulsions
     async def on_member_remove(self, member):
