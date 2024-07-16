@@ -1,5 +1,4 @@
 import os
-#from async_logs import LogMessageAsync
 
 class ConstantsClass:
     @staticmethod
@@ -25,6 +24,3 @@ class ConstantsClass:
 
     READ_FILE = "r"
     WRITE_TO_FILE = "w"
-
-    
-#LogMessageAsync.LogAsync("The github Project Directory is :", ConstantsClass.get_github_project_directory())

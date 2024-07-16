@@ -1,6 +1,6 @@
 from discord.ext import commands
 import discord
-
+from utils.async_logs import LogMessageAsync
 class Testing(commands.Cog):
     def __init__(self, bot):
         self.bot = bot

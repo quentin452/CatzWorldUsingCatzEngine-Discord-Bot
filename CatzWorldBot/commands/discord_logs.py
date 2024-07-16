@@ -5,6 +5,7 @@ import os
 import asyncio
 from datetime import datetime
 from utils.Constants import ConstantsClass
+from utils.async_logs import LogMessageAsync
 class DiscordLogs(commands.Cog):
     def __init__(self, bot):
         self.bot = bot

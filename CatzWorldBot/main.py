@@ -6,6 +6,7 @@ from discord.ext import commands
 from utils.config import load_config
 from utils.async_logs import LogMessageAsync
 import time
+from utils.Constants import ConstantsClass
 
 current_path = os.path.dirname(os.path.abspath(__file__))
 config = load_config()
@@ -49,6 +50,7 @@ async def load_extensions():
 
 @bot.event
 async def on_ready():
+    await LogMessageAsync.LogAsync("The github Project Directory is : " + ConstantsClass.get_github_project_directory())
     await LogMessageAsync.reset_log_file()
     # Setting `Playing ` status
     await bot.change_presence(activity=discord.Game(name="https://iamacatfrdev.itch.io/catzworld"))

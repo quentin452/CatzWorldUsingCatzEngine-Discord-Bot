@@ -8,6 +8,7 @@ import json
 from utils.Constants import ConstantsClass
 from utils.config import load_config
 import asyncio
+from utils.async_logs import LogMessageAsync
 
 config = load_config()
 api_key = config['api_key']
