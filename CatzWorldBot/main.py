@@ -16,13 +16,12 @@ intents = discord.Intents.all()
 bot = commands.Bot(command_prefix='/', intents=intents)
 
 def install_modules(modules):
-    for module in modules:
-        subprocess.check_call([sys.executable, "-m", "pip", "install", module])
+    subprocess.check_call([sys.executable, "-m", "pip", "install", *modules])
 
 if __name__ == "__main__":
     required_modules = ['discord', 'feedparser', 'requests', 'beautifulsoup4', 'black']
     install_modules(required_modules)
-
+    
 async def load_extensions():
     current_folder = os.path.dirname(__file__) 
     extensions_folder = os.path.join(current_folder, 'commands')  
