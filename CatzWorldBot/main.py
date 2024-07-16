@@ -41,7 +41,7 @@ async def load_extensions(bot):
     extensions_folder = os.path.join(current_folder, 'commands')
 
     if not os.path.exists(extensions_folder):
-        await LogMessageAsync.LogAsync(f"Le dossier '{extensions_folder}' n'existe pas. Assurez-vous que le chemin est correct.")
+        await LogMessageAsync.LogAsync(f"The folder '{extensions_folder}' does not exist. Make sure the path is correct.")
         return
 
     extensions = []
@@ -58,9 +58,9 @@ async def load_extensions(bot):
             await bot.load_extension(extension)
             end_time = time.time()
             elapsed_time = (end_time - start_time) * 1000  # Conversion en millisecondes
-            await LogMessageAsync.LogAsync(f'Extension chargée : {extension} en {elapsed_time:.2f} millisecondes')
+            await LogMessageAsync.LogAsync(f'Extension Loaded : {extension} en {elapsed_time:.2f} millisecondes')
         except Exception as e:
-            await LogMessageAsync.LogAsync(f'Erreur lors du chargement de {extension}: {type(e).__name__} - {e}')
+            await LogMessageAsync.LogAsync(f'Error loading {extension}: {type(e).__name__} - {e}')
 
 @bot.event
 async def on_ready():
