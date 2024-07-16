@@ -44,11 +44,11 @@ class DiscordLogs(commands.Cog):
     # Ajoutez d'autres types de canaux ici si nécessaire
     }
 
-    @commands.Cog.listener()
-    async def on_message_edit(self, before, after, member):
+    @commands.Cog.listener() #TODO FIX CREATED MESSAGES BEFORE LAUNCHING THE BOT CANNOT BE LOGGED
+    async def on_message_edit(self, before, after):
         if before.author.bot:  # Ne pas logger les messages des autres bots
             return
-        
+
         log_channel = self.bot.get_channel(self.log_channel_id)
         if log_channel:
             try:
@@ -56,7 +56,7 @@ class DiscordLogs(commands.Cog):
                     title='Message Edited',
                     color=discord.Color.gold()
                 )
-                embed.set_thumbnail(url=member.avatar.url)
+                embed.set_thumbnail(url=before.author.avatar.url)
                 embed.add_field(name='User', value=before.author.mention, inline=True)
                 embed.add_field(name='Channel', value=before.channel.mention, inline=True)
                 embed.add_field(name='Before', value=before.content or "*(Empty)*", inline=False)
