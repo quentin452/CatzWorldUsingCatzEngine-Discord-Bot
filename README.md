@@ -171,7 +171,7 @@ Ce bot est essentiel si vous avez un jeu sur itch.io et que vous souhaitez tenir
   - Récupérer une liste de toutes les commandes du bot
 
 - `/role_menu`
-  - Ajoute un genre de reaction role
+  - Ajoute un genre de menu de reaction role
 
 ### 📝 Remarque
 
