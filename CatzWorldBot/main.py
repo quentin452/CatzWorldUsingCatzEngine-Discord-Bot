@@ -46,9 +46,32 @@ async def load_extensions():
 @bot.event
 async def on_ready():
     await load_extensions()
-    role_menu_cog = bot.get_cog('RoleMenu')
-    if role_menu_cog is not None:
-        bot.add_view(role_menu_cog.get_role_menu_view())  # Registers a View for persistent listening
+
+    # PERSISTANT SAVING
+    
+    # Rôle Menu
+    rmenu_cog = bot.get_cog('RoleMenu')
+    if rmenu_cog is not None:
+        role_menu_view = rmenu_cog.get_menu_view()
+        bot.add_view(role_menu_view)
+
+    # Ticket Commands
+    ticket_cog = bot.get_cog('TicketCommands')
+    if ticket_cog is not None:
+        ticket_menu_view = ticket_cog.get_menu_view()
+        bot.add_view(ticket_menu_view)
+
+    # Feedback Commands
+   # feedback_cog = bot.get_cog('FeedbackCommands')
+   # if feedback_cog is not None:
+   #     feedback_menu_view = feedback_cog.get_menu_view()
+   #     bot.add_view(feedback_menu_view)
+
+    # RSS Commands
+    # rss_cog = bot.get_cog('RssCommands')
+    #if rss_cog is not None:
+    #    rss_menu_view = rss_cog.get_menu_view()
+    #    bot.add_view(rss_menu_view)
 
 @bot.event
 async def on_commanderror(ctx, error):

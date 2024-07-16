@@ -90,7 +90,7 @@ class RoleMenu(commands.Cog):
         message = await ctx.send(embed=embed, view=self.role_menu_view)
         self.role_menu_view.message_id = message.id  # Définir le message_id
 
-    def get_role_menu_view(self):
+    def get_menu_view(self):
         return RoleMenuView(self.free_roles_with_descriptions)
 
 

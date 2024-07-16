@@ -1,9 +1,8 @@
 import discord
 from discord.ext import commands
 import json
-import asyncio
 from datetime import datetime
-from Constants import ConstantsClass 
+from Constants import ConstantsClass
 
 class FeedbackCommands(commands.Cog):
     def __init__(self, bot):
@@ -12,9 +11,9 @@ class FeedbackCommands(commands.Cog):
         self.feedback_counter = self.load_feedback_counter()
         self.feedbacks = self.load_feedbacks()
 
-        if self.feedback_channel_id:
-            bot.loop.create_task(self.delete_bot_messages())
-
+    def get_menu_view(self):
+        return FeedbackCommands(self.feedbacks)
+    
     def load_feedback_channel_id(self):
         try:
             with open(ConstantsClass.FEED_BACK_SAVE_FOLDER + '/feedback_channel_id.json', 'r') as f:
@@ -38,8 +37,8 @@ class FeedbackCommands(commands.Cog):
             json.dump(self.feedback_counter, f)
 
     def save_feedbacks(self):
-            with open(ConstantsClass.FEED_BACK_SAVE_FOLDER + '/feedbacks.json', 'w') as f:
-                json.dump(self.feedbacks, f, default=str) 
+        with open(ConstantsClass.FEED_BACK_SAVE_FOLDER + '/feedbacks.json', 'w') as f:
+            json.dump(self.feedbacks, f, default=str) 
 
     def load_feedbacks(self):
         try:
@@ -47,40 +46,6 @@ class FeedbackCommands(commands.Cog):
                 return json.load(f)
         except FileNotFoundError:
             return []
-
-    async def delete_bot_messages(self):
-        while True:
-            if not self.feedback_channel_id:
-                print("Feedback channel ID not set.")
-                return
-
-            channel = self.bot.get_channel(self.feedback_channel_id)
-            if not channel:
-                print(f"Channel with ID {self.feedback_channel_id} not found.")
-                return
-
-            print(f"Deleting bot messages in channel: {channel.name} ({channel.id})")
-
-            try:
-                deleted = await channel.purge(limit=None, check=lambda msg: msg.author.id == self.bot.user.id)
-                print(f"Deleted {len(deleted)} messages.")
-
-                if len(deleted) == 0:
-                    print("No more bot messages to delete. Stopping message deletion.")
-                    return
-
-            except discord.HTTPException as e:
-                if e.code == 429:
-                    retry_after = e.retry_after
-                    print(f"We are being rate limited. Retry after {retry_after} seconds.")
-                    await asyncio.sleep(retry_after)
-                    continue
-                else:
-                    print(f"Failed to delete messages: {e}")
-                    return
-            except Exception as e:
-                print(f"An error occurred: {e}")
-                return
 
     @commands.command()
     @commands.has_permissions(administrator=True)
@@ -103,6 +68,14 @@ class FeedbackCommands(commands.Cog):
         self.feedbacks.append(feedback_entry)
         self.save_feedbacks()
 
+        # Delete the message that triggered the command (/submit_feedback)
+        try:
+            await ctx.message.delete()
+        except discord.NotFound:
+            pass  # Handle case where message is already deleted
+        except discord.Forbidden:
+            pass  # Handle case where bot lacks permissions to delete message
+
         await ctx.send(f"Feedback submitted by {ctx.author.mention}:\n{feedback}")
 
     @commands.command()
@@ -119,7 +92,6 @@ class FeedbackCommands(commands.Cog):
         await ctx.send(f"**List of Feedbacks:**\n\n{feedback_list}")
 
     async def send_feedback_instructions(self):
-        await asyncio.sleep(5)  # Wait for bot to be fully ready
         channel = self.bot.get_channel(self.feedback_channel_id)
         if channel:
             embed = discord.Embed(
@@ -129,11 +101,6 @@ class FeedbackCommands(commands.Cog):
             )
             await channel.send(embed=embed)
 
-    async def setup_feedback(self):
-        await self.delete_bot_messages()  # Ensure bot messages are deleted on startup
-        await self.send_feedback_instructions()  # Send instructions on how to submit feedback
-
 async def setup(bot):
     feedback_cog = FeedbackCommands(bot)
-    await feedback_cog.setup_feedback()
     await bot.add_cog(feedback_cog)

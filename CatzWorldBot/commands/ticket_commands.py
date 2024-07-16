@@ -16,11 +16,11 @@ class TicketCommands(commands.Cog):
         self.cooldown_time = 10
         self.ticket_messages = self.load_ticket_messages()  # Load ticket messages
         
-        if self.ticket_channel_id:
-            bot.loop.create_task(self.delete_bot_messages())
-
         # Send close ticket buttons after loading tickets and messages
         bot.loop.create_task(self.send_close_ticket_buttons())
+
+    def get_menu_view(self):
+        return TicketView(self)
         
     def load_ticket_channel_id(self):
         try:
@@ -86,44 +86,6 @@ class TicketCommands(commands.Cog):
                 else:
                     print(f"Ticket message ID not found for ticket ID {ticket['ticket_id']}")
 
-
-    async def delete_bot_messages(self):
-        async with self.delete_lock:
-            while self.delete_messages:
-                if not self.ticket_channel_id:
-                    print("Ticket channel ID not set.")
-                    return
-
-                channel = self.bot.get_channel(self.ticket_channel_id)
-                if not channel:
-                    print(f"Channel with ID {self.ticket_channel_id} not found.")
-                    return
-
-                print(f"Deleting bot messages in channel: {channel.name} ({channel.id})")
-
-                try:
-                    deleted = await channel.purge(limit=None, check=lambda msg: msg.author.id == self.bot.user.id)
-                    print(f"Deleted {len(deleted)} messages.")
-
-                    if len(deleted) == 0:
-                        print("No more bot messages to delete. Stopping message deletion.")
-                        self.delete_messages = False
-                        await self.send_ticket_creation_message(channel)
-                        return
-
-                except discord.HTTPException as e:
-                    if e.code == 429:
-                        retry_after = e.retry_after
-                        print(f"We are being rate limited. Retry after {retry_after} seconds.")
-                        await asyncio.sleep(retry_after)
-                        continue
-                    else:
-                        print(f"Failed to delete messages: {e}")
-                        return
-                except Exception as e:
-                    print(f"An error occurred: {e}")
-                    return
-
     async def send_ticket_creation_message(self, channel):
         try:
             if channel.id != self.ticket_channel_id:
@@ -159,8 +121,7 @@ class TicketCommands(commands.Cog):
         self.save_ticket_channel_id()
         if not self.delete_messages:
             self.delete_messages = True
-            await self.delete_bot_messages()
-
+            
     async def create_ticket(self, user, interaction, description):
         async with self.delete_lock:
             try:

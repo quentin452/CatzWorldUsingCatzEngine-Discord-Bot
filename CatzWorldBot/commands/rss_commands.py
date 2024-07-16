@@ -23,7 +23,7 @@ class RssCommands(commands.Cog):
         self.bot.loop.create_task(self.run_rss_loop())
         self.sent_rss_titles = []  # Initialize as needed
         self.rss_channel_ids = {}  # Initialize as needed
-
+        
     def load_rss_channel_ids(self):
         try:
             with open(ConstantsClass.RSS_SAVE_FOLDER + ConstantsClass.RSS_CHANNEL_IDS_JSON_FILE, ConstantsClass.READ_FILE) as f:
