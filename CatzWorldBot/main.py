@@ -7,6 +7,8 @@ from utils.config import load_config
 from utils.async_logs import LogMessageAsync
 import time
 from utils.Constants import ConstantsClass
+import psutil
+
 
 current_path = os.path.dirname(os.path.abspath(__file__))
 config = load_config()
@@ -17,10 +19,21 @@ game_id = config['game_id']
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix='/', intents=intents)
 
+def kill_old_instances():
+    current_process = psutil.Process()
+    for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+        # Vérifiez si le nom du processus ou la ligne de commande correspond à celui du processus actuel
+        if proc.info['name'] == current_process.name() or proc.info['cmdline'] == current_process.cmdline():
+            # Ne tuez pas le processus actuel
+            if proc.pid != current_process.pid:
+                proc.kill()
+
+
 def install_modules(modules):
     subprocess.check_call([sys.executable, "-m", "pip", "install", *modules])
 
 if __name__ == "__main__":
+    kill_old_instances()
     required_modules = ['aiofiles', 'discord', 'feedparser', 'requests', 'beautifulsoup4', 'black']
     install_modules(required_modules)
     
