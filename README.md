@@ -80,6 +80,10 @@ This bot is essential if you have an itch.io game and want to keep your server m
 - `/help_cat`
   - Retrieve a list of all commands of the bot
 
+- `/role_menu`
+  - Add a sort of reaction role menu
+
+
 ### 📝 Note
 
 This bot code is (probably) intended to be used only for one server due to json caching
@@ -165,6 +169,9 @@ Ce bot est essentiel si vous avez un jeu sur itch.io et que vous souhaitez tenir
 
 - `/help_cat`
   - Récupérer une liste de toutes les commandes du bot
+
+- `/role_menu`
+  - Ajoute un genre de reaction role
 
 ### 📝 Remarque
 
