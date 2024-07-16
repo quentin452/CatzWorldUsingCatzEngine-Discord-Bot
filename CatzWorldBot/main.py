@@ -93,18 +93,7 @@ async def on_ready():
     #    rss_menu_view = rss_cog.get_menu_view()
     #    bot.add_view(rss_menu_view)
 
-    discord_log_cog = bot.get_cog('DiscordLogs')
-    if discord_log_cog is None:
-        await LogMessageAsync.LogAsync("L'extension 'DiscordLogs' n'est pas chargée.")
-    else:
-        if hasattr(discord_log_cog, 'log_channel_id'):
-            channel = bot.get_channel(discord_log_cog.log_channel_id)
-            if channel is None:
-                await LogMessageAsync.LogAsync("Le salon avec l'ID donné n'existe pas ou le bot n'a pas la permission de le voir.")
-            else:
-                await channel.send("The bot has successfully started/restarted.")
-        else:
-            await LogMessageAsync.LogAsync("L'extension 'DiscordLogs' ne contient pas d'attribut 'log_channel_id'.")
+
 @bot.event
 async def on_commanderror(ctx, error):
     if isinstance(error, commands.CommandNotFound):
