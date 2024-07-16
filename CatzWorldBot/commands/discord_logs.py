@@ -13,14 +13,14 @@ class DiscordLogs(commands.Cog):
         
        
     def load_log_channel(self):
-        if os.path.exists(ConstantsClass.LOGS_SAVE_FOLDER + 'log_channel.json'):
-            with open(ConstantsClass.LOGS_SAVE_FOLDER + 'log_channel.json', 'r') as f:
+        if os.path.exists(ConstantsClass.LOGS_SAVE_FOLDER + '/log_channel.json'):
+            with open(ConstantsClass.LOGS_SAVE_FOLDER + '/log_channel.json', 'r') as f:
                 return json.load(f).get('log_channel_id')
         else:
             return None
 
     def save_log_channel(self, channel_id):
-        with open(ConstantsClass.LOGS_SAVE_FOLDER + 'log_channel.json', 'w') as f:
+        with open(ConstantsClass.LOGS_SAVE_FOLDER + '/log_channel.json', 'w') as f:
             json.dump({'log_channel_id': channel_id}, f)  # Corrected the key here
 
     @commands.command(help="Sets the log channel for logging events. Requires administrator permissions.")
@@ -28,7 +28,6 @@ class DiscordLogs(commands.Cog):
     async def set_log_channel(self, ctx):
         self.log_channel_id = ctx.channel.id
         self.save_log_channel(ctx.channel.id)
-        await ctx.send(f"Le canal de log a été défini sur {ctx.channel.name}")
 
     channel_type_map = {
         discord.ChannelType.text: 'Text',
@@ -45,6 +44,27 @@ class DiscordLogs(commands.Cog):
     # Ajoutez d'autres types de canaux ici si nécessaire
     }
 
+    @commands.Cog.listener()
+    async def on_message_edit(self, before, after):
+        if before.author.bot:  # Ne pas logger les messages des autres bots
+            return
+        
+        log_channel = self.bot.get_channel(self.log_channel_id)
+        if log_channel:
+            try:
+                embed = discord.Embed(
+                    title='Message Edited',
+                    color=discord.Color.gold()
+                )
+                embed.add_field(name='User', value=before.author.mention, inline=False)
+                embed.add_field(name='Before', value=before.content or "*(Empty)*", inline=False)
+                embed.add_field(name='After', value=after.content or "*(Empty)*", inline=False)
+                embed.add_field(name='Channel', value=before.channel.mention, inline=False)
+                embed.set_footer(text=f"User ID: {before.author.id}")
+                await log_channel.send(embed=embed)
+            except Exception as e:
+                await log_channel.send(f"Error logging message edit: {e}")
+                
     @commands.Cog.listener()
     async def on_member_join(self, member):
         log_channel = self.bot.get_channel(self.log_channel_id)
