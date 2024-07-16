@@ -80,7 +80,7 @@ This bot is essential if you have an itch.io game and want to keep your server m
 - `/help_cat`
   - Retrieve a list of all commands of the bot
 
-- `/role_menu`
+- `/role_menu` (REQUIRE ADMINISTRATOR PERMISSIONS)
   - Add a sort of reaction role menu
 
 
@@ -170,7 +170,7 @@ Ce bot est essentiel si vous avez un jeu sur itch.io et que vous souhaitez tenir
 - `/help_cat`
   - Récupérer une liste de toutes les commandes du bot
 
-- `/role_menu`
+- `/role_menu` (EXIGE LES AUTORISATIONS DE L'ADMINISTRATEUR)
   - Ajoute un genre de menu de reaction role
 
 ### 📝 Remarque
