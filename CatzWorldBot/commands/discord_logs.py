@@ -135,6 +135,7 @@ class DiscordLogs(commands.Cog):
                         )
                         await log_channel.send(embed=embed)
                 
+                #TODO FIX STREAMING SECTION DOES NOT WORK
                 # Check if member started or stopped streaming
                 before_streaming = any(isinstance(activity, discord.Streaming) for activity in member.activities)
                 after_streaming = any(isinstance(activity, discord.Streaming) for activity in member.activities)
