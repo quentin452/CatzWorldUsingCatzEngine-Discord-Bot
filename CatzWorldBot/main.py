@@ -36,24 +36,26 @@ if __name__ == "__main__":
     required_modules = ['aiofiles', 'discord', 'feedparser', 'requests', 'beautifulsoup4', 'black']
     install_modules(required_modules)
     
-async def load_extensions():
-    current_folder = os.path.dirname(__file__) 
-    extensions_folder = os.path.join(current_folder, 'commands')  
-    
+async def load_extensions(bot):
+    current_folder = os.path.dirname(__file__)
+    extensions_folder = os.path.join(current_folder, 'commands')
+
     if not os.path.exists(extensions_folder):
         await LogMessageAsync.LogAsync(f"Le dossier '{extensions_folder}' n'existe pas. Assurez-vous que le chemin est correct.")
         return
-    
+
     extensions = []
-    for filename in os.listdir(extensions_folder):
-        if filename.endswith('.py') and not filename.startswith('__'):
-            module_name = f'commands.{filename[:-3]}'
-            extensions.append(module_name)
-    
+    for root, _, files in os.walk(extensions_folder):
+        for filename in files:
+            if filename.endswith('.py') and not filename.startswith('__'):
+                path = os.path.relpath(os.path.join(root, filename), current_folder)
+                module_name = os.path.splitext(path)[0].replace(os.sep, '.')
+                extensions.append(module_name)
+
     for extension in extensions:
         start_time = time.time()
         try:
-            await bot.load_extension(extension)  
+            await bot.load_extension(extension)
             end_time = time.time()
             elapsed_time = (end_time - start_time) * 1000  # Conversion en millisecondes
             await LogMessageAsync.LogAsync(f'Extension chargée : {extension} en {elapsed_time:.2f} millisecondes')
@@ -76,7 +78,7 @@ async def on_ready():
     # Setting `Watching ` status
     # await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name="a movie"))
 
-    await load_extensions()
+    await load_extensions(bot)
 
     # PERSISTANT SAVING
     

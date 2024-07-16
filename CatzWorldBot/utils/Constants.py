@@ -44,8 +44,8 @@ class ConstantsClass:
 
     async def doNotLogMessagesFromAnotherBot(self,before):
         if before.author.bot:  # Ne pas logger les messages des autres bots
-            return
-                   
+            return          
+
     def load_channel_template(self,json_folder_and_name,key):
         if os.path.exists(json_folder_and_name):
             with open(json_folder_and_name, 'r') as f:
@@ -56,3 +56,5 @@ class ConstantsClass:
     def save_channel_template(self, json_folder_and_name, key, channel_id):
         with open(json_folder_and_name, 'w') as f:
             json.dump({key: channel_id}, f)
+
+   
