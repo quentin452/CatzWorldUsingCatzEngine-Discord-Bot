@@ -61,19 +61,19 @@ class DiscordLogs(commands.Cog):
             except Exception as e:
                 await LogMessageAsync.LogAsync(f"Error logging member join: {e}")
 
-@commands.Cog.listener()
-async def on_ready(self):
-    log_channel = self.bot.get_channel(self.log_channel_id)
-    if log_channel:
-        try:
-            embed = discord.Embed(
-                title='Bot Started',
-                description='The bot is now online and ready to be used.',
-                color=discord.Color.green()
-            )
-            await log_channel.send(embed=embed)
-        except Exception as e:
-            await LogMessageAsync.LogAsync(f"Error sending startup message: {e}")
+    @commands.Cog.listener()
+    async def on_ready(self):
+        log_channel = self.bot.get_channel(self.log_channel_id)
+        if log_channel:
+            try:
+                embed = discord.Embed(
+                    title='Bot Started',
+                    description='The bot is now online and ready to be used.',
+                    color=discord.Color.green()
+                )
+                await log_channel.send(embed=embed)
+            except Exception as e:
+                await LogMessageAsync.LogAsync(f"Error sending startup message: {e}")
 
     async def log_reaction_change(self, reaction, user, action):
         log_channel = self.bot.get_channel(self.log_channel_id)
