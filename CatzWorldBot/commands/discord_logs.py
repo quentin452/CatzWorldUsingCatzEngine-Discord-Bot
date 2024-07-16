@@ -105,6 +105,7 @@ class DiscordLogs(commands.Cog):
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
         log_channel = self.bot.get_channel(self.log_channel_id)
+        
         if log_channel:
             try:
                 # Check if member moved between voice channels
@@ -134,10 +135,9 @@ class DiscordLogs(commands.Cog):
                         )
                         await log_channel.send(embed=embed)
                 
-                #TODO FIX STREAMING SECTION DOES NOT WORK
                 # Check if member started or stopped streaming
-                before_streaming = any(isinstance(activity, discord.Streaming) for activity in before.activities)
-                after_streaming = any(isinstance(activity, discord.Streaming) for activity in after.activities)
+                before_streaming = any(isinstance(activity, discord.Streaming) for activity in member.activities)
+                after_streaming = any(isinstance(activity, discord.Streaming) for activity in member.activities)
 
                 if before_streaming != after_streaming:
                     # Streaming status changed during voice state update
@@ -148,7 +148,7 @@ class DiscordLogs(commands.Cog):
                     )
                     embed.set_thumbnail(url=member.avatar.url)
                     await log_channel.send(embed=embed)
-
+                
                 # Check if member muted or unmuted themselves
                 elif before.self_deaf != after.self_deaf:
                     action = 'Muted' if after.self_deaf else 'Unmuted'
@@ -160,7 +160,7 @@ class DiscordLogs(commands.Cog):
                     await log_channel.send(embed=embed)
 
             except Exception as e:
-                await LogMessageAsync.LogAsync(f"Error logging voice state update: {e}")
+                await log_channel.send(f"Error logging voice state update: {e}")
 
     @commands.Cog.listener()
     async def on_member_update(self, before, after):
