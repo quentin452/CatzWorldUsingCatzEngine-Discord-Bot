@@ -109,7 +109,7 @@ class DiscordLogs(commands.Cog):
             except Exception as e:
                 print(f"Error logging reaction {action}: {e}")
 
-    @commands.Cog.listener()
+    @commands.Cog.listener() # TODO add log server exclusion/expulsions
     async def on_member_remove(self, member):
         log_channel = self.bot.get_channel(self.log_channel_id)
         if log_channel:
@@ -130,6 +130,7 @@ class DiscordLogs(commands.Cog):
         log_channel = self.bot.get_channel(self.log_channel_id)
         if log_channel:
             try:
+                # Check if member moved between voice channels
                 if before.channel != after.channel:
                     if before.channel and after.channel:
                         # Member moved from one voice channel to another
@@ -155,8 +156,24 @@ class DiscordLogs(commands.Cog):
                             color=discord.Color.green()
                         )
                         await log_channel.send(embed=embed)
+                
+                #TODO FIX STREAMING SECTION DOES NOT WORK
+                # Check if member started or stopped streaming
+                before_streaming = any(isinstance(activity, discord.Streaming) for activity in before.activities)
+                after_streaming = any(isinstance(activity, discord.Streaming) for activity in after.activities)
+
+                if before_streaming != after_streaming:
+                    # Streaming status changed during voice state update
+                    embed = discord.Embed(
+                        title='Streaming Status Changed',
+                        description=f'{member.name}#{member.discriminator} has {"started" if after_streaming else "stopped"} streaming.',
+                        color=discord.Color.blue() if after_streaming else discord.Color.dark_blue()
+                    )
+                    embed.set_thumbnail(url=member.avatar.url)
+                    await log_channel.send(embed=embed)
+
+                # Check if member muted or unmuted themselves
                 elif before.self_deaf != after.self_deaf:
-                    # Member muted or unmuted themselves
                     action = 'Muted' if after.self_deaf else 'Unmuted'
                     embed = discord.Embed(
                         title=f'Member {action}',
@@ -164,6 +181,7 @@ class DiscordLogs(commands.Cog):
                         color=discord.Color.blue()
                     )
                     await log_channel.send(embed=embed)
+
             except Exception as e:
                 print(f"Error logging voice state update: {e}")
 
@@ -277,6 +295,23 @@ class DiscordLogs(commands.Cog):
             except Exception as e:
                 print(f"Erreur lors du logging de la suppression en masse : {e}")
 
+
+    @commands.Cog.listener() # UNTESTED AND DONT KNOW HOW TO TEST TODO
+    async def on_file_watch_event(self, event_name, watch_dir, filename):
+        log_channel = self.bot.get_channel(self.log_channel_id)
+        if log_channel:
+            try:
+                embed = discord.Embed(
+                    title='File Watch Event',
+                    description=f'File "{filename}" was renamed in directory "{watch_dir}".',
+                    color=discord.Color.orange()
+                )
+                embed.add_field(name='Event Name', value=event_name, inline=True)
+                embed.add_field(name='Directory', value=watch_dir, inline=True)
+                embed.add_field(name='Date', value=datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'), inline=False)
+                await log_channel.send(embed=embed)
+            except Exception as e:
+                print(f"Error logging file watch event: {e}")
 
     #TODO FIX CREATED MESSAGES BEFORE LAUNCHING THE BOT CANNOT BE LOGGED
     @commands.Cog.listener()
