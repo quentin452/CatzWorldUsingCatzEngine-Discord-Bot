@@ -45,7 +45,7 @@ class DiscordLogs(commands.Cog):
     }
 
     @commands.Cog.listener()
-    async def on_message_edit(self, before, after):
+    async def on_message_edit(self, before, after, member):
         if before.author.bot:  # Ne pas logger les messages des autres bots
             return
         
@@ -56,10 +56,11 @@ class DiscordLogs(commands.Cog):
                     title='Message Edited',
                     color=discord.Color.gold()
                 )
-                embed.add_field(name='User', value=before.author.mention, inline=False)
+                embed.set_thumbnail(url=member.avatar.url)
+                embed.add_field(name='User', value=before.author.mention, inline=True)
+                embed.add_field(name='Channel', value=before.channel.mention, inline=True)
                 embed.add_field(name='Before', value=before.content or "*(Empty)*", inline=False)
                 embed.add_field(name='After', value=after.content or "*(Empty)*", inline=False)
-                embed.add_field(name='Channel', value=before.channel.mention, inline=False)
                 embed.set_footer(text=f"User ID: {before.author.id}")
                 await log_channel.send(embed=embed)
             except Exception as e:
