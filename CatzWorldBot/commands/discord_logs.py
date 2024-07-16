@@ -16,12 +16,11 @@ class DiscordLogs(commands.Cog):
             with open(ConstantsClass.LOGS_SAVE_FOLDER + 'log_channel.json', 'r') as f:
                 return json.load(f).get('log_channel_id')
         else:
-            # Si le fichier n'existe pas, retourne None
             return None
 
     def save_log_channel(self, channel_id):
         with open(ConstantsClass.LOGS_SAVE_FOLDER + 'log_channel.json', 'w') as f:
-            json.dump({ConstantsClass.LOGS_SAVE_FOLDER + 'log_channel_id': channel_id}, f)
+            json.dump({'log_channel_id': channel_id}, f)  # Corrected the key here
 
     @commands.command(help="Sets the log channel for logging events. Requires administrator permissions.")
     @commands.has_permissions(administrator=True)
