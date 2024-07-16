@@ -4,6 +4,7 @@ import sys
 import discord
 from discord.ext import commands
 from config import load_config
+import time
 
 current_path = os.path.dirname(os.path.abspath(__file__))
 config = load_config()
@@ -37,14 +38,29 @@ async def load_extensions():
             extensions.append(module_name)
     
     for extension in extensions:
+        start_time = time.time()
         try:
             await bot.load_extension(extension)  
-            print(f'Extension chargée : {extension}')
+            end_time = time.time()
+            elapsed_time = (end_time - start_time) * 1000  # Conversion en millisecondes
+            print(f'Extension chargée : {extension} en {elapsed_time:.2f} millisecondes')
         except Exception as e:
             print(f'Erreur lors du chargement de {extension}: {type(e).__name__} - {e}')
 
 @bot.event
 async def on_ready():
+    # Setting `Playing ` status
+    await bot.change_presence(activity=discord.Game(name="https://iamacatfrdev.itch.io/catzworld"))
+
+    # Setting `Streaming ` status
+    # await bot.change_presence(activity=discord.Streaming(name="My Stream", url=my_twitch_url))
+
+    # Setting `Listening ` status
+    # await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name="a song"))
+
+    # Setting `Watching ` status
+    # await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name="a movie"))
+
     await load_extensions()
 
     # PERSISTANT SAVING
