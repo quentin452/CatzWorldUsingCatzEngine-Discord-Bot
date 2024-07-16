@@ -1,9 +1,6 @@
-import json
 from discord.ext import commands
 import discord
-import os
 import asyncio
-import time
 from datetime import datetime
 from utils.Constants import ConstantsClass
 from utils.async_logs import LogMessageAsync
@@ -26,8 +23,12 @@ class DiscordLogs(commands.Cog):
     async def on_message_edit(self, before, after):
         ConstantsClass.doNotLogMessagesFromAnotherBot(self,before)
         log_channel = self.bot.get_channel(self.log_channel_id)
+
         if log_channel:
             try:
+                # Check if message content is empty before creating embed
+                if (before.content.strip() == '' and after.content.strip() == ''):
+                    return  # Exit early if both before and after contents are empty
                 embed = MessageEditEmbed(before, after).create()
                 await log_channel.send(embed=embed)
             except Exception as e:
