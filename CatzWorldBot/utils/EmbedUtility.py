@@ -4,8 +4,6 @@ from utils.ColorUtility import ColorUtilityClass
 
 class EmbedUtilityClass:
 
-    null = "*(Empty)*"
-
     @staticmethod
     def create_embed(title=None, description=None, color=None, thumbnail_url=None, fields=None, footer_text=None, image_url=None):
         embed = discord.Embed(
@@ -35,8 +33,8 @@ class MessageEditEmbed(EmbedUtilityClass):
         self.fields = [
             ('User', before.author.mention, True),
             ('Channel', before.channel.mention, True),
-            ('Before', before.content or EmbedUtilityClass.null, False),
-            ('After', after.content or EmbedUtilityClass.null, False),
+            ('Before', before.content, False),
+            ('After', after.content, False),
             ('User ID', f"{before.author.id}", False)
         ]
 
