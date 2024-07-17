@@ -25,16 +25,15 @@ class OnMemberLogs(commands.Cog):
         log_channel = self.bot.get_channel(self.log_channel_id)
         if log_channel:
             try:
-                await asyncio.sleep(1)  # Wait for a second before fetching the audit logs
+                await asyncio.sleep(1)  # Attendez une seconde avant de récupérer les logs d'audit
                 async for entry in after.guild.audit_logs(action=discord.AuditLogAction.member_update, limit=1):
-                    user = entry.user
                     if before.nick != after.nick:
                         embed = discord.Embed(
                             title='Nickname Changed',
                             description=f'{after.name}#{after.discriminator} changed nickname',
                             color=discord.Color.blue()
                         )
-                        embed.set_thumbnail(url=user.avatar.url)
+                        embed.set_thumbnail(url=after.avatar.url)  # Utilise after.avatar_url ici
                         embed.add_field(name='Before', value=before.nick if before.nick else 'None', inline=True)
                         embed.add_field(name='After', value=after.nick if after.nick else 'None', inline=True)
                         await log_channel.send(embed=embed)
@@ -48,7 +47,7 @@ class OnMemberLogs(commands.Cog):
                                 description=f'Roles added to {after.name}#{after.discriminator}: {roles_str}',
                                 color=discord.Color.gold()
                             )
-                            embed.set_thumbnail(url=user.avatar.url)
+                            embed.set_thumbnail(url=after.avatar.url)  # Utilise after.avatar_url ici
                             await log_channel.send(embed=embed)
                         if removed_roles:
                             roles_str = ', '.join([role.name for role in removed_roles])
@@ -57,7 +56,7 @@ class OnMemberLogs(commands.Cog):
                                 description=f'Roles removed from {after.name}#{after.discriminator}: {roles_str}',
                                 color=discord.Color.dark_gold()
                             )
-                            embed.set_thumbnail(url=user.avatar.url)
+                            embed.set_thumbnail(url=after.avatar.url)  # Utilise after.avatar_url ici
                             await log_channel.send(embed=embed)
             except Exception as e:
                 await LogMessageAsync.LogAsync(f"Error logging member update: {e}")
