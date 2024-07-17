@@ -62,6 +62,8 @@ async def load_extensions(bot):
         except Exception as e:
             await LogMessageAsync.LogAsync(f'Error loading {extension}: {type(e).__name__} - {e}')
 
+bot.remove_command('help')
+
 @bot.event
 async def on_ready():
     await LogMessageAsync.LogAsync("The github Project Directory is : " + ConstantsClass.get_github_project_directory())
