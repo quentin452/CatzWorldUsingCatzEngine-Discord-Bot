@@ -7,6 +7,7 @@ import os
 import random
 from discord.ext import commands
 import time
+from utils.async_logs import LogMessageAsync
 
 class Music(commands.Cog):
     def __init__(self, bot):
@@ -30,7 +31,7 @@ class Music(commands.Cog):
         else:
             await ctx.send("You are not connected to a voice channel.")
             return None
-
+        
     @commands.command()
     async def play_song(self, ctx, url: str):
         voice_channel = await self.join_voice_channel(ctx)
@@ -38,6 +39,9 @@ class Music(commands.Cog):
             try:
                 player = await YTDLSource.from_url(url, loop=self.bot.loop)
                 ctx.voice_client.play(player, after=lambda e: print(f'Player error: {e}') if e else None)
+
+                # Send embed with song title
+                await self.send_music_embed(ctx, player.title)
 
                 # Save the timestamp
                 with open(self.timestamp_file, 'w') as f:
@@ -48,6 +52,41 @@ class Music(commands.Cog):
 
             except Exception as e:
                 await ctx.send(f"An error occurred while trying to play the song: {e}")
+
+    async def send_music_embed(self, ctx, title, repeat_count=None):
+        description = "Now playing:"
+        if repeat_count is not None:
+            description += f" Repeat count: {repeat_count}"
+        embed = discord.Embed(title=title, description=description, color=discord.Color.green())
+        await ctx.send(embed=embed)
+
+    @commands.command()
+    async def loop_song(self, ctx, url: str, repeat_count: int):
+        voice_channel = await self.join_voice_channel(ctx)
+        if voice_channel:
+            try:
+                async def after_play(error):
+                    nonlocal repeat_count
+                    if error:
+                        print(f'Error in playing: {error}')
+                    if repeat_count > 1:
+                        repeat_count -= 1
+                        player = await YTDLSource.from_url(url, loop=self.bot.loop)  # Recreate the player
+                        await self.send_music_embed(ctx, player.title, repeat_count)  # Update embed with new repeat count
+                        ctx.voice_client.play(player, after=lambda e: self.bot.loop.create_task(after_play(e)))  # Ensure future for after_play using bot.loop
+
+                player = await YTDLSource.from_url(url, loop=self.bot.loop)
+                ctx.voice_client.play(player, after=lambda e: self.bot.loop.create_task(after_play(e)))
+
+                # Send initial embed with song title and initial repeat count
+                await self.send_music_embed(ctx, player.title, repeat_count)
+
+                # Save the timestamp
+                with open(self.timestamp_file, 'w') as f:
+                    json.dump({'timestamp': time.time()}, f)
+
+            except Exception as e:
+                await ctx.send(f"Une erreur s'est produite lors de la tentative de lecture de la chanson : {e}")
 
     @commands.command()
     async def play_random_song(self, ctx):
@@ -114,6 +153,32 @@ class Music(commands.Cog):
             await ctx.voice_client.disconnect()
         else:
             await ctx.send("I'm not connected to a voice channel.")
+
+    @commands.command()
+    async def play_playlist(self, ctx, *urls: str):
+        voice_channel = await self.join_voice_channel(ctx)
+        if voice_channel:
+            try:
+                music_directory = ConstantsClass.get_github_project_directory() + "/CatzWorldBot/saves/downloaded_musics/"
+                for url in urls:
+                    if url.startswith("http"):
+                        player = await YTDLSource.from_url(url, loop=self.bot.loop)
+                    else:
+                        music_path = os.path.join(music_directory, url)
+                        player = discord.FFmpegPCMAudio(music_path)
+                    
+                    ctx.voice_client.play(player, after=lambda e: print(f'Player error: {e}') if e else None)
+                    await asyncio.sleep(1)  # Attendre un peu entre chaque chanson
+
+                # Save the timestamp
+                with open(self.timestamp_file, 'w') as f:
+                    json.dump({'timestamp': time.time()}, f)
+
+                # Schedule the cleanup task
+                await self.schedule_cleanup_task()
+
+            except Exception as e:
+                await ctx.send(f"An error occurred while trying to play the playlist: {e}")
 
     @commands.command()
     async def vote_song_skip(self, ctx):
