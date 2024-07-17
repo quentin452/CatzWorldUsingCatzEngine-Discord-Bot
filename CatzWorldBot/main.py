@@ -33,7 +33,7 @@ def install_modules(modules):
 
 if __name__ == "__main__":
     kill_old_instances()
-    required_modules = ['html5lib','lxml','aiofiles', 'discord', 'beautifulsoup4', 'black']
+    required_modules = ['PyNaCl','html5lib','lxml','aiofiles', 'discord', 'beautifulsoup4', 'black']
     install_modules(required_modules)
     
 async def load_extensions(bot):
