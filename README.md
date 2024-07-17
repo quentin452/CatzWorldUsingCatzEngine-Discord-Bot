@@ -138,6 +138,12 @@ This bot is essential if you have an itch.io game and want to keep your server m
 - `/simulate_boost` (REQUIRE ADMINISTRATOR PERMISSIONS)
   - Simulate a boost
 
+- `/simulate_join` (REQUIRE ADMINISTRATOR PERMISSIONS)
+  - Simulate an user joinin
+  
+- `/simulate_leave` (REQUIRE ADMINISTRATOR PERMISSIONS)
+  - Simulate an user leaving
+
 - `/restart` (REQUIRE ADMINISTRATOR PERMISSIONS)
   - Restart the bot
 
@@ -258,8 +264,6 @@ Ce bot est essentiel si vous avez un jeu sur itch.io et que vous souhaitez tenir
 
 ### Musique
 
-
-
 - `/play_song [url]`
   - Jouer de la musique à partir du lien YouTube dans la salle vocale musicale 
 
@@ -291,6 +295,12 @@ Ce bot est essentiel si vous avez un jeu sur itch.io et que vous souhaitez tenir
 
 - `/simulate_boost` (EXIGENCE DES AUTORISATIONS D'ADMINISTRATEUR)
   - Simuler un boost
+
+- `/simulate_join` (EXIGENCE DES AUTORISATIONS D'ADMINISTRATEUR)
+  - Simuler un utilisateur rejoignant
+  
+- `/simulate_leave` (EXIGENCE DES AUTORISATIONS D'ADMINISTRATEUR)
+  - Simuler un utilisateur quittant
 
 - `/restart` (EXIGENCE DES AUTORISATIONS D'ADMINISTRATEUR)
   - Relance le bot
