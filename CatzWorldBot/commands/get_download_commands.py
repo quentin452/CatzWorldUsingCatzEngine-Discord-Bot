@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-import requests
+import aiohttp
 import json
 import asyncio
 from utils.Constants import ConstantsClass
@@ -44,9 +44,11 @@ class DownloadCommands(commands.Cog):
 
     async def fetch_uploads(self):
         url = f'https://itch.io/api/1/{api_key}/game/{game_id}/uploads'
-        response = requests.get(url)
-        if response.status_code == 200:
-            return response.json().get('uploads', [])
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    return data.get('uploads', [])
         return []
 
     async def last_download_loop(self, channel):
@@ -85,42 +87,44 @@ class DownloadCommands(commands.Cog):
     @commands.has_permissions(administrator=True)
     async def get_all_download(self, ctx):
         url = f'https://itch.io/api/1/{api_key}/game/{game_id}/uploads'
-        response = requests.get(url)
-        if response.status_code == 200:
-            data = response.json()
-            if 'uploads' in data:
-                # Tri des uploads par position décroissante
-                uploads_sorted = sorted(data['uploads'], key=lambda upload: upload.get('position', 0), reverse=True)
-                
-                for upload in uploads_sorted:
-                    # Récupérer les clés dans l'ordre inverse
-                    keys_reverse = list(upload.keys())[::-1]
-                    info_str = "\n".join(f"{key}: {upload[key]}" for key in keys_reverse)
-                    await ctx.send(f"```\n{info_str}\n```")
-            else:
-                await ctx.send('Aucun fichier téléchargeable trouvé.')
-        else:
-            await ctx.send('Impossible de récupérer les fichiers téléchargeables.')
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    if 'uploads' in data:
+                        # Tri des uploads par position décroissante
+                        uploads_sorted = sorted(data['uploads'], key=lambda upload: upload.get('position', 0), reverse=True)
+                        
+                        for upload in uploads_sorted:
+                            # Récupérer les clés dans l'ordre inverse
+                            keys_reverse = list(upload.keys())[::-1]
+                            info_str = "\n".join(f"{key}: {upload[key]}" for key in keys_reverse)
+                            await ctx.send(f"```\n{info_str}\n```")
+                    else:
+                        await ctx.send('Aucun fichier téléchargeable trouvé.')
+                else:
+                    await ctx.send('Impossible de récupérer les fichiers téléchargeables.')
 
     @commands.command(help="Fetches and displays the latest downloadable file for the game from itch.io API.")
     async def get_last_download(self, ctx):
         url = f'https://itch.io/api/1/{api_key}/game/{game_id}/uploads'
-        response = requests.get(url)
-        if response.status_code == 200:
-            data = response.json()
-            if 'uploads' in data:
-                # Tri des uploads par position décroissante
-                uploads_sorted = sorted(data['uploads'], key=lambda upload: upload.get('position', 0), reverse=True)
-                
-                # Récupérer uniquement le dernier upload
-                last_upload = uploads_sorted[0]
-                keys_reverse = list(last_upload.keys())[::-1]
-                info_str = "\n".join(f"{key}: {last_upload[key]}" for key in keys_reverse)
-                await ctx.send(f"```\n{info_str}\n```")
-            else:
-                await ctx.send('Aucun fichier téléchargeable trouvé.')
-        else:
-            await ctx.send('Impossible de récupérer les fichiers téléchargeables.')
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    if 'uploads' in data:
+                        # Tri des uploads par position décroissante
+                        uploads_sorted = sorted(data['uploads'], key=lambda upload: upload.get('position', 0), reverse=True)
+                        
+                        # Récupérer uniquement le dernier upload
+                        last_upload = uploads_sorted[0]
+                        keys_reverse = list(last_upload.keys())[::-1]
+                        info_str = "\n".join(f"{key}: {last_upload[key]}" for key in keys_reverse)
+                        await ctx.send(f"```\n{info_str}\n```")
+                    else:
+                        await ctx.send('Aucun fichier téléchargeable trouvé.')
+                else:
+                    await ctx.send('Impossible de récupérer les fichiers téléchargeables.')
 
     async def run_download_loop(self):
         await self.bot.wait_until_ready()
@@ -145,6 +149,6 @@ class DownloadCommands(commands.Cog):
         self.download_channel_ids[str(ctx.guild.id)] = ctx.channel.id
         self.save_download_channel_ids()
         await ctx.send(f"L'ID du salon pour les téléchargements a été défini sur {ctx.channel.id} pour le serveur {ctx.guild.name}")
-
+        
 async def setup(bot):
     await bot.add_cog(DownloadCommands(bot))

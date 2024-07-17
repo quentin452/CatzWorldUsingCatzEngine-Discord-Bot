@@ -1,15 +1,15 @@
 import discord
 from discord.ext import commands
-import feedparser
-import requests
-import re
-from bs4 import BeautifulSoup
+from lxml import html
 import json
 from utils.Constants import ConstantsClass
 from utils.config import load_config
 import asyncio
 from utils.async_logs import LogMessageAsync
-
+import asyncio
+import xml.etree.ElementTree as ET
+import aiohttp
+import re
 config = load_config()
 api_key = config['api_key']
 game_id = config['game_id']
@@ -47,22 +47,24 @@ class RssCommands(commands.Cog):
         with open(ConstantsClass.RSS_SAVE_FOLDER + ConstantsClass.SENT_RSS_TITLES_JSON_FILE, ConstantsClass.WRITE_TO_FILE) as f:
             json.dump(self.sent_rss_titles, f)
 
-    def remove_extra_newlines(self, text):
-        # Replace multiple newlines with a single newline
-        return re.sub(r'\n\s*\n+', '\n\n', text)
-
     async def generate_embed_from_entry(self, entry):
         title = entry.get('title', 'Pas de titre')
         link = entry.get('link', 'Pas de lien')
-        response = requests.get(link)
 
-        if response.status_code == 200:
-            soup = BeautifulSoup(response.content, 'html.parser')
-            section = soup.find('section', {'class': 'object_text_widget_widget base_widget user_formatted post_body'})
+        async with aiohttp.ClientSession() as session:
+            async with session.get(link) as response:
+                if response.status != 200:
+                    return f"**{title}**\nImpossible de récupérer la page liée.\n<{link}>"
 
-            if section:
-                content = section.get_text(separator='\n')
-                content = self.remove_extra_newlines(content)
+                content = await response.text()
+                doc = html.fromstring(content)
+                section = doc.xpath('//section[@class="object_text_widget_widget base_widget user_formatted post_body"]')
+
+                if not section:
+                    return f"**{title}**\nContenu non trouvé.\n<{link}>"
+
+                content_html = section[0]
+                content = self.extract_text_with_newlines(content_html)
 
                 added = []
                 fixed = []
@@ -93,23 +95,29 @@ class RssCommands(commands.Cog):
                     embed.add_field(name="Other", value="\n".join(other), inline=False)
 
                 embed.set_image(url="https://cdn.discordapp.com/attachments/1261580670057316453/1262477940843745422/DEVLOGS.webp?ex=6696bdb4&is=66956c34&hm=ec81d9d015b61327ab4d1e2bfb5f9638c148879429a0d9c76a3c6832138f8117&")
-                # Add link to the devlog directly in the embed
                 embed.add_field(name="See the Complete Devlog", value=f"[Click Here to see details]({link})", inline=False)
                 return embed
-            else:
-                return f"**{title}**\nContenu non trouvé.\n<{link}>"
-        else:
-            return f"**{title}**\nImpossible de récupérer la page liée.\n<{link}>"
 
+    def extract_text_with_newlines(self, element):
+        # Extract text content from an HTML element, adding newlines after block-level elements
+        text = []
+        for elem in element.iter():
+            if elem.tag in ('p', 'br', 'div'):
+                text.append('\n')
+            if elem.text:
+                text.append(elem.text)
+            if elem.tail:
+                text.append(elem.tail)
+        return ''.join(text)
     @commands.command(help="Fetches and displays the latest entry from the RSS feed.")
     async def get_last_rss(self, ctx):
-        feed = feedparser.parse(ConstantsClass.RSS_URL)
-        if 'entries' in feed:
-            last_entry = feed.entries[0]
+        url = ConstantsClass.RSS_URL
+        feed = await self.fetch_rss_feed(url)
+        if feed:
+            last_entry = feed[0]
             embed_or_message = await self.generate_embed_from_entry(last_entry)
             if isinstance(embed_or_message, discord.Embed):
-                embed = embed_or_message
-                message = await ctx.send(embed=embed)
+                await ctx.send(embed=embed_or_message)
             else:
                 await ctx.send(embed_or_message)
         else:
@@ -118,13 +126,13 @@ class RssCommands(commands.Cog):
     @commands.command(help="Fetches and displays all entries from the RSS feed. Requires administrator permissions.")
     @commands.has_permissions(administrator=True)
     async def get_all_rss(self, ctx):
-        feed = feedparser.parse(ConstantsClass.RSS_URL)
-        if 'entries' in feed:
-            for entry in feed.entries:
+        url = ConstantsClass.RSS_URL
+        feed = await self.fetch_rss_feed(url)
+        if feed:
+            for entry in feed:
                 embed_or_message = await self.generate_embed_from_entry(entry)
                 if isinstance(embed_or_message, discord.Embed):
-                    embed = embed_or_message
-                    message = await ctx.send(embed=embed)
+                    await ctx.send(embed=embed_or_message)
                 else:
                     await ctx.send(embed_or_message)
         else:
@@ -137,9 +145,10 @@ class RssCommands(commands.Cog):
             await channel.send(f"Le rôle {ConstantsClass.ROLE_NAME} n'existe pas dans ce serveur.")
             return
 
-        feed = feedparser.parse(ConstantsClass.RSS_URL)
-        if 'entries' in feed:
-            new_entries = [entry for entry in feed.entries if entry.get('title', 'Pas de titre') not in self.sent_rss_titles]
+        url = ConstantsClass.RSS_URL
+        feed = await self.fetch_rss_feed(url)
+        if feed:
+            new_entries = [entry for entry in feed if entry.get('title', 'Pas de titre') not in self.sent_rss_titles]
 
             if not new_entries:
                 return
@@ -158,9 +167,20 @@ class RssCommands(commands.Cog):
         else:
             await channel.send(f"{role.mention} Impossible de récupérer le flux RSS.")
 
-    async def send_button_message(self, channel, emoji, message, link):
-        message_content = f"{emoji} {message}"
-        await channel.send(message_content)
+    async def fetch_rss_feed(self,url):
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as resp:
+                tree = ET.fromstring(await resp.text())
+
+                entries = []
+
+                for item in tree.findall('.//item'):
+                    entry = {
+                    'title': item.find('title').text,
+                    'link': item.find('link').text
+                    }
+                    entries.append(entry)
+                return entries
 
     async def run_rss_loop(self):
         await self.bot.wait_until_ready()
