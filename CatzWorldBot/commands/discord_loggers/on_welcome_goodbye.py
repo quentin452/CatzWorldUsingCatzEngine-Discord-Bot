@@ -2,6 +2,8 @@ from discord.ext import commands
 from utils.Constants import ConstantsClass
 from utils.async_logs import LogMessageAsync
 from utils.EmbedUtility import *
+import discord
+from datetime import datetime
 
 class OnWelcomeGoodbyeLogs(commands.Cog):
     def __init__(self, bot):
@@ -32,7 +34,8 @@ class OnWelcomeGoodbyeLogs(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_remove(self, member):
-        embed = MemberLeftEmbed(member).create()
+        server = member.guild  # get the server (guild) from the member
+        embed = MemberLeftEmbed(member, server).create()
         await self.log_member_event(member, embed)
 
     @commands.Cog.listener()
@@ -52,7 +55,8 @@ class OnWelcomeGoodbyeLogs(commands.Cog):
     @commands.command(help="Simulates a member leaving the server.")
     @commands.has_permissions(administrator=True)
     async def simulate_leave(self, ctx, member: commands.MemberConverter):
-        embed = MemberLeftEmbed(member).create()
+        server = ctx.guild  # get the server (guild) from the context
+        embed = MemberLeftEmbed(member, server).create()
         await self.log_member_event(member, embed)
         await ctx.send(f"Simulated member leave for {member.display_name}")
 

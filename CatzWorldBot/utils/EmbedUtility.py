@@ -5,22 +5,31 @@ from utils.async_logs import LogMessageAsync
 class EmbedUtilityClass:
 
     @staticmethod
-    def create_embed(title=None, description=None, color=None, thumbnail_url=None, fields=None, footer_text=None, image_url=None):
+    def create_embed(title=None, author=None, description=None, color=None, thumbnail_url=None, fields=None, footer_text=None, image_url=None):
         embed = discord.Embed(
             title=title or "",
             description=description or "",
             color=color or discord.Color.default()
         )
+        
+        if author:
+            embed.set_author(name=author['name'], icon_url=author.get('icon_url', None))
+
         if thumbnail_url:
             embed.set_thumbnail(url=thumbnail_url)
+        
         if fields:
             for name, value, inline in fields:
                 embed.add_field(name=name, value=value, inline=inline)
+        
         if footer_text:
             embed.set_footer(text=footer_text)
+        
         if image_url:
             embed.set_image(url=image_url)
-        embed.add_field(name='Date', value=datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'), inline=True)
+            
+        embed.timestamp = discord.utils.utcnow()
+        
         return embed
     
     async def log_member_event(self, member, embed,log_channel):
@@ -187,42 +196,32 @@ class ProfilePictureChangedEmbed(EmbedUtilityClass):
             fields=self.fields
         )
     
-import datetime
-
 class MemberJoinedEmbed(EmbedUtilityClass):
     def __init__(self, member, server):
-        self.author = f"Welcome {member.display_name} to {server.name} 🔥"
-        self.author_avatar = member.avatar.url
+        self.author = {'name': f"Welcome {member.display_name} to {server.name} 🔥", 'icon_url': member.avatar.url if member.avatar else None}
         self.description = f'- Check out our rules in {server.rules_channel.mention} and react ✅'
-        self.color = discord.Color.green()
-        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        self.footer_text = f'We are pleased to have you with us, {member.display_name}! 💖\nJoined at: {timestamp}'
+        self.color = ColorUtilityClass.get_color('join')
+        self.footer_text = f'We are pleased to have you with us, {member.display_name}! 💖'
 
     def create(self):
         return super().create_embed(
             author=self.author,
-            title=self.title,
             description=self.description,
             color=self.color,
-            footer_text=self.footer_text
+            footer_text=self.footer_text,
         )
 
 class MemberLeftEmbed(EmbedUtilityClass):
-    def __init__(self, member):
-        self.title = 'Member Left'
-        self.description = f'{member.display_name}#{member.discriminator} has left the server'
+    def __init__(self, member, server):
+        self.author = {'name': f"Good Bye {member.display_name} from {server.name} 🥺", 'icon_url': member.avatar.url if member.avatar else None}
         self.color = ColorUtilityClass.get_color('leave')
-        self.fields = [
-            ('Member ID', member.id, True),
-            ('Left At', datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'), True),
-        ]
+        self.footer_text = f'We were delighted to have you with us, {member.display_name}! 💖'
 
     def create(self):
         return super().create_embed(
-            title=self.title,
-            description=self.description,
+            author=self.author,
             color=self.color,
-            fields=self.fields
+            footer_text=self.footer_text,
         )
 
 class BotStartedEmbed(EmbedUtilityClass):
