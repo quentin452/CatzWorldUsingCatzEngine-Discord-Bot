@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 from discord.ui import Button, View
+import time
 
 class TicTacToeGame:
     def __init__(self, player1, player2):
@@ -9,6 +10,7 @@ class TicTacToeGame:
         self.player1 = player1
         self.player2 = player2
         self.current_player = player1
+        self.start_time = time.time()
 
     def available_moves(self):
         return [i for i, spot in enumerate(self.board) if spot == ' ']
@@ -43,17 +45,23 @@ class TicTacToeGame:
         return '\n'.join(['| ' + ' | '.join(self.board[i*3:(i+1)*3]) + ' |' for i in range(3)])
 
 class TicTacToeView(View):
-    def __init__(self, game, restart_callback):
+    def __init__(self, game, restart_callback, quit_callback):
         super().__init__(timeout=180)
         self.game = game
         self.restart_callback = restart_callback
+        self.quit_callback = quit_callback
         self.add_buttons()
+        self.start_time = time.time()
 
     def add_buttons(self):
         for i in range(9):
             button = Button(label=str(i + 1), style=discord.ButtonStyle.secondary, row=i//3)
             button.callback = self.create_callback(i)
             self.add_item(button)
+
+        quit_button = Button(label="Quitter", style=discord.ButtonStyle.danger)
+        quit_button.callback = self.quit_game_callback()
+        self.add_item(quit_button)
 
     def create_callback(self, move_index):
         async def callback(interaction: discord.Interaction):
@@ -73,24 +81,31 @@ class TicTacToeView(View):
                     item.disabled = True
                     break
 
-            await interaction.response.edit_message(content=f"{self.game.player1.mention} vs {self.game.player2.mention}\nTour de {self.game.current_player.mention} ({letter})\n{self.game.print_board()}", view=self)
+            await interaction.response.edit_message(view=self)
 
             if self.game.current_winner:
                 for child in self.children:
                     child.disabled = True
-                await interaction.followup.send(f'Le joueur {self.game.current_player.mention} ({letter}) a gagné!', delete_after=10)
+                elapsed_time = round(time.time() - self.start_time)
+                embed = discord.Embed(title=f"Félicitations {interaction.user.name} ({letter})!",
+                                      description=f"{self.game.player1.name} a gagné contre {self.game.player2.name} en {elapsed_time} secondes.",
+                                      color=discord.Color.green())
+                embed.add_field(name="Tableau final", value=self.game.print_board())
+                await interaction.followup.send(embed=embed)
                 self.end_game()
                 return
 
             if not self.game.available_moves():
                 for child in self.children:
                     child.disabled = True
-                await interaction.followup.send('Partie nulle!', delete_after=10)
+                embed = discord.Embed(title='Partie nulle!', color=discord.Color.blue())
+                embed.add_field(name="Tableau final", value=self.game.print_board())
+                await interaction.followup.send(embed=embed)
                 self.end_game()
                 return
 
             self.game.current_player = self.game.player2 if self.game.current_player == self.game.player1 else self.game.player1
-            await interaction.followup.send(f'Tour de {self.game.current_player.mention} ({letter})', delete_after=10)
+            await interaction.followup.send(f'Tour de {self.game.current_player.name} ({letter})', delete_after=10)
         return callback
 
     def end_game(self):
@@ -98,6 +113,14 @@ class TicTacToeView(View):
         self.stop()
 
         self.restart_callback()
+
+    def quit_game_callback(self):
+        async def callback(interaction: discord.Interaction):
+            for child in self.children:
+                child.disabled = True
+            await interaction.response.edit_message(content="La partie a été quittée.")
+            self.end_game()
+        return callback
 
 class TicTacToeCommands(commands.Cog):
     def __init__(self, bot):
@@ -111,8 +134,12 @@ class TicTacToeCommands(commands.Cog):
             await ctx.send("Vous ne pouvez pas jouer contre vous-même.")
             return
 
-        if ctx.author in self.pending_invites.values() or ctx.author in self.active_games:
-            await ctx.send("Vous avez déjà une invitation en attente ou vous êtes déjà dans une partie.")
+        if ctx.author in self.active_games or ctx.author in self.pending_invites.values():
+            await ctx.send("Vous êtes déjà dans une partie ou vous avez déjà une invitation en attente.")
+            return
+
+        if opponent in self.pending_invites and self.pending_invites[opponent] == ctx.author:
+            await ctx.send("Vous avez déjà envoyé une invitation à ce joueur.")
             return
 
         self.pending_invites[ctx.author] = opponent
@@ -135,8 +162,8 @@ class TicTacToeCommands(commands.Cog):
                 self.active_games[player1] = game
                 self.active_games[player2] = game
 
-                view = TicTacToeView(game, self.restart_callback(player1, player2))
-                await interaction.message.edit(content=f"{player1.mention} vs {player2.mention}\nTour de {player1.mention} (X)\n{game.print_board()}", view=view)
+                view = TicTacToeView(game, self.restart_callback(player1, player2), self.quit_callback(player1, player2))
+                await interaction.message.edit(content=f"{player1.mention} vs {player2.mention}\nTour de {player1.mention} (X)", view=view)
 
                 del self.pending_invites[player1]
             else:
@@ -146,7 +173,7 @@ class TicTacToeCommands(commands.Cog):
     def deny_invite(self, player1, player2):
         async def callback(interaction: discord.Interaction):
             if player2 == interaction.user:
-                await interaction.response.send_message("Invitation refusée.")
+                await interaction.response.send_message(f"{player2.mention} a refusé l'invitation.")
                 del self.pending_invites[player1]
 
                 if player1 in self.active_games:
@@ -160,6 +187,14 @@ class TicTacToeCommands(commands.Cog):
         return callback
 
     def restart_callback(self, player1, player2):
+        def callback():
+            if player1 in self.active_games:
+                del self.active_games[player1]
+            if player2 in self.active_games:
+                del self.active_games[player2]
+        return callback
+
+    def quit_callback(self, player1, player2):
         def callback():
             if player1 in self.active_games:
                 del self.active_games[player1]
