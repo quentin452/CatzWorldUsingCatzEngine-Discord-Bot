@@ -44,9 +44,9 @@ class RulesCog(commands.Cog):
                 "## Bot Specific Rules**\n"
                 "• No command spam.\n"
                 "• Use bot commands only in ⁠🤖-bot-🤖.\n\n"
-                "Please click on '✅' to access the rest of the server (by clicking, you agree to follow ALL the rules mentioned above)."
             ),
-            color=discord.Color.blue()
+            color=discord.Color.blue(),
+            footer_text="Please click on '✅' to access the rest of the server (by clicking, you agree to follow ALL the rules mentioned above)."
         )
         
         # Send the embed
