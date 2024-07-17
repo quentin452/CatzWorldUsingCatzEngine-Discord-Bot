@@ -21,7 +21,7 @@ class OnMusicLogs(commands.Cog):
         self.save_log_channel(ctx.channel.id)
         await ctx.send(f"L'ID du canal de on_music_logs a été mis à jour à {ctx.channel.id}")
     
-    @commands.Cog.listener() #untested
+    @commands.Cog.listener() #TODO untested
     async def on_music_player_connection_error(self, error):
         if self.log_channel:
             try:
@@ -30,7 +30,7 @@ class OnMusicLogs(commands.Cog):
             except Exception as e:
                 await LogMessageAsync.LogAsync(f"Error logging music player connection error: {e}")
 
-    @commands.Cog.listener()#untested
+    @commands.Cog.listener()#TODO untested
     async def on_music_player_error(self, error):
         if self.log_channel:
             try:
@@ -39,7 +39,7 @@ class OnMusicLogs(commands.Cog):
             except Exception as e:
                 await LogMessageAsync.LogAsync(f"Error logging music player error: {e}")
 
-    @commands.Cog.listener()#untested
+    @commands.Cog.listener()#TODO untested
     async def on_music_audio_event(self, event_type, details):
         if self.log_channel:
             try:
@@ -48,7 +48,7 @@ class OnMusicLogs(commands.Cog):
             except Exception as e:
                 await LogMessageAsync.LogAsync(f"Error logging music audio event: {e}")
 
-    @commands.Cog.listener()#untested
+    @commands.Cog.listener()#TODO untested
     async def on_music_no_result(self, query):
         if self.log_channel:
             try:
@@ -57,7 +57,7 @@ class OnMusicLogs(commands.Cog):
             except Exception as e:
                 await LogMessageAsync.LogAsync(f"Error logging music player no result: {e}")
 
-    @commands.Cog.listener()#untested
+    @commands.Cog.listener()#TODO untested
     async def on_music_queue_end(self):
         if self.log_channel:
             try:
@@ -66,7 +66,7 @@ class OnMusicLogs(commands.Cog):
             except Exception as e:
                 await LogMessageAsync.LogAsync(f"Error logging music queue end: {e}")
 
-    @commands.Cog.listener()#untested
+    @commands.Cog.listener()#TODO untested
     async def on_music_topgg_vote(self, user):
         if self.log_channel:
             try:
@@ -75,7 +75,7 @@ class OnMusicLogs(commands.Cog):
             except Exception as e:
                 await LogMessageAsync.LogAsync(f"Error logging music TopGG vote: {e}")
 
-    @commands.Cog.listener()#untested
+    @commands.Cog.listener()#TODO untested
     async def on_music_track_event(self, event_type, track):
         if self.log_channel:
             try:
@@ -84,7 +84,7 @@ class OnMusicLogs(commands.Cog):
             except Exception as e:
                 await LogMessageAsync.LogAsync(f"Error logging music track event: {e}")
 
-    @commands.Cog.listener()#untested
+    @commands.Cog.listener()#TODO untested
     async def on_music_tracks_add(self, tracks):
         if self.log_channel:
             try:
