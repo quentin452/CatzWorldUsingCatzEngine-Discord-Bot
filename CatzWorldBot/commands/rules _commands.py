@@ -13,14 +13,14 @@ class RulesCog(commands.Cog):
         embed = discord.Embed(
             title="Server Rules",
             description=(
-                "## General Server Rules**\n"
+                "## **General Server Rules**\n"
                 "• No blank, inappropriate, sexually explicit, or offensive nicknames.\n"
                 "• No unreadable Unicode nicknames.\n"
                 "• No blank, inappropriate, sexually explicit, or offensive profile pictures.\n"
                 "• No members under 18 years old.\n"
                 "• Moderators may use their discretion regardless of the rules.\n"
                 "• Report any rule loopholes.\n\n"
-                "## Text Chat Rules**\n"
+                "## **Text Chat Rules**\n"
                 "• No questioning or @mentioning mods (use ⁠💥-issues-💥 for support).\n"
                 "• No @everyone/@here without permission.\n"
                 "• No @mentioning spam.\n"
@@ -34,13 +34,13 @@ class RulesCog(commands.Cog):
                 "• Use allowed bot commands only.\n"
                 "• No channel hopping.\n"
                 "• Stay on-topic.\n\n"
-                "## Voice Chat Rules**\n"
+                "## **Voice Chat Rules**\n"
                 "• No channel hopping.\n"
                 "• No annoying, loud, or high-pitched noises.\n"
                 "• Minimize background noise.\n"
                 "• Moderators may disconnect for poor sound quality.\n"
                 "• Moderators can disconnect, mute, deafen, or move members.\n\n"
-                "## Bot Specific Rules**\n"
+                "## **Bot Specific Rules**\n"
                 "• No command spam.\n"
                 "• Use bot commands only in ⁠🤖-bot-🤖.\n\n"
             ),
