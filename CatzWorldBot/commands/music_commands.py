@@ -7,15 +7,15 @@ import os
 import random
 from discord.ext import commands
 import time
-from utils.async_logs import LogMessageAsync
 
-class Music(commands.Cog):
+class MusicCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.voice_channel = ConstantsClass.load_channel_template(self, ConstantsClass.MUSIC_SAVE_FOLDER + '/on_music_channel.json', 'on_music_channel')
         self.timestamp_file = os.path.join(ConstantsClass.MUSIC_SAVE_FOLDER, 'timestamp.json')
         self.cleanup_task = None
         self.song_end_event = asyncio.Event()
+        self.loop_song_playing = False  
 
     def save_log_channel(self, channel_id):
         ConstantsClass.save_channel_template(self, ConstantsClass.MUSIC_SAVE_FOLDER + '/on_music_channel.json', 'on_music_channel', channel_id)
@@ -60,34 +60,6 @@ class Music(commands.Cog):
             description += f" Repeat count: {repeat_count}"
         embed = discord.Embed(title=title, description=description, color=discord.Color.green())
         await ctx.send(embed=embed)
-
-    @commands.command(help="Play music in a loop [url] [ammount].")
-    async def loop_song(self, ctx, url: str, repeat_count: int):
-        voice_channel = await self.join_voice_channel(ctx)
-        if voice_channel:
-            try:
-                async def after_play(error):
-                    nonlocal repeat_count
-                    if error:
-                        print(f'Error in playing: {error}')
-                    if repeat_count > 1:
-                        repeat_count -= 1
-                        player = await YTDLSource.from_url(url, loop=self.bot.loop)  # Recreate the player
-                        await self.send_music_embed(ctx, player.title, repeat_count)  # Update embed with new repeat count
-                        ctx.voice_client.play(player, after=lambda e: self.bot.loop.create_task(after_play(e)))  # Ensure future for after_play using bot.loop
-
-                player = await YTDLSource.from_url(url, loop=self.bot.loop)
-                ctx.voice_client.play(player, after=lambda e: self.bot.loop.create_task(after_play(e)))
-
-                # Send initial embed with song title and initial repeat count
-                await self.send_music_embed(ctx, player.title, repeat_count)
-
-                # Save the timestamp
-                with open(self.timestamp_file, 'w') as f:
-                    json.dump({'timestamp': time.time()}, f)
-
-            except Exception as e:
-                await ctx.send(f"Une erreur s'est produite lors de la tentative de lecture de la chanson : {e}")
 
     @commands.command(help="Play a random game from the bot's saved files.")
     async def play_random_song(self, ctx):
@@ -134,10 +106,11 @@ class Music(commands.Cog):
     async def cleanup_after_delay(self, delay):
         await asyncio.sleep(delay)
         self.cleanup()
-
-    def cleanup(self):
+        
+    @staticmethod
+    def cleanup(timestamp_file):
         """Delete all unplayed music files."""
-        with open(self.timestamp_file, 'r') as f:
+        with open(timestamp_file, 'r') as f:
             data = json.load(f)
             timestamp = data['timestamp']
 
@@ -147,14 +120,66 @@ class Music(commands.Cog):
             filepath = os.path.join(music_directory, filename)
             if os.path.isfile(filepath) and os.path.getmtime(filepath) < timestamp:
                 os.remove(filepath)
+                
+    @commands.command(help="Play music in a loop [url] [amount].")
+    async def loop_song(self, ctx, url: str, repeat_count: int):
+        voice_channel = await self.join_voice_channel(ctx)
+        if voice_channel:
+            try:
+                self.loop_song_playing = True  # Indiquer qu'une chanson est en cours de lecture en boucle
 
-    @commands.command(help="Stop music from voice music.")
+                async def after_play(error):
+                    if error:
+                        print(f'Error in playing: {error}')
+                    if ctx.voice_client and ctx.voice_client.is_connected() and ctx.voice_client.repeat_count > 1 and self.loop_song_playing:
+                        ctx.voice_client.repeat_count -= 1
+                        player = await YTDLSource.from_url(url, loop=self.bot.loop)  # Recreate the player
+                        await self.send_music_embed(ctx, player.title, ctx.voice_client.repeat_count)  # Update embed with new repeat count
+                        ctx.voice_client.play(player, after=lambda e: self.bot.loop.create_task(after_play(e)))  # Ensure future for after_play using bot.loop
+
+                player = await YTDLSource.from_url(url, loop=self.bot.loop)
+                ctx.voice_client.repeat_count = repeat_count  # Set the initial repeat_count attribute
+                ctx.voice_client.play(player, after=lambda e: self.bot.loop.create_task(after_play(e)))
+
+                # Send initial embed with song title and initial repeat count
+                await self.send_music_embed(ctx, player.title, repeat_count)
+
+                # Save the timestamp
+                with open(self.timestamp_file, 'w') as f:
+                    json.dump({'timestamp': time.time()}, f)
+
+            except Exception as e:
+                await ctx.send(f"Une erreur s'est produite lors de la tentative de lecture de la chanson : {e}")
+                self.loop_song_playing = False  # Assurez-vous de réinitialiser l'état si une erreur se produit
+        else:
+            await ctx.send("Je ne suis pas connecté à un canal vocal.")
+
+    @commands.command(help="Stop music from voice channel.")
     async def stop_song(self, ctx):
         if ctx.voice_client:
+            ctx.voice_client.stop()  # Stop the currently playing song
+
+            # Réinitialiser l'état de lecture en boucle
+            self.loop_song_playing = False
+
+            # Annuler le callback after_play si nécessaire
+            if hasattr(ctx.voice_client.source, 'child_sounds'):
+                del ctx.voice_client.source.child_sounds  # Remove reference to the child sounds list
+
+            self.cleanup()  # Perform cleanup as needed
+
+            # Réinitialiser repeat_count pour les chansons en boucle
+            if hasattr(ctx.voice_client, 'repeat_count'):
+                del ctx.voice_client.repeat_count
+
+            # Annuler le callback after_play si nécessaire
+            if ctx.voice_client.source:
+                ctx.voice_client.source.cleanup()
+
             await ctx.voice_client.disconnect()
         else:
-            await ctx.send("I'm not connected to a voice channel.")
-
+            await ctx.send("Je ne suis pas connecté à un canal vocal.")
+            
     @commands.command(help="Vote to skip music.")
     async def vote_song_skip(self, ctx):
         if not ctx.voice_client or not ctx.voice_client.is_playing():
@@ -291,4 +316,4 @@ FFMPEG_OPTIONS = {
 }
 
 async def setup(bot):
-    await bot.add_cog(Music(bot))
+    await bot.add_cog(MusicCog(bot))
