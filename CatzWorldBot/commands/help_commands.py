@@ -37,7 +37,7 @@ class CustomHelpCommand(commands.Cog):
                 except TimeoutError:
                     break
 
-    @commands.command(help="Affiche une liste de toutes les catégories d'aide disponibles.")
+    @commands.command(help="Shows a list of all available help categories.")
     async def help_cat(self, ctx):
         pages = []
         for cog_name, cog in self.bot.cogs.items():
