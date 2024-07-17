@@ -9,7 +9,7 @@ class RestartCommand(commands.Cog):
         self.bot = bot
         self.is_restarting = False
 
-    @commands.command()
+    @commands.command(help="Restart the bot.")
     @commands.has_permissions(administrator=True)
     async def restart(self, ctx):
         if not self.is_restarting:

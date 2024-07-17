@@ -15,6 +15,7 @@ class Music(commands.Cog):
         self.voice_channel = ConstantsClass.load_channel_template(self, ConstantsClass.MUSIC_SAVE_FOLDER + '/on_music_channel.json', 'on_music_channel')
         self.timestamp_file = os.path.join(ConstantsClass.MUSIC_SAVE_FOLDER, 'timestamp.json')
         self.cleanup_task = None
+        self.song_end_event = asyncio.Event()
 
     def save_log_channel(self, channel_id):
         ConstantsClass.save_channel_template(self, ConstantsClass.MUSIC_SAVE_FOLDER + '/on_music_channel.json', 'on_music_channel', channel_id)
@@ -32,7 +33,7 @@ class Music(commands.Cog):
             await ctx.send("You are not connected to a voice channel.")
             return None
         
-    @commands.command()
+    @commands.command(help="Stop music from voice music [url].")
     async def play_song(self, ctx, url: str):
         voice_channel = await self.join_voice_channel(ctx)
         if voice_channel:
@@ -60,7 +61,7 @@ class Music(commands.Cog):
         embed = discord.Embed(title=title, description=description, color=discord.Color.green())
         await ctx.send(embed=embed)
 
-    @commands.command()
+    @commands.command(help="Play music in a loop [url] [ammount].")
     async def loop_song(self, ctx, url: str, repeat_count: int):
         voice_channel = await self.join_voice_channel(ctx)
         if voice_channel:
@@ -88,7 +89,7 @@ class Music(commands.Cog):
             except Exception as e:
                 await ctx.send(f"Une erreur s'est produite lors de la tentative de lecture de la chanson : {e}")
 
-    @commands.command()
+    @commands.command(help="Play a random game from the bot's saved files.")
     async def play_random_song(self, ctx):
         voice_channel = await self.join_voice_channel(ctx)
         if voice_channel:
@@ -147,44 +148,24 @@ class Music(commands.Cog):
             if os.path.isfile(filepath) and os.path.getmtime(filepath) < timestamp:
                 os.remove(filepath)
 
-    @commands.command()
+    @commands.command(help="Stop music from voice music.")
     async def stop_song(self, ctx):
         if ctx.voice_client:
             await ctx.voice_client.disconnect()
         else:
             await ctx.send("I'm not connected to a voice channel.")
 
-    @commands.command()
-    async def play_playlist(self, ctx, *urls: str):
-        voice_channel = await self.join_voice_channel(ctx)
-        if voice_channel:
-            try:
-                music_directory = ConstantsClass.get_github_project_directory() + "/CatzWorldBot/saves/downloaded_musics/"
-                for url in urls:
-                    if url.startswith("http"):
-                        player = await YTDLSource.from_url(url, loop=self.bot.loop)
-                    else:
-                        music_path = os.path.join(music_directory, url)
-                        player = discord.FFmpegPCMAudio(music_path)
-                    
-                    ctx.voice_client.play(player, after=lambda e: print(f'Player error: {e}') if e else None)
-                    await asyncio.sleep(1)  # Attendre un peu entre chaque chanson
-
-                # Save the timestamp
-                with open(self.timestamp_file, 'w') as f:
-                    json.dump({'timestamp': time.time()}, f)
-
-                # Schedule the cleanup task
-                await self.schedule_cleanup_task()
-
-            except Exception as e:
-                await ctx.send(f"An error occurred while trying to play the playlist: {e}")
-
-    @commands.command()
+    @commands.command(help="Vote to skip music.")
     async def vote_song_skip(self, ctx):
         if not ctx.voice_client or not ctx.voice_client.is_playing():
             await ctx.send("No song is currently playing.")
             return
+        
+        # Vérifier si la chanson en cours provient d'une playlist
+        is_playlist = False  # Initialiser la variable pour vérifier si c'est une playlist
+        current_source = ctx.voice_client.source
+        if isinstance(current_source, YTDLSource):
+            is_playlist = current_source.is_playlist
         
         # Envoyer un message pour démarrer le vote
         message = await ctx.send("Vote to skip the current song. React with 👍 to skip, 👎 to continue listening.")
@@ -203,10 +184,86 @@ class Music(commands.Cog):
             # Si personne ne réagit dans le temps imparti, continuer à jouer la musique
             await ctx.send("The vote to skip the music has expired.")
         else:
-            # Si suffisamment d'utilisateurs ont voté pour passer la musique, jouer une autre musique aléatoire
+            # Si suffisamment d'utilisateurs ont voté pour passer la musique
             await ctx.send("The music was skipped by vote.")
             await self.stop_song(ctx)
-            await self.play_random_song(ctx)
+            
+            if is_playlist:
+                # Si c'est une playlist, passer à la chanson suivante
+                await self.play_next_in_playlist(ctx)
+            else:
+                # Sinon, jouer une autre musique aléatoire
+                await self.play_random_song(ctx)
+
+    async def play_next_in_playlist(self, ctx):
+        # Récupérer le source actuel et le joueur
+        current_source = ctx.voice_client.source
+        if isinstance(current_source, YTDLSource) and current_source.is_playlist:
+            # Passer à la prochaine chanson dans la playlist
+            await current_source.next_song()
+        else:
+            await ctx.send("Not currently playing from a playlist.")
+
+    async def extract_playlist_info(self, playlist_url):
+        loop = asyncio.get_event_loop()
+        data = await loop.run_in_executor(None, lambda: yt_dlp.YoutubeDL(YTDL_FORMAT_OPTIONS).extract_info(playlist_url, download=False))
+        return data.get('entries', [])
+
+    def handle_playlist_next(self, ctx, playlist_url, playlist_info, playlist_index, error):
+        async def after_play(error):
+            nonlocal playlist_index
+            if error:
+                print(f'Error in playing: {error}')
+            
+            if playlist_index < len(playlist_info):
+                playlist_index += 1
+                next_song_url = f"{playlist_url}&index={playlist_index}"  # Increment playlist index
+                player = await YTDLSource.from_url(next_song_url, loop=self.bot.loop)
+                await self.send_music_embed(ctx, player.title, playlist_index)
+                ctx.voice_client.play(player, after=lambda e: self.bot.loop.create_task(after_play(e)))
+            else:
+                await self.schedule_cleanup_task()
+
+        return lambda e: self.bot.loop.create_task(after_play(e))
+    
+    @commands.command(help="Play a YouTube playlist in the music room.(note this method isn't optimized)")
+    async def play_playlist(self, ctx, *urls: str):
+        voice_channel = await self.join_voice_channel(ctx)
+        if voice_channel:
+            try:
+                music_directory = ConstantsClass.get_github_project_directory() + "/CatzWorldBot/saves/downloaded_musics/"
+                for url in urls:
+                    if url.startswith("http"):
+                        player = await YTDLSource.from_url(url, loop=self.bot.loop)
+                    else:
+                        music_path = os.path.join(music_directory, url)
+                        player = discord.FFmpegPCMAudio(music_path)
+                    
+                    # Play the song
+                    ctx.voice_client.play(player, after=lambda e: self.song_ended(e))
+                    
+                    # Wait for the song to end before proceeding
+                    await self.song_end_event.wait()
+                    self.song_end_event.clear()
+                    
+                    # Create an embed to indicate that the music was successfully queued
+                    embed = discord.Embed(title="Musique installée", description=f"La musique {url} a été installée avec succès.", color=0x00ff00)
+                    await ctx.send(embed=embed)
+                
+                # Save the timestamp
+                with open(self.timestamp_file, 'w') as f:
+                    json.dump({'timestamp': time.time()}, f)
+
+                # Schedule the cleanup task
+                await self.schedule_cleanup_task()
+
+            except Exception as e:
+                await ctx.send(f"Une erreur s'est produite lors de la tentative de lecture de la playlist : {e}")
+
+    def song_ended(self, error):
+        if error:
+            print(f'Player error: {error}')
+        self.song_end_event.set()
 
     @staticmethod
     async def search(query, loop=None):
@@ -238,11 +295,22 @@ class YTDLSource(discord.PCMVolumeTransformer):
         data = await loop.run_in_executor(None, lambda: yt_dlp.YoutubeDL(YTDL_FORMAT_OPTIONS).extract_info("ytsearch:" + query, download=False))
         return data.get('entries', [])
 
+    async def next_song(self):
+        self.playlist_index += 1
+        self.fils_depute += 1  # Incrémenter le compteur fils depute
+        next_song_url = f"{self.url}&index={self.playlist_index}"  # Construire l'URL de la chanson suivante
+        loop = asyncio.get_event_loop()
+        data = await loop.run_in_executor(None, lambda: yt_dlp.YoutubeDL(YTDL_FORMAT_OPTIONS).extract_info(next_song_url, download=False))
+        if 'entries' in data:
+            data = data['entries'][0]
+        filename = data['url'] if 'url' in data else yt_dlp.YoutubeDL(YTDL_FORMAT_OPTIONS).prepare_filename(data)
+        return YTDLSource(discord.FFmpegPCMAudio(filename, **FFMPEG_OPTIONS), data=data)
+
 YTDL_FORMAT_OPTIONS = {
     'format': 'bestaudio/best',
     'outtmpl': ConstantsClass.get_github_project_directory() + "/CatzWorldBot/saves/downloaded_musics/" + '%(title)s.%(ext)s',
     'restrictfilenames': True,
-    'noplaylist': True,
+    'noplaylist': False,
     'nocheckcertificate': True,
     'ignoreerrors': False,
     'logtostderr': False,

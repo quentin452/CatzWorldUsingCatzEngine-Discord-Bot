@@ -101,7 +101,7 @@ This bot is essential if you have an itch.io game and want to keep your server m
 - `/set_on_voice_state_logs_channel` (REQUIRE ADMINISTRATOR PERMISSIONS)
   - Sets the log channel for (Voice/Stream State) logging events.
 
-###Music
+### Music
 
 - `/play_song [url]`
   - Play music from YouTube link in music vocal room 
@@ -114,6 +114,12 @@ This bot is essential if you have an itch.io game and want to keep your server m
 
 - `/play_random_song`
   - Play a random game from the bot's saved files
+
+- `/loop_song [url] [ammount]`
+  - Play music in a loop 
+
+- `/play_playlist`
+  - Play a YouTube playlist in the music room(note this method isn't optimized)
 
 #### Other
 
@@ -243,7 +249,7 @@ Ce bot est essentiel si vous avez un jeu sur itch.io et que vous souhaitez tenir
 - `/set_on_voice_state_logs_channel` (EXIGER DES AUTORISATIONS D'ADMINISTRATEUR)
   - Définit le canal de journalisation pour les événements de journalisation (Voice/Stream State).
 
-###Musique
+### Musique
 
 - `/play_song [url]`
   - Jouer de la musique à partir du lien YouTube dans la salle vocale musicale 
@@ -256,6 +262,12 @@ Ce bot est essentiel si vous avez un jeu sur itch.io et que vous souhaitez tenir
 
 - `/play_random_song`
   - Jouez à un jeu aléatoire à partir des fichiers enregistrés du bot
+
+- `/loop_song [url] [ammount]`
+  - Jouez une musique en boucle 
+
+- `/play_playlist`
+  - Jouer une playlist de youtube dans le sallon voale musicale(notez que cette méthode n'est pas optimisée)
 
 #### Autre
 
