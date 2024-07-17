@@ -1,6 +1,5 @@
 import discord
 from discord.ext import commands
-import asyncio
 from utils.Constants import ConstantsClass
 
 class RulesCog(commands.Cog):
@@ -8,7 +7,7 @@ class RulesCog(commands.Cog):
         self.bot = bot
 
     @commands.has_permissions(administrator=True)
-    @commands.command(help = "give server rules")
+    @commands.command(help="Give server rules")
     async def rules_cat(self, ctx):
         # Define the embed content
         embed = discord.Embed(
@@ -45,39 +44,38 @@ class RulesCog(commands.Cog):
                 "• No command spam.\n"
                 "• Use bot commands only in ⁠🤖-bot-🤖.\n\n"
             ),
-            color=discord.Color.blue(),
-            footer_text="Please click on '✅' to access the rest of the server (by clicking, you agree to follow ALL the rules mentioned above)."
+            color=discord.Color.blue()
         )
+        embed.set_footer(text="Please click on '✅' to access the rest of the server (by clicking, you agree to follow ALL the rules mentioned above).")
         
-        # Send the embed
-        message = await ctx.send(embed=embed)
-        
-        # Add reaction to the message
-        await message.add_reaction("✅")
-        
-        # Define a check for the reaction
-        def check(reaction, user):
-            return user == ctx.author and str(reaction.emoji) == '✅' and reaction.message == message
-        
-        # Wait for the reaction
-        try:
-            reaction, user = await self.bot.wait_for('reaction_add', timeout=60.0, check=check)
-        except asyncio.TimeoutError:
-            await ctx.send("You didn't react in time.")
-            return
-        
-        # Grant a role upon reacting with '✅'
-        role = discord.utils.get(ctx.guild.roles, name=ConstantsClass.VERIFIED_ROLE_NAME)
+        # Send the embed with the persistent view
+        view = RulesView()
+        message = await ctx.send(embed=embed, view=view)
+
+    def get_menu_view(self):
+        return RulesView()
+
+class RulesView(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=None)
+        self.value = None  # Utilisé pour stocker la valeur si nécessaire
+
+    @discord.ui.button(label='✅', emoji='✅', custom_id='accept_rules')
+    async def accept_rules(self, interaction: discord.Interaction, button: discord.ui.Button):
+        member = interaction.user
+        guild = interaction.guild
+        role = discord.utils.get(guild.roles, name=ConstantsClass.VERIFIED_ROLE_NAME)
+
         if role:
             try:
-                await ctx.author.add_roles(role)
-                await ctx.send(f"Role {role.name} added to {ctx.author.display_name}")
+                await member.add_roles(role)
+                await interaction.response.send_message(f"Role {role.name} added to {member.display_name}", ephemeral=True)
             except discord.Forbidden:
-                await ctx.send("I don't have permission to add roles.")
+                await interaction.response.send_message("I don't have permission to add roles.", ephemeral=True)
             except discord.HTTPException:
-                await ctx.send("Failed to add role.")
+                await interaction.response.send_message("Failed to add role.", ephemeral=True)
         else:
-            await ctx.send("Role not found.")
+            await interaction.response.send_message("Role not found.", ephemeral=True)
 
 async def setup(bot):
     await bot.add_cog(RulesCog(bot))

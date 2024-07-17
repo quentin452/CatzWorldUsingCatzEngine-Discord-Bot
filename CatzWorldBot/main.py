@@ -99,6 +99,13 @@ async def on_ready():
     if discord_logs_cog is not None:
          await discord_logs_cog.on_ready()
 
+    # Rules Commands
+    rules_logs_cog = bot.get_cog('RulesCog')
+    if rules_logs_cog is not None:
+        rules_logs_cog_view = rules_logs_cog.get_menu_view()
+        bot.add_view(rules_logs_cog_view)
+
+
     # Feedback Commands
    # feedback_cog = bot.get_cog('FeedbackCommands')
    # if feedback_cog is not None:
