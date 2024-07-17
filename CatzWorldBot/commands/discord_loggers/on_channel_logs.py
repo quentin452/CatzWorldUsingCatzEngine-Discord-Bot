@@ -66,27 +66,33 @@ class OnChannelLogs(commands.Cog):
                 await LogMessageAsync.LogAsync(f"Erreur lors du logging de l'audit log : {e}")
 
 
-    @commands.Cog.listener()
+    @commands.Cog.listener() #TODO FIX CREATED MESSAGES BEFORE LAUNCHING THE BOT CANNOT BE LOGGED
     async def on_guild_channel_update(self, before, after):
         log_channel = self.bot.get_channel(self.log_channel_id)
-        if log_channel and before.name is not None and before.name != after.name:
+        if log_channel:
             try:
-                async for entry in after.guild.audit_logs(action=discord.AuditLogAction.channel_update, limit=1):
-                    user = entry.user
-                    channel_type = ConstantsClass.channel_type_map.get(after.type, 'Unknown')
-                    embed = discord.Embed(
-                        title=f'<:Fixed:1262441171339448451> {channel_type} Channel renamed by {user.name}',
-                        description=f'The channel {before.name} has been renamed to {after.name}',
-                        color=discord.Color.blue()
-                    )
-                    embed.set_thumbnail(url=user.avatar.url)
-                    embed.add_field(name='Channel ID', value=after.id, inline=True)
-                    embed.add_field(name='Date', value=datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'), inline=True)
-                    await log_channel.send(embed=embed)
-                    break  # We have found the relevant entry, let's break the loop
+                # Collect before and after permission overwrites
+                before_perms = {str(over.id): over for over in before.overwrites}
+                after_perms = {str(over.id): over for over in after.overwrites}
+
+                # Check if permissions have changed
+                if before_perms != after_perms:
+                    async for entry in after.guild.audit_logs(action=discord.AuditLogAction.channel_update, limit=1):
+                        user = entry.user
+                        channel_type = ConstantsClass.channel_type_map.get(after.type, 'Unknown')
+                        embed = discord.Embed(
+                            title=f'{channel_type} Channel permissions updated by {user.name}',
+                            description=f'The permissions for the channel {after.name} have been updated',
+                            color=discord.Color.blue()
+                        )
+                        embed.set_thumbnail(url=user.avatar.url)
+                        embed.add_field(name='Channel ID', value=after.id, inline=True)
+                        embed.add_field(name='Date', value=datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'), inline=True)
+                        await log_channel.send(embed=embed)
+                        break  # We have found the relevant entry, let's break the loop
+
             except Exception as e:
                 await LogMessageAsync.LogAsync(f"Error while logging the audit log: {e}")
-
 
 async def setup(bot):
     await bot.add_cog(OnChannelLogs(bot))
