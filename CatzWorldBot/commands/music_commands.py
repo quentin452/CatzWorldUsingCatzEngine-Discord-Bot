@@ -225,7 +225,7 @@ class Music(commands.Cog):
                 await self.schedule_cleanup_task()
 
         return lambda e: self.bot.loop.create_task(after_play(e))
-    
+        
     @commands.command(help="Play a YouTube playlist in the music room.(note this method isn't optimized)")
     async def play_playlist(self, ctx, *urls: str):
         voice_channel = await self.join_voice_channel(ctx)
@@ -235,6 +235,10 @@ class Music(commands.Cog):
                 for url in urls:
                     if url.startswith("http"):
                         player = await YTDLSource.from_url(url, loop=self.bot.loop)
+                        
+                        # Create an embed to indicate that the music was successfully downloaded
+                        embed = discord.Embed(title="Musique téléchargée", description=f"La musique {url} a été téléchargée avec succès.", color=0x00ff00)
+                        await ctx.send(embed=embed)
                     else:
                         music_path = os.path.join(music_directory, url)
                         player = discord.FFmpegPCMAudio(music_path)
@@ -245,10 +249,6 @@ class Music(commands.Cog):
                     # Wait for the song to end before proceeding
                     await self.song_end_event.wait()
                     self.song_end_event.clear()
-                    
-                    # Create an embed to indicate that the music was successfully queued
-                    embed = discord.Embed(title="Musique installée", description=f"La musique {url} a été installée avec succès.", color=0x00ff00)
-                    await ctx.send(embed=embed)
                 
                 # Save the timestamp
                 with open(self.timestamp_file, 'w') as f:
