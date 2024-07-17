@@ -83,6 +83,9 @@ This bot is essential if you have an itch.io game and want to keep your server m
 - `/set_on_member_logs_channel` (REQUIRE ADMINISTRATOR PERMISSIONS)
   - Sets the log channel for (Members) logging events.
 
+- `/set_welcome_goodbye_logs_channel` (REQUIRE ADMINISTRATOR PERMISSIONS)
+  - Set logging channel for logging events (members to join and leave).
+
 - `/set_on_message_logs_channel` (REQUIRE ADMINISTRATOR PERMISSIONS)
   - Sets the log channel for (Message) logging events.
 
@@ -231,6 +234,9 @@ Ce bot est essentiel si vous avez un jeu sur itch.io et que vous souhaitez tenir
 - `/set_on_member_logs_channel` (EXIGER LES AUTORISATIONS DE L'ADMINISTRATEUR)
   - Définit le canal de journalisation pour les événements de journalisation (membres).
 
+- `/set_welcome_goodbye_logs_channel` (EXIGER LES AUTORISATIONS DE L'ADMINISTRATEUR)
+  - Définir le canal de journalisation pour les événements de journalisation (membres pour rejoindre et quitter).
+
 - `/set_on_message_logs_channel` (EXIGER LES AUTORISATIONS DE L'ADMINISTRATEUR)
   - Définit le canal de journalisation pour les événements de journalisation (messages).
 
@@ -249,7 +255,10 @@ Ce bot est essentiel si vous avez un jeu sur itch.io et que vous souhaitez tenir
 - `/set_on_voice_state_logs_channel` (EXIGER DES AUTORISATIONS D'ADMINISTRATEUR)
   - Définit le canal de journalisation pour les événements de journalisation (Voice/Stream State).
 
+
 ### Musique
+
+
 
 - `/play_song [url]`
   - Jouer de la musique à partir du lien YouTube dans la salle vocale musicale 

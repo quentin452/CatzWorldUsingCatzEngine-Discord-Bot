@@ -1,7 +1,7 @@
 import discord
 from datetime import datetime
 from utils.ColorUtility import ColorUtilityClass
-
+from utils.async_logs import LogMessageAsync
 class EmbedUtilityClass:
 
     @staticmethod
@@ -23,6 +23,13 @@ class EmbedUtilityClass:
         embed.add_field(name='Date', value=datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'), inline=True)
         return embed
     
+    async def log_member_event(self, member, embed,log_channel):
+        if log_channel:
+            try:
+                await log_channel.send(embed=embed)
+            except Exception as e:
+                await LogMessageAsync.LogAsync(f"Error logging member event: {e}")
+
 
 class MusicTopGGVoteEmbed(EmbedUtilityClass):
     def __init__(self, user):
@@ -179,16 +186,35 @@ class ProfilePictureChangedEmbed(EmbedUtilityClass):
             thumbnail_url=self.thumbnail_url,
             fields=self.fields
         )
-
+    
+import datetime
 
 class MemberJoinedEmbed(EmbedUtilityClass):
+    def __init__(self, member, server):
+        self.author = f"Welcome {member.display_name} to {server.name} 🔥"
+        self.author_avatar = member.avatar.url
+        self.description = f'- Check out our rules in {server.rules_channel.mention} and react ✅'
+        self.color = discord.Color.green()
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        self.footer_text = f'We are pleased to have you with us, {member.display_name}! 💖\nJoined at: {timestamp}'
+
+    def create(self):
+        return super().create_embed(
+            author=self.author,
+            title=self.title,
+            description=self.description,
+            color=self.color,
+            footer_text=self.footer_text
+        )
+
+class MemberLeftEmbed(EmbedUtilityClass):
     def __init__(self, member):
-        self.title = 'Member Joined'
-        self.description=f'{member.name}#{member.discriminator} has joined the server',
-        self.color = ColorUtilityClass.get_color('join')
+        self.title = 'Member Left'
+        self.description = f'{member.display_name}#{member.discriminator} has left the server'
+        self.color = ColorUtilityClass.get_color('leave')
         self.fields = [
             ('Member ID', member.id, True),
-            ('Joined At', member.joined_at.strftime('%Y-%m-%d %H:%M:%S'), True),
+            ('Left At', datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'), True),
         ]
 
     def create(self):

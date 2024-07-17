@@ -19,18 +19,7 @@ class OnMemberLogs(commands.Cog):
         self.log_channel_id = ctx.channel.id
         self.save_log_channel(ctx.channel.id)
         await ctx.send(f"L'ID du canal de on_member_logs a été mis à jour à {ctx.channel.id}")
-
-    @commands.Cog.listener()
-    async def on_member_join(self, member):
-        log_channel = self.bot.get_channel(self.log_channel_id)
-        if log_channel:
-            try:
-                embed = MemberJoinedEmbed(member).create()
-                await log_channel.send(embed=embed)
-            except Exception as e:
-                    await LogMessageAsync.LogAsync(f"Error logging member join: {e}")
-
-
+        
     @commands.Cog.listener()
     async def on_member_update(self, before, after):
         log_channel = self.bot.get_channel(self.log_channel_id)

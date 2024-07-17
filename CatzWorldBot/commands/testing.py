@@ -1,10 +1,11 @@
 from discord.ext import commands
 import discord
 from utils.async_logs import LogMessageAsync
+from utils.Constants import ConstantsClass
 class Testing(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.log_channel_id = 1095180120232304641  # Replace with your log channel ID
+        self.log_channel_id = ConstantsClass.load_channel_template(self,ConstantsClass.LOGS_SAVE_FOLDER + '/on_member_logs.json','on_member_logs')
 
     @commands.command(help="Simulates a boost event for the current user. Requires administrator permissions.")
     @commands.has_permissions(administrator=True)
