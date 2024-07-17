@@ -1,6 +1,7 @@
 from discord.ext import commands
 import discord
 #TODO IDK WHY BUT THE VIEW NOT GET SAVED AND SO WHEN I RELAUNCH THE BOT , OLD BUTTONS CANNOT BE CLICKED
+#TODO only show the pagination for the user that used the command
 class HelpPagination(discord.ui.View):
     def __init__(self, pages):
         super().__init__(timeout=None)
