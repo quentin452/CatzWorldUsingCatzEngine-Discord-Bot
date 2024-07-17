@@ -276,7 +276,7 @@ YTDL_FORMAT_OPTIONS = {
     'format': 'bestaudio/best',
     'outtmpl': ConstantsClass.get_github_project_directory() + "/CatzWorldBot/saves/downloaded_musics/" + '%(title)s.%(ext)s',
     'restrictfilenames': True,
-    'noplaylist': False,
+    'noplaylist': True,
     'nocheckcertificate': True,
     'ignoreerrors': False,
     'logtostderr': False,
