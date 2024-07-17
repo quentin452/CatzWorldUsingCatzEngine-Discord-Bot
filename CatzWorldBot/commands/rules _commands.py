@@ -20,7 +20,7 @@ class RulesCog(commands.Cog):
                 "• Moderators may use their discretion regardless of the rules.\n"
                 "• Report any rule loopholes.\n\n"
                 "## **Text Chat Rules**\n"
-                "• No questioning or @mentioning mods (use <#1095191079516635219> for support).\n"
+                f"• No questioning or @mentioning mods (use <#{ConstantsClass.ISSUES_SALON_ID}> for support).\n"
                 "• No @everyone/@here without permission.\n"
                 "• No @mentioning spam.\n"
                 "• No NSFW content.\n"
@@ -41,7 +41,7 @@ class RulesCog(commands.Cog):
                 "• Moderators can disconnect, mute, deafen, or move members.\n\n"
                 "## **Bot Specific Rules**\n"
                 "• No command spam.\n"
-                "• Use bot commands only in <#1095202819906211962>.\n\n"
+                f"• Use bot commands only in <#{ConstantsClass.BOT_SALON_ID}>.\n\n"
             ),
             color=discord.Color.blue()
         )

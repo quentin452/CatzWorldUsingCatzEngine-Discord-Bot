@@ -18,6 +18,8 @@ class ConstantsClass:
     RSS_CHANNEL_IDS_JSON_FILE ="/rss_channel_ids.json"
     SENT_RSS_TITLES_JSON_FILE = "/sent_rss_titles.json"
 
+    ISSUES_SALON_ID = "1095191079516635219"
+    BOT_SALON_ID = "1095202819906211962"
     FEED_BACK_SAVE_FOLDER = get_github_project_directory() + "/CatzWorldBot/saves/feedbacks"
     DOWNLOAD_SAVE_FOLDER = get_github_project_directory() + "/CatzWorldBot/saves/downloads"
     RSS_SAVE_FOLDER = get_github_project_directory() + "/CatzWorldBot/saves/rss"
