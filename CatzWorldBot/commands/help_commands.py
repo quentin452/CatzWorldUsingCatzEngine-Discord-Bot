@@ -1,8 +1,6 @@
-# Importation des modules nécessaires
 from discord.ext import commands
 import discord
-
-# Classe de la vue pour la pagination
+#TODO IDK WHY BUT THE VIEW NOT GET SAVED AND SO WHEN I RELAUNCH THE BOT , OLD BUTTONS CANNOT BE CLICKED
 class HelpPagination(discord.ui.View):
     def __init__(self, pages):
         super().__init__(timeout=None)
@@ -22,28 +20,27 @@ class HelpPagination(discord.ui.View):
             await self.message.edit(embed=embed, view=self)
 
     @discord.ui.button(label='⏪', style=discord.ButtonStyle.blurple, custom_id='help_first_page')
-    async def first_page(self, interaction: discord.Interaction,button: discord.ui.Button):
+    async def first_page(self, interaction: discord.Interaction, button: discord.ui.Button):
         self.current_page = 0
         await self.show_page(interaction)
 
     @discord.ui.button(label='◀️', style=discord.ButtonStyle.blurple, custom_id='help_previous_page')
-    async def previous_page(self, interaction: discord.Interaction,button: discord.ui.Button):
+    async def previous_page(self, interaction: discord.Interaction, button: discord.ui.Button):
         if self.current_page > 0:
             self.current_page -= 1
             await self.show_page(interaction)
 
     @discord.ui.button(label='▶️', style=discord.ButtonStyle.blurple, custom_id='help_next_page')
-    async def next_page(self, interaction: discord.Interaction,button: discord.ui.Button):
+    async def next_page(self, interaction: discord.Interaction, button: discord.ui.Button):
         if self.current_page < len(self.pages) - 1:
             self.current_page += 1
             await self.show_page(interaction)
 
     @discord.ui.button(label='⏩', style=discord.ButtonStyle.blurple, custom_id='help_last_page')
-    async def last_page(self, interaction: discord.Interaction,button: discord.ui.Button):
+    async def last_page(self, interaction: discord.Interaction, button: discord.ui.Button):
         self.current_page = len(self.pages) - 1
         await self.show_page(interaction)
 
-# Classe du cog pour la commande d'aide personnalisée
 class CustomHelpCommandCog(commands.Cog):
     def __init__(self, bot, categories_per_page=5):
         self.bot = bot
@@ -72,19 +69,22 @@ class CustomHelpCommandCog(commands.Cog):
     
     @commands.command(help="Affiche une liste de toutes les catégories d'aide disponibles.")
     async def help_cat(self, ctx):
-        self.pages = self.get_pages()  # Réinitialisation de self.pages en appelant get_pages
+        self.pages = self.get_pages()
         if not self.pages:
             return await ctx.send("Aucune catégorie d'aide trouvée.")
 
-        # Utilisation de la vue pour la pagination
         view = HelpPagination(self.pages)
         message = await ctx.send(embed=self.pages[0], view=view)
-        view.message = message  # Sauvegarde du message pour mise à jour ultérieure
+        view.message = message  # Assurez-vous que self.message est correctement défini
 
     async def send_bot_help(self, ctx, mapping):
-        self.pages = self.get_pages()  # Réinitialisation de self.pages
+        self.pages = self.get_pages()
         if not self.pages:
             return await ctx.send("Aucune catégorie d'aide trouvée.")
+
+        view = HelpPagination(self.pages)
+        message = await ctx.send(embed=self.pages[0], view=view)
+        view.message = message  # Assurez-vous que self.message est correctement défini
 
         # Utilisation de la vue pour la pagination
         view = HelpPagination(self.pages)
