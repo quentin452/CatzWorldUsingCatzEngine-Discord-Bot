@@ -11,7 +11,6 @@ class RulesCog(commands.Cog):
     async def rules_cat(self, ctx):
         # Define the embed content
         embed = discord.Embed(
-            title="Server Rules",
             description=(
                 "## **General Server Rules**\n"
                 "• No blank, inappropriate, sexually explicit, or offensive nicknames.\n"
@@ -21,7 +20,7 @@ class RulesCog(commands.Cog):
                 "• Moderators may use their discretion regardless of the rules.\n"
                 "• Report any rule loopholes.\n\n"
                 "## **Text Chat Rules**\n"
-                "• No questioning or @mentioning mods (use ⁠💥-issues-💥 for support).\n"
+                "• No questioning or @mentioning mods (use <#1095191079516635219> for support).\n"
                 "• No @everyone/@here without permission.\n"
                 "• No @mentioning spam.\n"
                 "• No NSFW content.\n"
@@ -42,7 +41,7 @@ class RulesCog(commands.Cog):
                 "• Moderators can disconnect, mute, deafen, or move members.\n\n"
                 "## **Bot Specific Rules**\n"
                 "• No command spam.\n"
-                "• Use bot commands only in ⁠🤖-bot-🤖.\n\n"
+                "• Use bot commands only in <#1095202819906211962>.\n\n"
             ),
             color=discord.Color.blue()
         )
