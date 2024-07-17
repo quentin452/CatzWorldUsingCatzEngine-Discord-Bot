@@ -1,51 +1,57 @@
+# Importation des modules nécessaires
 from discord.ext import commands
 import discord
 
-class CustomHelpCommand(commands.Cog):
+# Classe de la vue pour la pagination
+class HelpPagination(discord.ui.View):
+    def __init__(self, pages):
+        super().__init__(timeout=None)
+        self.pages = pages
+        self.current_page = 0
+        self.message = None  # Initialisation de la variable pour sauvegarder le message
+
+    async def show_page(self, interaction=None):
+        if not (0 <= self.current_page < len(self.pages)):
+            return  # Si self.current_page est hors des limites, ne rien faire
+        
+        embed = self.pages[self.current_page]
+
+        if interaction and isinstance(interaction, discord.Interaction):
+            await interaction.response.edit_message(embed=embed, view=self)
+        elif self.message:
+            await self.message.edit(embed=embed, view=self)
+
+    @discord.ui.button(label='⏪', style=discord.ButtonStyle.blurple, custom_id='help_first_page')
+    async def first_page(self, interaction: discord.Interaction,button: discord.ui.Button):
+        self.current_page = 0
+        await self.show_page(interaction)
+
+    @discord.ui.button(label='◀️', style=discord.ButtonStyle.blurple, custom_id='help_previous_page')
+    async def previous_page(self, interaction: discord.Interaction,button: discord.ui.Button):
+        if self.current_page > 0:
+            self.current_page -= 1
+            await self.show_page(interaction)
+
+    @discord.ui.button(label='▶️', style=discord.ButtonStyle.blurple, custom_id='help_next_page')
+    async def next_page(self, interaction: discord.Interaction,button: discord.ui.Button):
+        if self.current_page < len(self.pages) - 1:
+            self.current_page += 1
+            await self.show_page(interaction)
+
+    @discord.ui.button(label='⏩', style=discord.ButtonStyle.blurple, custom_id='help_last_page')
+    async def last_page(self, interaction: discord.Interaction,button: discord.ui.Button):
+        self.current_page = len(self.pages) - 1
+        await self.show_page(interaction)
+
+# Classe du cog pour la commande d'aide personnalisée
+class CustomHelpCommandCog(commands.Cog):
     def __init__(self, bot, categories_per_page=5):
         self.bot = bot
         self.categories_per_page = categories_per_page
+        self.pages = []  # Initialisation de self.pages
 
-    async def send_embed_pages(self, ctx, pages):
-        if not pages:
-            await ctx.send("Aucune page à afficher.")
-            return
-        
-        current_page = 0
-        message = await ctx.send(embed=pages[current_page])
-
-        # Ajouter les réactions pour la pagination
-        if len(pages) > 1:
-            await message.add_reaction('⏪')  # Aller à la première page
-            await message.add_reaction('◀️')  # Flèche gauche
-            await message.add_reaction('▶️')  # Flèche droite
-            await message.add_reaction('⏩')  # Aller à la dernière page
-
-            def check(reaction, user):
-                return user == ctx.author and reaction.message.id == message.id and str(reaction.emoji) in ['⏪', '◀️', '▶️', '⏩']
-
-            while True:
-                try:
-                    reaction, user = await self.bot.wait_for('reaction_add', timeout=60.0, check=check)
-
-                    if str(reaction.emoji) == '⏪':
-                        current_page = 0
-                    elif str(reaction.emoji) == '◀️' and current_page > 0:
-                        current_page -= 1
-                    elif str(reaction.emoji) == '▶️' and current_page < len(pages) - 1:
-                        current_page += 1
-                    elif str(reaction.emoji) == '⏩':
-                        current_page = len(pages) - 1
-
-                    await message.edit(embed=pages[current_page])
-                    await message.remove_reaction(reaction, user)
-
-                except TimeoutError:
-                    break
-
-    @commands.command(help="Affiche une liste de toutes les catégories d'aide disponibles.")
-    async def help_cat(self, ctx):
-        pages = []
+    def get_pages(self):
+        pages = []  # Initialisation de pages
         category_list = list(self.bot.cogs.items())
         num_pages = (len(category_list) + self.categories_per_page - 1) // self.categories_per_page
 
@@ -62,18 +68,28 @@ class CustomHelpCommand(commands.Cog):
 
             pages.append(embed)
 
-        await self.send_embed_pages(ctx, pages)
+        return pages  # Retourner les pages remplies
+    
+    @commands.command(help="Affiche une liste de toutes les catégories d'aide disponibles.")
+    async def help_cat(self, ctx):
+        self.pages = self.get_pages()  # Réinitialisation de self.pages en appelant get_pages
+        if not self.pages:
+            return await ctx.send("Aucune catégorie d'aide trouvée.")
+
+        # Utilisation de la vue pour la pagination
+        view = HelpPagination(self.pages)
+        message = await ctx.send(embed=self.pages[0], view=view)
+        view.message = message  # Sauvegarde du message pour mise à jour ultérieure
 
     async def send_bot_help(self, ctx, mapping):
-        pages = []
-        for cog, commands in mapping.items():
-            cog_name = cog.qualified_name if cog else "Non catégorisé"
-            command_list = "\n".join([f"{self.bot.command_prefix}{command.name}: {command.help or 'Aucune description'}" for command in commands if not command.hidden])
-            if command_list:
-                embed = discord.Embed(title=f"{cog_name}", description=command_list, color=discord.Color.blue())
-                pages.append(embed)
+        self.pages = self.get_pages()  # Réinitialisation de self.pages
+        if not self.pages:
+            return await ctx.send("Aucune catégorie d'aide trouvée.")
 
-        await self.send_embed_pages(ctx, pages)
+        # Utilisation de la vue pour la pagination
+        view = HelpPagination(self.pages)
+        message = await ctx.send(embed=self.pages[0], view=view)
+        view.message = message  # Sauvegarde du message pour mise à jour ultérieure
 
     async def send_command_help(self, ctx, command):
         if command.hidden or any(check.__class__.__name__ == 'has_permissions' and check.kwargs.get('administrator', False) for check in command.checks):
@@ -89,5 +105,9 @@ class CustomHelpCommand(commands.Cog):
             embed = discord.Embed(title=f"Commandes de {cog.qualified_name}", description=command_list, color=discord.Color.blue())
             await ctx.send(embed=embed)
 
+    def get_menu_view(self):
+        return HelpPagination(self.pages)
+
+# Enregistrement du cog dans le bot
 async def setup(bot):
-    await bot.add_cog(CustomHelpCommand(bot))
+    await bot.add_cog(CustomHelpCommandCog(bot))

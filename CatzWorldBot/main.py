@@ -107,6 +107,11 @@ async def on_ready():
         rules_logs_cog_view = rules_logs_cog.get_menu_view()
         bot.add_view(rules_logs_cog_view)
 
+    # Help Commands
+    help_cog = bot.get_cog('CustomHelpCommandCog')
+    if help_cog is not None:
+        help_cog_view = help_cog.get_menu_view()
+        bot.add_view(help_cog_view)
 
     # Feedback Commands
    # feedback_cog = bot.get_cog('FeedbackCommands')
