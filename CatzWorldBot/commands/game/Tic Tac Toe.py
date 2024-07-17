@@ -73,23 +73,24 @@ class TicTacToeView(View):
                     item.disabled = True
                     break
 
-            await interaction.response.edit_message(view=self)
+            await interaction.response.edit_message(content=f"{self.game.player1.mention} vs {self.game.player2.mention}\nTour de {self.game.current_player.mention} ({letter})\n{self.game.print_board()}", view=self)
 
             if self.game.current_winner:
                 for child in self.children:
                     child.disabled = True
-                await interaction.followup.send(f'Le joueur {interaction.user.mention} ({letter}) a gagné!\n{self.game.print_board()}')
+                await interaction.followup.send(f'Le joueur {self.game.current_player.mention} ({letter}) a gagné!', delete_after=10)
                 self.end_game()
                 return
 
             if not self.game.available_moves():
                 for child in self.children:
                     child.disabled = True
-                await interaction.followup.send('Partie nulle!\n' + self.game.print_board())
+                await interaction.followup.send('Partie nulle!', delete_after=10)
                 self.end_game()
                 return
 
             self.game.current_player = self.game.player2 if self.game.current_player == self.game.player1 else self.game.player1
+            await interaction.followup.send(f'Tour de {self.game.current_player.mention} ({letter})', delete_after=10)
         return callback
 
     def end_game(self):
@@ -122,7 +123,7 @@ class TicTacToeCommands(commands.Cog):
         view.add_item(confirm_button)
 
         deny_button = discord.ui.Button(style=discord.ButtonStyle.danger, label=f"Refuser {ctx.author.display_name}")
-        deny_button.callback = self.deny_invite(ctx.author)
+        deny_button.callback = self.deny_invite(ctx.author, opponent)
         view.add_item(deny_button)
 
         message = await ctx.send(f"{opponent.mention}, {ctx.author.mention} vous invite à jouer à Tic Tac Toe.", view=view)
@@ -135,18 +136,27 @@ class TicTacToeCommands(commands.Cog):
                 self.active_games[player2] = game
 
                 view = TicTacToeView(game, self.restart_callback(player1, player2))
-                await interaction.message.edit(content=f"{player1.mention} vs {player2.mention}\nTour de {player1.mention} (X)", view=view)
+                await interaction.message.edit(content=f"{player1.mention} vs {player2.mention}\nTour de {player1.mention} (X)\n{game.print_board()}", view=view)
 
                 del self.pending_invites[player1]
             else:
                 await interaction.response.send_message("Vous n'êtes pas autorisé à répondre à cette invitation.", ephemeral=True)
         return callback
 
-    def deny_invite(self, player1):
+    def deny_invite(self, player1, player2):
         async def callback(interaction: discord.Interaction):
-            if interaction.user == player1 and player1 in self.pending_invites:
+            if player2 == interaction.user:
                 await interaction.response.send_message("Invitation refusée.")
                 del self.pending_invites[player1]
+
+                if player1 in self.active_games:
+                    del self.active_games[player1]
+                if player2 in self.active_games:
+                    del self.active_games[player2]
+
+                await interaction.message.delete()
+            else:
+                await interaction.response.send_message("Vous n'êtes pas autorisé à refuser cette invitation.", ephemeral=True)
         return callback
 
     def restart_callback(self, player1, player2):
