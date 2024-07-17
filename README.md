@@ -149,6 +149,9 @@ This bot is essential if you have an itch.io game and want to keep your server m
 
 - `/stop_cat_bot` (REQUIRE ADMINISTRATOR PERMISSIONS)
   - Stop the bot
+  
+- `/rules_cat` (REQUIREMENT FOR ADMINISTRATOR PERMISSIONS)
+  - Gives the server rules
 
 ### 📝 Note
 
@@ -307,6 +310,9 @@ Ce bot est essentiel si vous avez un jeu sur itch.io et que vous souhaitez tenir
 
 - `/stop_cat_bot` (EXIGENCE DES AUTORISATIONS D'ADMINISTRATEUR)
   - Arretez the bot
+  
+- `/rules_cat` (EXIGENCE DES AUTORISATIONS D'ADMINISTRATEUR)
+  - Donne les regles du server
 
 ### 📝 Remarque
 

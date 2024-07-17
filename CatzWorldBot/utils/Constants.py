@@ -12,6 +12,7 @@ class ConstantsClass:
     DISCORD_BOT_TOKEN = "discord_bot_token"
     CATZ_WORLD_ROLE_NAME = "CatWorld game ping updates"
     MEMBER_ROLE_NAME = "@Members"
+    VERIFIED_ROLE_NAME = "verified"
     URL_GAME_NAME = "catzworld"
     RSS_URL = f"https://iamacatfrdev.itch.io/{URL_GAME_NAME}/devlog.rss"
     RSS_CHANNEL_IDS_JSON_FILE ="/rss_channel_ids.json"
