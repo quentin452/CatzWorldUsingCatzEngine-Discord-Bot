@@ -226,40 +226,6 @@ class Music(commands.Cog):
 
         return lambda e: self.bot.loop.create_task(after_play(e))
         
-    @commands.command(help="Play a YouTube playlist in the music room.(note this method isn't optimized)")
-    async def play_playlist(self, ctx, *urls: str):
-        voice_channel = await self.join_voice_channel(ctx)
-        if voice_channel:
-            try:
-                music_directory = ConstantsClass.get_github_project_directory() + "/CatzWorldBot/saves/downloaded_musics/"
-                for url in urls:
-                    if url.startswith("http"):
-                        player = await YTDLSource.from_url(url, loop=self.bot.loop)
-                        
-                        # Create an embed to indicate that the music was successfully downloaded
-                        embed = discord.Embed(title="Musique téléchargée", description=f"La musique {url} a été téléchargée avec succès.", color=0x00ff00)
-                        await ctx.send(embed=embed)
-                    else:
-                        music_path = os.path.join(music_directory, url)
-                        player = discord.FFmpegPCMAudio(music_path)
-                    
-                    # Play the song
-                    ctx.voice_client.play(player, after=lambda e: self.song_ended(e))
-                    
-                    # Wait for the song to end before proceeding
-                    await self.song_end_event.wait()
-                    self.song_end_event.clear()
-                
-                # Save the timestamp
-                with open(self.timestamp_file, 'w') as f:
-                    json.dump({'timestamp': time.time()}, f)
-
-                # Schedule the cleanup task
-                await self.schedule_cleanup_task()
-
-            except Exception as e:
-                await ctx.send(f"Une erreur s'est produite lors de la tentative de lecture de la playlist : {e}")
-
     def song_ended(self, error):
         if error:
             print(f'Player error: {error}')

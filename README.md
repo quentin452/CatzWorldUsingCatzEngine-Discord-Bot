@@ -118,9 +118,6 @@ This bot is essential if you have an itch.io game and want to keep your server m
 - `/loop_song [url] [ammount]`
   - Play music in a loop 
 
-- `/play_playlist`
-  - Play a YouTube playlist in the music room(note this method isn't optimized)
-
 #### Other
 
 - `/hello [query]`
@@ -265,9 +262,6 @@ Ce bot est essentiel si vous avez un jeu sur itch.io et que vous souhaitez tenir
 
 - `/loop_song [url] [ammount]`
   - Jouez une musique en boucle 
-
-- `/play_playlist`
-  - Jouer une playlist de youtube dans le sallon voale musicale(notez que cette méthode n'est pas optimisée)
 
 #### Autre
 
