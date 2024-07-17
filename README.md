@@ -252,6 +252,9 @@ Ce bot est essentiel si vous avez un jeu sur itch.io et que vous souhaitez tenir
 - `/simulate_boost` (EXIGENCE DES AUTORISATIONS D'ADMINISTRATEUR)
   - Simuler un boost
 
+- `/restart` (EXIGENCE DES AUTORISATIONS D'ADMINISTRATEUR)
+  - Relance le bot
+  
 - `/play_song [url]`
   - Jouez de la musique à partir d'un lien YouTube dans la salle vocale musicale 
 
