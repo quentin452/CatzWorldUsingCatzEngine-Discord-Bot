@@ -1,15 +1,14 @@
 import discord
 from discord.ext import commands
-from lxml import html
-import json
+import asyncio
+import aiohttp
+import xml.etree.ElementTree as ET
 from utils.Constants import ConstantsClass
 from utils.config import load_config
-import asyncio
 from utils.async_logs import LogMessageAsync
-import asyncio
-import xml.etree.ElementTree as ET
+import json
 import aiohttp
-import re
+from lxml import html
 config = load_config()
 api_key = config['api_key']
 game_id = config['game_id']
@@ -20,31 +19,35 @@ class RssCommands(commands.Cog):
         self.rss_task = None
         self.getting_rss = False
         self.rss_channel_ids = self.load_rss_channel_ids()
-        self.sent_rss_titles = self.load_sent_rss_titles()  # Load sent RSS titles from file
+        self.sent_rss_titles = self.load_sent_rss_titles()
         self.bot.loop.create_task(self.run_rss_loop())
-        self.sent_rss_titles = []  # Initialize as needed
-        self.rss_channel_ids = {}  # Initialize as needed
-        
+
+    @commands.command(help="Sets the current channel as the rss channel for automatic updates.")
+    async def set_rss_channel(self, ctx):
+        self.rss_channel_ids[str(ctx.guild.id)] = ctx.channel.id
+        self.save_rss_channel_ids()
+        await ctx.send(f"L'ID du salon pour les messages RSS a été défini sur {ctx.channel.id} pour le serveur {ctx.guild.name}")
+
     def load_rss_channel_ids(self):
         try:
-            with open(ConstantsClass.RSS_SAVE_FOLDER + ConstantsClass.RSS_CHANNEL_IDS_JSON_FILE, ConstantsClass.READ_FILE) as f:
+            with open(ConstantsClass.RSS_SAVE_FOLDER + ConstantsClass.RSS_CHANNEL_IDS_JSON_FILE, 'r') as f:
                 return json.load(f)
         except FileNotFoundError:
             return {}
 
     def save_rss_channel_ids(self):
-        with open(ConstantsClass.RSS_SAVE_FOLDER + ConstantsClass.RSS_CHANNEL_IDS_JSON_FILE, ConstantsClass.WRITE_TO_FILE) as f:
+        with open(ConstantsClass.RSS_SAVE_FOLDER + ConstantsClass.RSS_CHANNEL_IDS_JSON_FILE, 'w') as f:
             json.dump(self.rss_channel_ids, f)
 
     def load_sent_rss_titles(self):
         try:
-            with open(ConstantsClass.RSS_SAVE_FOLDER + ConstantsClass.SENT_RSS_TITLES_JSON_FILE, ConstantsClass.READ_FILE) as f:
+            with open(ConstantsClass.RSS_SAVE_FOLDER + ConstantsClass.SENT_RSS_TITLES_JSON_FILE, 'r') as f:
                 return json.load(f)
         except FileNotFoundError:
             return []
 
     def save_sent_rss_titles(self):
-        with open(ConstantsClass.RSS_SAVE_FOLDER + ConstantsClass.SENT_RSS_TITLES_JSON_FILE, ConstantsClass.WRITE_TO_FILE) as f:
+        with open(ConstantsClass.RSS_SAVE_FOLDER + ConstantsClass.SENT_RSS_TITLES_JSON_FILE, 'w') as f:
             json.dump(self.sent_rss_titles, f)
 
     async def generate_embed_from_entry(self, entry):
@@ -109,6 +112,8 @@ class RssCommands(commands.Cog):
             if elem.tail:
                 text.append(elem.tail)
         return ''.join(text)
+
+
     @commands.command(help="Fetches and displays the latest entry from the RSS feed.")
     async def get_last_rss(self, ctx):
         url = ConstantsClass.RSS_URL
@@ -140,7 +145,6 @@ class RssCommands(commands.Cog):
 
     async def last_rss_loop(self, channel):
         role = discord.utils.get(channel.guild.roles, name=ConstantsClass.CATZ_WORLD_ROLE_NAME)
-
         if role is None:
             await channel.send(f"Le rôle {ConstantsClass.CATZ_WORLD_ROLE_NAME} n'existe pas dans ce serveur.")
             return
@@ -149,7 +153,6 @@ class RssCommands(commands.Cog):
         feed = await self.fetch_rss_feed(url)
         if feed:
             new_entries = [entry for entry in feed if entry.get('title', 'Pas de titre') not in self.sent_rss_titles]
-
             if not new_entries:
                 return
 
@@ -160,14 +163,13 @@ class RssCommands(commands.Cog):
                 else:
                     await channel.send(f"{role.mention}\n{embed_or_message}")
 
-                # Update sent RSS titles
                 self.sent_rss_titles.append(entry.get('title'))
-                self.save_sent_rss_titles()  # Save sent RSS titles to file
+                self.save_sent_rss_titles()
                 break  # Only process the first new entry for now
         else:
             await channel.send(f"{role.mention} Impossible de récupérer le flux RSS.")
 
-    async def fetch_rss_feed(self,url):
+    async def fetch_rss_feed(self, url):
         async with aiohttp.ClientSession() as session:
             async with session.get(url) as resp:
                 tree = ET.fromstring(await resp.text())
@@ -176,8 +178,8 @@ class RssCommands(commands.Cog):
 
                 for item in tree.findall('.//item'):
                     entry = {
-                    'title': item.find('title').text,
-                    'link': item.find('link').text
+                        'title': item.find('title').text,
+                        'link': item.find('link').text
                     }
                     entries.append(entry)
                 return entries
@@ -185,20 +187,24 @@ class RssCommands(commands.Cog):
     async def run_rss_loop(self):
         await self.bot.wait_until_ready()
         while not self.bot.is_closed():
-            for guild_id, channel_id in self.rss_channel_ids.items():
-                guild = self.bot.get_guild(int(guild_id))
-                if guild:
-                    channel = guild.get_channel(int(channel_id))
-                    if channel:
-                        if not self.getting_rss:
-                            self.getting_rss = True
-                            await self.last_rss_loop(channel)
-                            self.getting_rss = False
+            try:
+                for guild_id, channel_id in self.rss_channel_ids.items():
+                    guild = self.bot.get_guild(int(guild_id))
+                    if guild:
+                        channel = guild.get_channel(int(channel_id))
+                        if channel:
+                            if not self.getting_rss:
+                                self.getting_rss = True
+                                await self.last_rss_loop(channel)
+                                self.getting_rss = False
+                        else:
+                            await LogMessageAsync.LogAsync(f"Channel with ID {channel_id} not found in guild {guild_id}.")
                     else:
-                        await LogMessageAsync.LogAsync(f"Channel with ID {channel_id} not found in guild {guild_id}.")
-                else:
-                    await LogMessageAsync.LogAsync(f"Guild with ID {guild_id} not found.")
-            await asyncio.sleep(60)
+                        await LogMessageAsync.LogAsync(f"Guild with ID {guild_id} not found.")
+            except Exception as e:
+                await LogMessageAsync.LogAsync(f"Error in RSS loop: {e}")
+
+            await asyncio.sleep(5)
 
 async def setup(bot):
     await bot.add_cog(RssCommands(bot))
