@@ -5,20 +5,23 @@ from datetime import datetime
 from utils.Constants import ConstantsClass
 from utils.async_logs import LogMessageAsync
 from utils.EmbedUtility import *
-from commands.discord_loggers.discord_logger_base import DiscordLogs
 class OnCommandsLogs(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.log_channel_id = ConstantsClass.load_channel_template(self,ConstantsClass.LOGS_SAVE_FOLDER + '/on_commands_logs.json','on_commands_logs')
         
-    def get_log_channel_id(self):
-        discord_logs_cog = self.bot.get_cog('DiscordLogs')
-        if discord_logs_cog is not None:
-            return discord_logs_cog.log_channel_id
-        return None
+    def save_log_channel(self, channel_id):
+        ConstantsClass.save_channel_template(self,ConstantsClass.LOGS_SAVE_FOLDER + '/on_commands_logs.json','on_commands_logs',channel_id)
+    
+    @commands.command(help="Sets the log channel for (Commands) logging events. Requires administrator permissions.")
+    @commands.has_permissions(administrator=True)
+    async def set_on_commands_logs_channel(self, ctx):
+        self.log_channel_id = ctx.channel.id
+        self.save_log_channel(ctx.channel.id)
+        await ctx.send(f"L'ID du canal de on_commands_logs a été mis à jour à {ctx.channel.id}")
     
     @commands.Cog.listener()
     async def on_command(self, ctx):
-        self.log_channel_id = self.get_log_channel_id()
         log_channel = self.bot.get_channel(self.log_channel_id)
         if log_channel:
             try:

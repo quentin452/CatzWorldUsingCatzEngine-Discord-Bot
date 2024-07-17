@@ -54,20 +54,52 @@ This bot is essential if you have an itch.io game and want to keep your server m
 
 ### Itch.io feedbacks and reports
 
-- `set_ticket_channel` (REQUIRE ADMINISTRATOR PERMISSIONS) 
+- `/set_ticket_channel` (REQUIRE ADMINISTRATOR PERMISSIONS) 
   - Set the channel where ticket dashboard/embed for ticket will be displayed.
 
-- `close_ticket` (REQUIRE ADMINISTRATOR PERMISSIONS)
+- `/close_ticket` (REQUIRE ADMINISTRATOR PERMISSIONS)
   - Close a Ticket
 
-- `set_feedback_channel` (REQUIRE ADMINISTRATOR PERMISSIONS)
+- `/set_feedback_channel` (REQUIRE ADMINISTRATOR PERMISSIONS)
   - Set the channel where ticket dashboard/embed for feedback will be displayed.
 
-- `submit_feedback [query]`
+- `/submit_feedback [query]`
   - Give feedback for the itch io game.
 
-- `view_feedbacks` (REQUIRE ADMINISTRATOR PERMISSIONS)
+- `/view_feedbacks` (REQUIRE ADMINISTRATOR PERMISSIONS)
   - See all feedbacks given by users
+
+### Logging
+
+- `/set_on_channel_logs` (REQUIRE ADMINISTRATOR PERMISSIONS)
+  - Sets the log channel for (Channel) logging events.
+
+- `/set_on_commands_logs_channel` (REQUIRE ADMINISTRATOR PERMISSIONS)
+  - Sets the log channel for (Commands) logging events.
+
+- `/set_on_file_watch_logs_channel` (REQUIRE ADMINISTRATOR PERMISSIONS)
+  - Sets the log channel for (File Watch) logging events.
+
+- `/set_on_member_logs_channel` (REQUIRE ADMINISTRATOR PERMISSIONS)
+  - Sets the log channel for (Members) logging events.
+
+- `/set_on_message_logs_channel` (REQUIRE ADMINISTRATOR PERMISSIONS)
+  - Sets the log channel for (Message) logging events.
+
+- `/set_on_music_logs_channel` (REQUIRE ADMINISTRATOR PERMISSIONS)
+  - Sets the log channel for (Musics) logging events.
+
+- `/set_on_reaction_logs_channel` (REQUIRE ADMINISTRATOR PERMISSIONS)
+  - Sets the log channel for (Reaction) logging events.
+
+- `/set_on_ready_logs_channel` (REQUIRE ADMINISTRATOR PERMISSIONS)
+  - Sets the log channel for (Ready) logging events.
+
+- `/set_on_user_logs_channel` (REQUIRE ADMINISTRATOR PERMISSIONS)
+  - Sets the log channel for (Users) logging events.
+
+- `/set_on_voice_state_logs_channel` (REQUIRE ADMINISTRATOR PERMISSIONS)
+  - Sets the log channel for (Voice/Stream State) logging events.
 
 #### Other
 
@@ -149,20 +181,53 @@ Ce bot est essentiel si vous avez un jeu sur itch.io et que vous souhaitez tenir
 
 ### Commentaires et rapports Itch.io
 
-- `set_ticket_channel` (EXIGER LES AUTORISATIONS DE L'ADMINISTRATEUR) 
+- `/set_ticket_channel` (EXIGER LES AUTORISATIONS DE L'ADMINISTRATEUR) 
   - Définissez le canal sur lequel le tableau de bord du ticket/l'intégration du ticket sera affiché.
 
-- `close_ticket` (EXIGER LES AUTORISATIONS DE L'ADMINISTRATEUR)
+- `/close_ticket` (EXIGER LES AUTORISATIONS DE L'ADMINISTRATEUR)
   - Fermer un ticket
 
-- `set_feedback_channel` (EXIGENCE DES AUTORISATIONS D'ADMINISTRATEUR)
+- `/set_feedback_channel` (EXIGENCE DES AUTORISATIONS D'ADMINISTRATEUR)
   - Définissez le canal sur lequel le tableau de bord des tickets/l'intégration des commentaires sera affiché.
 
-- `submit_feedback [requête]`
+- `/submit_feedback [requête]`
   - Donnez votre avis sur le jeu itch io.
 
-- `view_feedbacks` (EXIGENCE DES AUTORISATIONS D'ADMINISTRATEUR)
+- `/view_feedbacks` (EXIGENCE DES AUTORISATIONS D'ADMINISTRATEUR)
   - Voir tous les commentaires donnés par les utilisateurs
+
+
+### Journalisation
+
+- `/set_on_channel_logs` (EXIGER LES AUTORISATIONS DE L'ADMINISTRATEUR)
+  - Définit le canal de journalisation pour les événements de journalisation (Channel).
+
+- `/set_on_commands_logs_channel` (EXIGER LES AUTORISATIONS DE L'ADMINISTRATEUR)
+  - Définit le canal de journalisation pour les événements de journalisation (Commandes).
+
+- `/set_on_file_watch_logs_channel` (EXIGER DES AUTORISATIONS D'ADMINISTRATEUR)
+  - Définit le canal de journalisation pour les événements de journalisation (File Watch).
+
+- `/set_on_member_logs_channel` (EXIGER LES AUTORISATIONS DE L'ADMINISTRATEUR)
+  - Définit le canal de journalisation pour les événements de journalisation (membres).
+
+- `/set_on_message_logs_channel` (EXIGER LES AUTORISATIONS DE L'ADMINISTRATEUR)
+  - Définit le canal de journalisation pour les événements de journalisation (messages).
+
+- `/set_on_music_logs_channel` (EXIGER LES AUTORISATIONS DE L'ADMINISTRATEUR)
+  - Définit le canal de journalisation pour les événements de journalisation (Musique).
+
+- `/set_on_reaction_logs_channel` (EXIGER LES AUTORISATIONS DE L'ADMINISTRATEUR)
+  - Définit le canal de journalisation pour les événements de journalisation (réaction).
+
+- `/set_on_ready_logs_channel` (EXIGER LES AUTORISATIONS DE L'ADMINISTRATEUR)
+  - Définit le canal de journalisation pour les événements de journalisation (Prêt).
+
+- `/set_on_user_logs_channel` (EXIGER LES AUTORISATIONS DE L'ADMINISTRATEUR)
+  - Définit le canal de journalisation pour les événements de journalisation (utilisateurs).
+
+- `/set_on_voice_state_logs_channel` (EXIGER DES AUTORISATIONS D'ADMINISTRATEUR)
+  - Définit le canal de journalisation pour les événements de journalisation (Voice/Stream State).
 
 #### Autre
 

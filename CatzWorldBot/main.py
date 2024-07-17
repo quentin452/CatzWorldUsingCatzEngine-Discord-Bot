@@ -95,7 +95,7 @@ async def on_ready():
         bot.add_view(ticket_menu_view)
 
     # DiscordLogs Commands
-    discord_logs_cog = bot.get_cog('DiscordLogs')
+    discord_logs_cog = bot.get_cog('OnReadyLogs')
     if discord_logs_cog is not None:
          await discord_logs_cog.on_ready()
 

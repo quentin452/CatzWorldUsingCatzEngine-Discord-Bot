@@ -5,20 +5,23 @@ from datetime import datetime
 from utils.Constants import ConstantsClass
 from utils.async_logs import LogMessageAsync
 from utils.EmbedUtility import *
-from commands.discord_loggers.discord_logger_base import DiscordLogs
 class OnMemberLogs(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-
-    def get_log_channel_id(self):
-        discord_logs_cog = self.bot.get_cog('DiscordLogs')
-        if discord_logs_cog is not None:
-            return discord_logs_cog.log_channel_id
-        return None
+        self.log_channel_id = ConstantsClass.load_channel_template(self,ConstantsClass.LOGS_SAVE_FOLDER + '/on_member_logs.json','on_member_logs')
+        
+    def save_log_channel(self, channel_id):
+        ConstantsClass.save_channel_template(self,ConstantsClass.LOGS_SAVE_FOLDER + '/on_member_logs.json','on_member_logs',channel_id)
     
+    @commands.command(help="Sets the log channel for (Members) logging events. Requires administrator permissions.")
+    @commands.has_permissions(administrator=True)
+    async def set_on_member_logs_channel(self, ctx):
+        self.log_channel_id = ctx.channel.id
+        self.save_log_channel(ctx.channel.id)
+        await ctx.send(f"L'ID du canal de on_member_logs a été mis à jour à {ctx.channel.id}")
+
     @commands.Cog.listener()
     async def on_member_join(self, member):
-        self.log_channel_id = self.get_log_channel_id()
         log_channel = self.bot.get_channel(self.log_channel_id)
         if log_channel:
             try:
@@ -30,7 +33,6 @@ class OnMemberLogs(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_update(self, before, after):
-        self.log_channel_id = self.get_log_channel_id()
         log_channel = self.bot.get_channel(self.log_channel_id)
         if log_channel:
             try:
@@ -73,7 +75,6 @@ class OnMemberLogs(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_ban(self, guild, user):
-        self.log_channel_id = self.get_log_channel_id()
         log_channel = self.bot.get_channel(self.log_channel_id)
         if log_channel:
             try:
@@ -90,7 +91,6 @@ class OnMemberLogs(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_unban(self, guild, user):
-        self.log_channel_id = self.get_log_channel_id()
         log_channel = self.bot.get_channel(self.log_channel_id)
         if log_channel:
             try:
@@ -107,7 +107,6 @@ class OnMemberLogs(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_boost(self, member):
-        self.log_channel_id = self.get_log_channel_id()
         log_channel = self.bot.get_channel(self.log_channel_id)
         if log_channel:
             try:

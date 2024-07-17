@@ -6,20 +6,23 @@ from datetime import datetime
 from utils.EmbedUtility import *
 
 class OnUserlogs(commands.Cog):
-    def __init__(self, bot, discord_logs_cog):
+    def __init__(self, bot):
         self.bot = bot
-        self.discord_logs_cog = discord_logs_cog
-
-    def get_log_channel_id(self):
-        discord_logs_cog = self.bot.get_cog('DiscordLogs')
-        if discord_logs_cog is not None:
-            return discord_logs_cog.log_channel_id
-        return None
+        self.log_channel_id = ConstantsClass.load_channel_template(self,ConstantsClass.LOGS_SAVE_FOLDER + '/on_user_logs.json','on_user_logs')
+        
+    def save_log_channel(self, channel_id):
+        ConstantsClass.save_channel_template(self,ConstantsClass.LOGS_SAVE_FOLDER + '/on_user_logs.json','on_user_logs',channel_id)
     
+    @commands.command(help="Sets the log channel for (Users) logging events. Requires administrator permissions.")
+    @commands.has_permissions(administrator=True)
+    async def set_on_user_logs_channel(self, ctx):
+        self.log_channel_id = ctx.channel.id
+        self.save_log_channel(ctx.channel.id)
+        await ctx.send(f"L'ID du canal de on_user_logs a été mis à jour à {ctx.channel.id}")
+
     @commands.Cog.listener()
     async def on_user_update(self, before, after):
         if before.avatar != after.avatar:
-            self.log_channel_id = self.get_log_channel_id()
             log_channel = self.bot.get_channel(self.log_channel_id)
             if log_channel:
                 try:
@@ -29,5 +32,4 @@ class OnUserlogs(commands.Cog):
                     await log_channel.send(f"Error logging profile picture change: {e}")
 
 async def setup(bot):
-    discord_logs_cog = bot.get_cog('DiscordLogs')
-    await bot.add_cog(OnUserlogs(bot, discord_logs_cog))
+    await bot.add_cog(OnUserlogs(bot))
