@@ -118,7 +118,7 @@ class TicTacToeView(View):
         async def callback(interaction: discord.Interaction):
             for child in self.children:
                 child.disabled = True
-            await interaction.response.edit_message(content="La partie a été quittée.")
+            await interaction.response.edit_message(content=f"{interaction.user.name} a quitté la partie contre {self.game.player1.name} et {self.game.player2.name}.")
             self.end_game()
         return callback
 
@@ -134,15 +134,15 @@ class TicTacToeCommands(commands.Cog):
             await ctx.send("Vous ne pouvez pas jouer contre vous-même.")
             return
 
-        if ctx.author in self.active_games or ctx.author in self.pending_invites.values():
-            await ctx.send("Vous êtes déjà dans une partie ou vous avez déjà une invitation en attente.")
+        if ctx.author in self.pending_invites or ctx.author in self.active_games:
+            await ctx.send("Vous avez déjà une invitation en attente ou êtes déjà dans une partie.")
             return
 
-        if opponent in self.pending_invites and self.pending_invites[opponent] == ctx.author:
+        if opponent in self.pending_invites and self.pending_invites[opponent][0] == ctx.author:
             await ctx.send("Vous avez déjà envoyé une invitation à ce joueur.")
             return
 
-        self.pending_invites[ctx.author] = opponent
+        self.pending_invites[ctx.author] = (opponent, time.time())
 
         view = discord.ui.View()
         confirm_button = discord.ui.Button(style=discord.ButtonStyle.success, label=f"Accepter {ctx.author.display_name}")
@@ -175,12 +175,6 @@ class TicTacToeCommands(commands.Cog):
             if player2 == interaction.user:
                 await interaction.response.send_message(f"{player2.mention} a refusé l'invitation.")
                 del self.pending_invites[player1]
-
-                if player1 in self.active_games:
-                    del self.active_games[player1]
-                if player2 in self.active_games:
-                    del self.active_games[player2]
-
                 await interaction.message.delete()
             else:
                 await interaction.response.send_message("Vous n'êtes pas autorisé à refuser cette invitation.", ephemeral=True)
