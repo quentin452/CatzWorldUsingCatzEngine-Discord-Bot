@@ -138,6 +138,9 @@ This bot is essential if you have an itch.io game and want to keep your server m
 - `/restart` (REQUIRE ADMINISTRATOR PERMISSIONS)
   - Restart the bot
 
+- `/stop_cat_bot` (REQUIRE ADMINISTRATOR PERMISSIONS)
+  - Stop the bot
+
 ### 📝 Note
 
 This bot code is (probably) intended to be used only for one server due to json caching
@@ -282,6 +285,9 @@ Ce bot est essentiel si vous avez un jeu sur itch.io et que vous souhaitez tenir
 
 - `/restart` (EXIGENCE DES AUTORISATIONS D'ADMINISTRATEUR)
   - Relance le bot
+
+- `/stop_cat_bot` (EXIGENCE DES AUTORISATIONS D'ADMINISTRATEUR)
+  - Arretez the bot
 
 ### 📝 Remarque
 
