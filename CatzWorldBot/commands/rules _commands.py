@@ -60,7 +60,7 @@ class RulesView(discord.ui.View):
         super().__init__(timeout=None)
         self.value = None  # Utilisé pour stocker la valeur si nécessaire
 
-    @discord.ui.button(label='✅', emoji='✅', custom_id='accept_rules')
+    @discord.ui.button(emoji='✅', custom_id='accept_rules')
     async def accept_rules(self, interaction: discord.Interaction, button: discord.ui.Button):
         member = interaction.user
         guild = interaction.guild
