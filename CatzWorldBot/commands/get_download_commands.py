@@ -53,10 +53,10 @@ class DownloadCommands(commands.Cog):
 
     async def last_download_loop(self, channel):
         # Obtenez le rôle que vous voulez mentionner
-        role = discord.utils.get(channel.guild.roles, name=ConstantsClass.ROLE_NAME)
+        role = discord.utils.get(channel.guild.roles, name=ConstantsClass.CATZ_WORLD_ROLE_NAME)
         
         if role is None:
-            await channel.send("Le rôle " + ConstantsClass.ROLE_NAME + "n'existe pas dans ce serveur.")
+            await channel.send("Le rôle " + ConstantsClass.CATZ_WORLD_ROLE_NAME + "n'existe pas dans ce serveur.")
             return
 
         uploads = await self.fetch_uploads()

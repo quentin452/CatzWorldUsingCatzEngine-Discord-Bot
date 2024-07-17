@@ -41,6 +41,19 @@ class OnWelcomeGoodbyeLogs(commands.Cog):
     @commands.Cog.listener()
     async def on_member_join(self, member):
         server = member.guild  # get the server (guild) from the member
+        
+        # Fetch the role by name
+        role = discord.utils.get(server.roles, name=ConstantsClass.MEMBER_ROLE_NAME)
+        
+        if role:
+            try:
+                await member.add_roles(role)
+                await LogMessageAsync.LogAsync(f"Added role {role.name} to {member.name}")
+            except Exception as e:
+                await LogMessageAsync.LogAsync(f"Failed to add role {role.name} to {member.name}: {e}")
+        else:
+            await LogMessageAsync.LogAsync(f"Role with name {ConstantsClass.MEMBER_ROLE_NAME} not found")
+        
         embed = MemberJoinedEmbed(member, server).create()  # pass the server as an argument
         await self.log_member_event(member, embed)
 

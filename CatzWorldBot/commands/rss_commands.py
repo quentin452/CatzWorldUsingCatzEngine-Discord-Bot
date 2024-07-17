@@ -139,10 +139,10 @@ class RssCommands(commands.Cog):
             await ctx.send('Impossible de récupérer le flux RSS.')
 
     async def last_rss_loop(self, channel):
-        role = discord.utils.get(channel.guild.roles, name=ConstantsClass.ROLE_NAME)
+        role = discord.utils.get(channel.guild.roles, name=ConstantsClass.CATZ_WORLD_ROLE_NAME)
 
         if role is None:
-            await channel.send(f"Le rôle {ConstantsClass.ROLE_NAME} n'existe pas dans ce serveur.")
+            await channel.send(f"Le rôle {ConstantsClass.CATZ_WORLD_ROLE_NAME} n'existe pas dans ce serveur.")
             return
 
         url = ConstantsClass.RSS_URL
