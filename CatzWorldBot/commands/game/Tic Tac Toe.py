@@ -90,8 +90,10 @@ class TicTacToeView(View):
                 for child in self.children:
                     child.disabled = True
                 elapsed_time = round(time.time() - self.start_time)
-                embed = discord.Embed(title=f"Félicitations {interaction.user.name} ({letter})!",
-                                      description=f"{self.game.player1.name} a gagné contre {self.game.player2.name} en {elapsed_time} secondes.",
+                winner = self.game.player1 if self.game.current_winner == 'X' else self.game.player2
+                loser = self.game.player2 if self.game.current_winner == 'X' else self.game.player1
+                embed = discord.Embed(title=f"Félicitations {winner.name} ({self.game.current_winner})!",
+                                      description=f"{winner.name} a gagné contre {loser.name} en {elapsed_time} secondes.",
                                       color=discord.Color.green())
                 embed.add_field(name="Tableau final", value=f"```\n{self.game.print_board()}\n```")
                 await interaction.followup.send(embed=embed)
@@ -108,7 +110,6 @@ class TicTacToeView(View):
                 return
 
             self.game.current_player = self.game.player2 if self.game.current_player == self.game.player1 else self.game.player1
-            await interaction.followup.send(f'Tour de {self.game.current_player.name} ({letter})', delete_after=10)
         return callback
 
     def end_game(self):
@@ -156,7 +157,7 @@ class TicTacToeCommands(commands.Cog):
         deny_button.callback = self.deny_invite(ctx.author, opponent)
         view.add_item(deny_button)
 
-        await ctx.send(f"{opponent.mention}, {ctx.author.mention} vous invite à jouer à Tic Tac Toe.", view=view)
+        message = await ctx.send(f"{opponent.mention}, {ctx.author.mention} vous invite à jouer à Tic Tac Toe.", view=view)
 
     def accept_invite(self, player1, player2):
         async def callback(interaction: discord.Interaction):
@@ -199,9 +200,5 @@ class TicTacToeCommands(commands.Cog):
                 del self.active_games[player2]
         return callback
 
-    @ttt.error
-    async def ttt_error(self, ctx, error):
-        await ctx.send(f'Une erreur est survenue : {error}')
-
 async def setup(bot):
-    await bot.add_cog(TicTacToeCommands(bot))
+  await bot.add_cog(TicTacToeCommands(bot))
