@@ -42,7 +42,10 @@ class TicTacToeGame:
         return False
 
     def print_board(self):
-        return '\n'.join(['| ' + ' | '.join(self.board[i*3:(i+1)*3]) + ' |' for i in range(3)])
+        formatted_board = '\n'.join([
+            f"| {' | '.join([self.board[i*3 + j] if self.board[i*3 + j] != ' ' else ' ' for j in range(3)])} |"
+            for i in range(3)])
+        return formatted_board
 
 class TicTacToeView(View):
     def __init__(self, game, restart_callback, quit_callback):
@@ -90,7 +93,7 @@ class TicTacToeView(View):
                 embed = discord.Embed(title=f"Félicitations {interaction.user.name} ({letter})!",
                                       description=f"{self.game.player1.name} a gagné contre {self.game.player2.name} en {elapsed_time} secondes.",
                                       color=discord.Color.green())
-                embed.add_field(name="Tableau final", value=self.game.print_board())
+                embed.add_field(name="Tableau final", value=f"```\n{self.game.print_board()}\n```")
                 await interaction.followup.send(embed=embed)
                 self.end_game()
                 return
@@ -99,7 +102,7 @@ class TicTacToeView(View):
                 for child in self.children:
                     child.disabled = True
                 embed = discord.Embed(title='Partie nulle!', color=discord.Color.blue())
-                embed.add_field(name="Tableau final", value=self.game.print_board())
+                embed.add_field(name="Tableau final", value=f"```\n{self.game.print_board()}\n```")
                 await interaction.followup.send(embed=embed)
                 self.end_game()
                 return
@@ -153,7 +156,7 @@ class TicTacToeCommands(commands.Cog):
         deny_button.callback = self.deny_invite(ctx.author, opponent)
         view.add_item(deny_button)
 
-        message = await ctx.send(f"{opponent.mention}, {ctx.author.mention} vous invite à jouer à Tic Tac Toe.", view=view)
+        await ctx.send(f"{opponent.mention}, {ctx.author.mention} vous invite à jouer à Tic Tac Toe.", view=view)
 
     def accept_invite(self, player1, player2):
         async def callback(interaction: discord.Interaction):
@@ -163,7 +166,7 @@ class TicTacToeCommands(commands.Cog):
                 self.active_games[player2] = game
 
                 view = TicTacToeView(game, self.restart_callback(player1, player2), self.quit_callback(player1, player2))
-                await interaction.message.edit(content=f"{player1.mention} vs {player2.mention}\nTour de {player1.mention} (X)", view=view)
+                await interaction.message.edit(content=f"{player1.mention} vs {player2.mention}\nTour de {game.current_player.name} ({'X' if game.current_player == game.player1 else 'O'})", view=view)
 
                 del self.pending_invites[player1]
             else:
