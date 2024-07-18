@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 from discord.ui import View, Button
 import time
+import random
 
 class RPSGame:
     def __init__(self, player1, player2):
@@ -33,21 +34,24 @@ class RPSGame:
     def print_moves(self):
         return f"{self.player1.display_name}: {self.moves[self.player1]}\n{self.player2.display_name}: {self.moves[self.player2]}"
 
+
 class RPSView(View):
-    def __init__(self, game, restart_callback, quit_callback):
+    def __init__(self, game, restart_callback, quit_callback, bot_game=False):
         super().__init__()
         self.game = game
         self.restart_callback = restart_callback
         self.quit_callback = quit_callback
+        self.bot_game = bot_game
         self.add_buttons()
         self.start_time = time.time()
 
     def add_buttons(self):
-        accept_button = Button(label="Accept", style=discord.ButtonStyle.success)
-        accept_button.callback = self.accept_game_callback
-        self.add_item(accept_button)
+        if not self.bot_game:
+            accept_button = Button(label="Accept", style=discord.ButtonStyle.success, emoji="✅")
+            accept_button.callback = self.accept_game_callback
+            self.add_item(accept_button)
 
-        quit_button = Button(label="Quit", style=discord.ButtonStyle.danger)
+        quit_button = Button(label="Quit", style=discord.ButtonStyle.danger, emoji="❌")
         quit_button.callback = self.quit_game_callback
         self.add_item(quit_button)
 
@@ -62,49 +66,70 @@ class RPSView(View):
                 self.remove_item(child)
                 break
 
+        await self.start_game(interaction)
+
+    async def start_game(self, interaction):
         # Add Rock, Paper, Scissors buttons for every user
         for move in ['rock', 'paper', 'scissors']:
-            button = Button(label=move.capitalize(), style=discord.ButtonStyle.secondary)
+            emoji = {"rock": "✊", "paper": "✋", "scissors": "✌️"}[move]
+            button = Button(label=move.capitalize(), style=discord.ButtonStyle.secondary, emoji=emoji)
             button.callback = await self.create_callback(move)
             self.add_item(button)
 
-        # Start the game
-        self.game.current_player = self.game.player1
-        await interaction.response.edit_message(content=f"{self.game.player1.display_name} vs {self.game.player2.display_name}\nTurn of {self.game.current_player.display_name}", view=self)
+        embed = discord.Embed(title=f"Rock-Paper-Scissors: {self.game.player1.display_name} vs {self.game.player2.display_name}", color=discord.Color.blurple())
+        embed.add_field(name="Current Status", value=f"{self.game.player1.display_name}: Waiting\n{self.game.player2.display_name}: Waiting")
+        await interaction.response.edit_message(content=None, embed=embed, view=self)
 
     async def create_callback(self, move):
         async def callback(interaction: discord.Interaction):
-            if interaction.user != self.game.current_player:
-                await interaction.response.send_message("It's not your turn!", ephemeral=True)
+            if interaction.user not in [self.game.player1, self.game.player2]:
+                await interaction.response.send_message("You are not a participant in this game!", ephemeral=True)
                 return
 
             if not self.game.make_move(interaction.user, move):
                 await interaction.response.send_message("Invalid move. Please choose Rock, Paper, or Scissors.", ephemeral=True)
                 return
 
-            # Update the message to show who has made a move
-            await interaction.message.edit(content=f"{self.game.player1.display_name} vs {self.game.player2.display_name}\nTurn of {self.game.current_player.display_name}\n{self.game.player1.display_name}: {'Chosen' if self.game.moves[self.game.player1] else 'Waiting'}\n{self.game.player2.display_name}: {'Chosen' if self.game.moves[self.game.player2] else 'Waiting'}", view=self)
+            if self.bot_game and interaction.user == self.game.player1:
+                # If playing against bot, bot makes a move
+                bot_move = random.choice(['rock', 'paper', 'scissors'])
+                self.game.make_move(self.game.player2, bot_move)
+
+            # Update the embed to show who has made a move
+            embed = discord.Embed(title=f"Rock-Paper-Scissors: {self.game.player1.display_name} vs {self.game.player2.display_name}", color=discord.Color.blurple())
+            embed.add_field(name="Current Status", value=f"{self.game.player1.display_name}: {'Chosen' if self.game.moves[self.game.player1] else 'Waiting'}\n{self.game.player2.display_name}: {'Chosen' if self.game.moves[self.game.player2] else 'Waiting'}")
+
+            await interaction.message.edit(embed=embed, view=self)
 
             if self.game.moves[self.game.player1] and self.game.moves[self.game.player2]:
                 # Both players have made their moves, determine the winner
                 winner = self.game.determine_winner()
-                loser = self.game.player2 if winner == self.game.player1 else self.game.player1
-                embed = discord.Embed(title=f"Congratulations {winner.display_name}!",
-                                      description=f"{winner.display_name} won against {loser.display_name}.",
-                                      color=discord.Color.green())
-                embed.add_field(name="Moves", value=self.game.print_moves())
-                await interaction.response.send_message(embed=embed)
-                self.stop()
+                if winner is None:
+                    result = "It's a tie!"
+                    color = discord.Color.yellow()
+                else:
+                    result = f"The winner is {winner.display_name}!"
+                    color = discord.Color.green()
+
+                result_embed = discord.Embed(title="Game Result", description=result, color=color)
+                result_embed.add_field(name="Moves", value=self.game.print_moves())
+                await interaction.response.send_message(embed=result_embed)
+                await self.disable_all_buttons(interaction)
+                self.end_game()
                 return
 
-            # Continue game, switch player and update message
+            # Continue game, switch player and update embed
             self.game.current_player = self.game.player2 if self.game.current_player == self.game.player1 else self.game.player1
-            await self.update_turn_message(interaction)
+            embed = discord.Embed(title=f"Rock-Paper-Scissors: {self.game.player1.display_name} vs {self.game.player2.display_name}", color=discord.Color.blurple())
+            embed.add_field(name="Current Status", value=f"{self.game.player1.display_name}: {'Chosen' if self.game.moves[self.game.player1] else 'Waiting'}\n{self.game.player2.display_name}: {'Chosen' if self.game.moves[self.game.player2] else 'Waiting'}")
+            await interaction.message.edit(embed=embed, view=self)
 
         return callback
 
-    async def update_turn_message(self, interaction):
-        await interaction.message.edit(content=f"{self.game.player1.display_name} vs {self.game.player2.display_name}\nTurn of {self.game.current_player.display_name}", view=self)
+    async def disable_all_buttons(self, interaction):
+        for child in self.children:
+            child.disabled = True
+        await interaction.message.edit(view=self)
 
     def end_game(self):
         self.game = None
@@ -115,19 +140,30 @@ class RPSView(View):
         for child in self.children:
             child.disabled = True
         await interaction.response.edit_message(content=f"{interaction.user.display_name} has quit the game against {self.game.player1.display_name} and {self.game.player2.display_name}.")
-        self.end_game()
-        self.clear_items()
+        await self.disable_all_buttons(interaction)
+        self.stop()
+        await self.quit_callback(interaction)
 
 class RPSCommands(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.active_games = {}
         self.pending_invites = {}
+        self.game_stats = {}
 
     @commands.command(help="Invite a player to start a game of Rock-Paper-Scissors.")
-    async def rps(self, ctx, opponent: discord.Member):
+    async def rps(self, ctx, opponent: discord.Member = None):
+        if opponent is None:
+            await ctx.send("Please mention a member to play against. For example: `/rps @member`")
+            await self.send_game_stats(ctx.channel, ctx.author)
+            return
+
         if ctx.author == opponent:
             await ctx.send("You cannot play against yourself.")
+            return
+
+        if opponent.bot:
+            await ctx.send("You cannot play against a bot.")
             return
 
         if ctx.author in self.pending_invites or ctx.author in self.active_games:
@@ -147,12 +183,40 @@ class RPSCommands(commands.Cog):
         self.active_games[ctx.author] = game
         self.active_games[opponent] = game
 
+    async def send_game_stats(self, channel, member):
+        stats_embed = discord.Embed(title=f"Rock-Paper-Scissors Statistics for {member.display_name}", color=discord.Color.blurple())
+
+        if member.id not in self.game_stats:
+            stats_embed.add_field(name="Games Played", value="N/A")
+            stats_embed.add_field(name="Games Won", value="N/A")
+            stats_embed.add_field(name="Games Lost", value="N/A")
+            stats_embed.add_field(name="Last Played", value="Never")
+        else:
+            stats = self.game_stats[member.id]
+            stats_embed.add_field(name="Games Played", value=stats['games_played'])
+            stats_embed.add_field(name="Games Won", value=stats['games_won'])
+            stats_embed.add_field(name="Games Lost", value=stats['games_lost'])
+            stats_embed.add_field(name="Last Played", value=stats['last_played'])
+
+        await channel.send(embed=stats_embed)
+
+    async def play_against_bot(self, ctx):
+        bot_user = ctx.bot.user
+        game = RPSGame(ctx.author, bot_user)
+        view = RPSView(game, self.restart_callback(ctx.author, bot_user), self.quit_callback(ctx.author, bot_user), bot_game=True)
+        self.active_games[ctx.author] = game
+        await view.start_game(ctx)
+
     def restart_callback(self, player1, player2):
         def callback():
             if player1 in self.active_games:
                 del self.active_games[player1]
             if player2 in self.active_games:
                 del self.active_games[player2]
+            if player1 in self.pending_invites:
+                del self.pending_invites[player1]
+            if player2 in self.pending_invites:
+                del self.pending_invites[player2]
         return callback
 
     def quit_callback(self, player1, player2):
@@ -161,6 +225,11 @@ class RPSCommands(commands.Cog):
                 del self.active_games[player1]
             if player2 in self.active_games:
                 del self.active_games[player2]
+            if player1 in self.pending_invites:
+                del self.pending_invites[player1]
+            if player2 in self.pending_invites:
+                del self.pending_invites[player2]
+            await interaction.message.channel.send(f"{player1.display_name} and {player2.display_name} can now start a new game if they want.")
         return callback
 
 async def setup(bot):
