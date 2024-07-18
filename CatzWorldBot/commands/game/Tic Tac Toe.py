@@ -63,19 +63,19 @@ class TicTacToeView(View):
             button.callback = self.create_callback(i)
             self.add_item(button)
 
-        quit_button = Button(label="Quitter", style=discord.ButtonStyle.danger)
+        quit_button = Button(label="Quit", style=discord.ButtonStyle.danger)
         quit_button.callback = self.quit_game_callback()
         self.add_item(quit_button)
 
     def create_callback(self, move_index):
         async def callback(interaction: discord.Interaction):
             if interaction.user != self.game.current_player:
-                await interaction.response.send_message("Ce n'est pas votre tour!", ephemeral=True)
+                await interaction.response.send_message("It's not your turn!", ephemeral=True)
                 return
 
             letter = 'X' if self.game.current_player == self.game.player1 else 'O'
             if not self.game.make_move(move_index, letter):
-                await interaction.response.send_message("Cet emplacement est déjà pris. Choisissez un autre emplacement.", ephemeral=True)
+                await interaction.response.send_message("This spot is already taken. Choose another spot.", ephemeral=True)
                 return
 
             for item in self.children:
@@ -93,10 +93,10 @@ class TicTacToeView(View):
                 elapsed_time = round(time.time() - self.start_time)
                 winner = self.game.player1 if self.game.current_winner == 'X' else self.game.player2
                 loser = self.game.player2 if self.game.current_winner == 'X' else self.game.player1
-                embed = discord.Embed(title=f"Félicitations {winner.name} ({self.game.current_winner})!",
-                                      description=f"{winner.name} a gagné contre {loser.name} en {elapsed_time} secondes.",
+                embed = discord.Embed(title=f"Congratulations {winner.name} ({self.game.current_winner})!",
+                                      description=f"{winner.name} won against {loser.name} in {elapsed_time} seconds.",
                                       color=discord.Color.green())
-                embed.add_field(name="Tableau final", value=f"```\n{self.game.print_board()}\n```")
+                embed.add_field(name="Final Board", value=f"```\n{self.game.print_board()}\n```")
                 await interaction.followup.send(embed=embed)
                 self.end_game()
                 return
@@ -104,8 +104,8 @@ class TicTacToeView(View):
             if not self.game.available_moves():
                 for child in self.children:
                     child.disabled = True
-                embed = discord.Embed(title='Partie nulle!', color=discord.Color.blue())
-                embed.add_field(name="Tableau final", value=f"```\n{self.game.print_board()}\n```")
+                embed = discord.Embed(title='Game Draw!', color=discord.Color.blue())
+                embed.add_field(name="Final Board", value=f"```\n{self.game.print_board()}\n```")
                 await interaction.followup.send(embed=embed)
                 self.end_game()
                 return
@@ -116,7 +116,7 @@ class TicTacToeView(View):
         return callback
 
     async def update_turn_message(self, interaction):
-        await interaction.message.edit(content=f"{self.game.player1.mention} vs {self.game.player2.mention} Tour de {self.game.current_player.name} ({'X' if self.game.current_player == self.game.player1 else 'O'})", view=self)
+        await interaction.message.edit(content=f"{self.game.player1.mention} vs {self.game.player2.mention} Turn of {self.game.current_player.name} ({'X' if self.game.current_player == self.game.player1 else 'O'})", view=self)
 
     def end_game(self):
         self.game = None
@@ -128,7 +128,7 @@ class TicTacToeView(View):
         async def callback(interaction: discord.Interaction):
             for child in self.children:
                 child.disabled = True
-            await interaction.response.edit_message(content=f"{interaction.user.name} a quitté la partie contre {self.game.player1.name} et {self.game.player2.name}.")
+            await interaction.response.edit_message(content=f"{interaction.user.name} has quit the game against {self.game.player1.name} and {self.game.player2.name}.")
             self.end_game()
         return callback
 
@@ -138,32 +138,32 @@ class TicTacToeCommands(commands.Cog):
         self.active_games = {}
         self.pending_invites = {}
 
-    @commands.command(help="Invite un joueur pour commencer une partie de Tic Tac Toe.")
+    @commands.command(help="Invite a player to start a game of Tic Tac Toe.")
     async def ttt(self, ctx, opponent: discord.Member):
         if ctx.author == opponent:
-            await ctx.send("Vous ne pouvez pas jouer contre vous-même.")
+            await ctx.send("You cannot play against yourself.")
             return
 
         if ctx.author in self.pending_invites or ctx.author in self.active_games:
-            await ctx.send("Vous avez déjà une invitation en attente ou êtes déjà dans une partie.")
+            await ctx.send("You already have a pending invite or are already in a game.")
             return
 
         if opponent in self.pending_invites and self.pending_invites[opponent][0] == ctx.author:
-            await ctx.send("Vous avez déjà envoyé une invitation à ce joueur.")
+            await ctx.send("You have already sent an invite to this player.")
             return
 
         self.pending_invites[ctx.author] = (opponent, time.time())
 
         view = discord.ui.View()
-        confirm_button = discord.ui.Button(style=discord.ButtonStyle.success, label=f"Accepter {ctx.author.display_name}")
+        confirm_button = discord.ui.Button(style=discord.ButtonStyle.success, label=f"Accept {ctx.author.display_name}")
         confirm_button.callback = self.accept_invite(ctx.author, opponent)
         view.add_item(confirm_button)
 
-        deny_button = discord.ui.Button(style=discord.ButtonStyle.danger, label=f"Refuser {ctx.author.display_name}")
+        deny_button = discord.ui.Button(style=discord.ButtonStyle.danger, label=f"Deny {ctx.author.display_name}")
         deny_button.callback = self.deny_invite(ctx.author, opponent)
         view.add_item(deny_button)
 
-        await ctx.send(f"{opponent.mention}, {ctx.author.mention} vous invite à jouer à Tic Tac Toe.", view=view)
+        await ctx.send(f"{opponent.mention}, {ctx.author.mention} invites you to play Tic Tac Toe.", view=view)
 
     def accept_invite(self, player1, player2):
         async def callback(interaction: discord.Interaction):
@@ -173,21 +173,21 @@ class TicTacToeCommands(commands.Cog):
                 self.active_games[player2] = game
 
                 view = TicTacToeView(game, self.restart_callback(player1, player2), self.quit_callback(player1, player2))
-                await interaction.message.edit(content=f"{player1.mention} vs {player2.mention}\nTour de {game.current_player.name} ({'X' if game.current_player == game.player1 else 'O'})", view=view)
+                await interaction.message.edit(content=f"{player1.mention} vs {player2.mention}\nTurn of {game.current_player.name} ({'X' if game.current_player == game.player1 else 'O'})", view=view)
 
                 del self.pending_invites[player1]
             else:
-                await interaction.response.send_message("Vous n'êtes pas autorisé à répondre à cette invitation.", ephemeral=True)
+                await interaction.response.send_message("You are not authorized to respond to this invitation.", ephemeral=True)
         return callback
 
     def deny_invite(self, player1, player2):
         async def callback(interaction: discord.Interaction):
             if player2 == interaction.user:
-                await interaction.response.send_message(f"{player2.mention} a refusé l'invitation.")
+                await interaction.response.send_message(f"{player2.mention} has denied the invitation.")
                 del self.pending_invites[player1]
                 await interaction.message.delete()
             else:
-                await interaction.response.send_message("Vous n'êtes pas autorisé à refuser cette invitation.", ephemeral=True)
+                await interaction.response.send_message("You are not authorized to deny this invitation.", ephemeral=True)
         return callback
 
     def restart_callback(self, player1, player2):
