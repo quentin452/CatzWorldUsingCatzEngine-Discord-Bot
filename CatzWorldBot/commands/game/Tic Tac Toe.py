@@ -55,10 +55,11 @@ class TicTacToeView(View):
         self.quit_callback = quit_callback
         self.add_buttons()
         self.start_time = time.time()
+        self.message = None
 
     def add_buttons(self):
         for i in range(9):
-            button = Button(label=str(i + 1), style=discord.ButtonStyle.secondary, row=i//3)
+            button = Button(label=str(i + 1), style=discord.ButtonStyle.secondary, row=i // 3)
             button.callback = self.create_callback(i)
             self.add_item(button)
 
@@ -110,7 +111,12 @@ class TicTacToeView(View):
                 return
 
             self.game.current_player = self.game.player2 if self.game.current_player == self.game.player1 else self.game.player1
+            await self.update_turn_message(interaction)
+
         return callback
+
+    async def update_turn_message(self, interaction):
+        await interaction.message.edit(content=f"{self.game.player1.mention} vs {self.game.player2.mention} Tour de {self.game.current_player.name} ({'X' if self.game.current_player == self.game.player1 else 'O'})", view=self)
 
     def end_game(self):
         self.game = None
@@ -157,7 +163,7 @@ class TicTacToeCommands(commands.Cog):
         deny_button.callback = self.deny_invite(ctx.author, opponent)
         view.add_item(deny_button)
 
-        message = await ctx.send(f"{opponent.mention}, {ctx.author.mention} vous invite à jouer à Tic Tac Toe.", view=view)
+        await ctx.send(f"{opponent.mention}, {ctx.author.mention} vous invite à jouer à Tic Tac Toe.", view=view)
 
     def accept_invite(self, player1, player2):
         async def callback(interaction: discord.Interaction):
@@ -201,4 +207,4 @@ class TicTacToeCommands(commands.Cog):
         return callback
 
 async def setup(bot):
-  await bot.add_cog(TicTacToeCommands(bot))
+    await bot.add_cog(TicTacToeCommands(bot))
