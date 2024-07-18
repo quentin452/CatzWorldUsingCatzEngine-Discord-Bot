@@ -76,5 +76,5 @@ class RulesView(discord.ui.View):
         else:
             await interaction.response.send_message("Role not found.", ephemeral=True)
 
-async def setup(bot):
-    await bot.add_cog(RulesCog(bot))
+def setup(bot):
+    bot.add_cog(RulesCog(bot))

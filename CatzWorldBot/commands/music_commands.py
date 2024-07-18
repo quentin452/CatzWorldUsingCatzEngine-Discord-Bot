@@ -16,6 +16,29 @@ class MusicCog(commands.Cog):
         self.cleanup_task = None
         self.song_end_event = asyncio.Event()
         self.loop_song_playing = False  
+        self.greetings = bot.create_group("greetings", "Greet people")
+        #@commands.command(help="Stop music from voice music [url].")
+        #@discord.app_commands.command(name="play_song", description="Stop music from voice music [url].")
+        @self.greetings.command()
+        async def play_song(self, ctx, url: str):
+            voice_channel = await self.join_voice_channel(ctx)
+            if voice_channel:
+                try:
+                    player = await YTDLSource.from_url(url, loop=self.bot.loop)
+                    ctx.voice_client.play(player, after=lambda e: print(f'Player error: {e}') if e else None)
+
+                    # Send embed with song title
+                    await self.send_music_embed(ctx, player.title)
+
+                    # Save the timestamp
+                    with open(self.timestamp_file, 'w') as f:
+                        json.dump({'timestamp': time.time()}, f)
+
+                    # Schedule the cleanup task
+                    await self.schedule_cleanup_task()
+
+                except Exception as e:
+                    await ctx.send(f"An error occurred while trying to play the song: {e}")
 
     def save_log_channel(self, channel_id):
         ConstantsClass.save_channel_template(self, ConstantsClass.MUSIC_SAVE_FOLDER + '/on_music_channel.json', 'on_music_channel', channel_id)
@@ -33,27 +56,6 @@ class MusicCog(commands.Cog):
             await ctx.send("You are not connected to a voice channel.")
             return None
         
-    @commands.command(help="Stop music from voice music [url].")
-    async def play_song(self, ctx, url: str):
-        voice_channel = await self.join_voice_channel(ctx)
-        if voice_channel:
-            try:
-                player = await YTDLSource.from_url(url, loop=self.bot.loop)
-                ctx.voice_client.play(player, after=lambda e: print(f'Player error: {e}') if e else None)
-
-                # Send embed with song title
-                await self.send_music_embed(ctx, player.title)
-
-                # Save the timestamp
-                with open(self.timestamp_file, 'w') as f:
-                    json.dump({'timestamp': time.time()}, f)
-
-                # Schedule the cleanup task
-                await self.schedule_cleanup_task()
-
-            except Exception as e:
-                await ctx.send(f"An error occurred while trying to play the song: {e}")
-
     async def send_music_embed(self, ctx, title, repeat_count=None):
         description = "Now playing:"
         if repeat_count is not None:
@@ -315,5 +317,5 @@ FFMPEG_OPTIONS = {
     'options': '-vn'
 }
 
-async def setup(bot):
-    await bot.add_cog(MusicCog(bot))
+def setup(bot):
+    bot.add_cog(MusicCog(bot))

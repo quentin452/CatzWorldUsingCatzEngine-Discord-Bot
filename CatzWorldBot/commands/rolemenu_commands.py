@@ -91,5 +91,5 @@ class RoleMenu(commands.Cog):
         return RoleMenuView(self.free_roles_with_descriptions)
 
 
-async def setup(bot):
-    await bot.add_cog(RoleMenu(bot))
+def setup(bot):
+    bot.add_cog(RoleMenu(bot))

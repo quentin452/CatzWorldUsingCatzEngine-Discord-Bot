@@ -232,5 +232,5 @@ class RPSCommands(commands.Cog):
             await interaction.message.channel.send(f"{player1.display_name} and {player2.display_name} can now start a new game if they want.")
         return callback
 
-async def setup(bot):
-    await bot.add_cog(RPSCommands(bot))
+def setup(bot):
+    bot.add_cog(RPSCommands(bot))

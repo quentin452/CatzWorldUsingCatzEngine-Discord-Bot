@@ -275,5 +275,5 @@ class CloseTicketButton(discord.ui.Button):
         ctx = await self.cog.bot.get_context(interaction.message)
         await self.cog.close_ticket(ctx, ticket_id=self.ticket_id)
 
-async def setup(bot):
-    await bot.add_cog(TicketCommands(bot))
+def setup(bot):
+    bot.add_cog(TicketCommands(bot))

@@ -206,5 +206,5 @@ class TicTacToeCommands(commands.Cog):
                 del self.active_games[player2]
         return callback
 
-async def setup(bot):
-    await bot.add_cog(TicTacToeCommands(bot))
+def setup(bot):
+    bot.add_cog(TicTacToeCommands(bot))

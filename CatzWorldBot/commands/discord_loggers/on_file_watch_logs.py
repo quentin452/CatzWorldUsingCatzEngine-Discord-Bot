@@ -36,5 +36,5 @@ class OnFileWatch(commands.Cog):
                 await LogMessageAsync.LogAsync(f"Error logging file watch event: {e}")
 
 
-async def setup(bot):
-    await bot.add_cog(OnFileWatch(bot))
+def setup(bot):
+    bot.add_cog(OnFileWatch(bot))

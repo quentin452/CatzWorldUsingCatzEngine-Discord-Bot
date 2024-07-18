@@ -110,5 +110,5 @@ class CustomHelpCommandCog(commands.Cog):
         return HelpPagination(self.pages)
 
 # Enregistrement du cog dans le bot
-async def setup(bot):
-    await bot.add_cog(CustomHelpCommandCog(bot))
+def setup(bot):
+    bot.add_cog(CustomHelpCommandCog(bot))

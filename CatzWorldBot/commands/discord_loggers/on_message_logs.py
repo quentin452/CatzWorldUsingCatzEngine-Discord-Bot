@@ -122,5 +122,5 @@ class OnMessageLogs(commands.Cog):
                 if log_channel:
                     await log_channel.send(f"Error handling message deletion or warning: {e}")
                     
-async def setup(bot):
-    await bot.add_cog(OnMessageLogs(bot))
+def setup(bot):
+    bot.add_cog(OnMessageLogs(bot))

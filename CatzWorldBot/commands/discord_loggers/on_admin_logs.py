@@ -165,5 +165,5 @@ class OnAdminLogs(commands.Cog):
             except Exception as e:
                 await log_channel.send(f"Error logging server update: {e}")
 
-async def setup(bot):
-    await bot.add_cog(OnAdminLogs(bot))
+def setup(bot):
+    bot.add_cog(OnAdminLogs(bot))

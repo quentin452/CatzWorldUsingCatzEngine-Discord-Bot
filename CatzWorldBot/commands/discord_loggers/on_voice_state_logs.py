@@ -82,5 +82,5 @@ class OnVoiceStateLogs(commands.Cog):
                 await log_channel.send(f"Error logging voice state update: {e}")
 
 
-async def setup(bot):
-    await bot.add_cog(OnVoiceStateLogs(bot))
+def setup(bot):
+    bot.add_cog(OnVoiceStateLogs(bot))

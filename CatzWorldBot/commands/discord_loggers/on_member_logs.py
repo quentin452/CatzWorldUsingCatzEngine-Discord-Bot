@@ -124,5 +124,5 @@ class OnMemberLogs(commands.Cog):
             except Exception as e:
                 await LogMessageAsync.LogAsync(f"Error logging member boost: {e}")
 
-async def setup(bot):
-    await bot.add_cog(OnMemberLogs(bot))
+def setup(bot):
+    bot.add_cog(OnMemberLogs(bot))

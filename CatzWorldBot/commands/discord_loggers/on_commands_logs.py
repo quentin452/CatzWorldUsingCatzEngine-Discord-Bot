@@ -44,5 +44,5 @@ class OnCommandsLogs(commands.Cog):
                 await LogMessageAsync.LogAsync(f"Erreur lors du logging de la commande : {e}")
 
 
-async def setup(bot):
-    await bot.add_cog(OnCommandsLogs(bot))
+def setup(bot):
+    bot.add_cog(OnCommandsLogs(bot))

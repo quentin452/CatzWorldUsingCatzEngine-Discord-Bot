@@ -31,5 +31,5 @@ class OnUserlogs(commands.Cog):
                 except Exception as e:
                     await log_channel.send(f"Error logging profile picture change: {e}")
 
-async def setup(bot):
-    await bot.add_cog(OnUserlogs(bot))
+def setup(bot):
+    bot.add_cog(OnUserlogs(bot))

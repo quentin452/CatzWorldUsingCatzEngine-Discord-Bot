@@ -150,5 +150,5 @@ class DownloadCommands(commands.Cog):
         self.save_download_channel_ids()
         await ctx.send(f"L'ID du salon pour les téléchargements a été défini sur {ctx.channel.id} pour le serveur {ctx.guild.name}")
         
-async def setup(bot):
-    await bot.add_cog(DownloadCommands(bot))
+def setup(bot):
+    bot.add_cog(DownloadCommands(bot))

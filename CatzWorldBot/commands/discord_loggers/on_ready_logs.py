@@ -42,5 +42,5 @@ class OnReadyLogs(commands.Cog):
         else:
             await LogMessageAsync.LogAsync(f"Log channel with ID {self.log_channel_id} not found.")
 
-async def setup(bot):
-    await bot.add_cog(OnReadyLogs(bot))
+def setup(bot):
+    bot.add_cog(OnReadyLogs(bot))

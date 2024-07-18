@@ -94,5 +94,5 @@ class OnChannelLogs(commands.Cog):
             except Exception as e:
                 await LogMessageAsync.LogAsync(f"Error while logging the audit log: {e}")
 
-async def setup(bot):
-    await bot.add_cog(OnChannelLogs(bot))
+def setup(bot):
+    bot.add_cog(OnChannelLogs(bot))

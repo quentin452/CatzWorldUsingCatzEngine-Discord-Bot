@@ -73,5 +73,5 @@ class OnWelcomeGoodbyeLogs(commands.Cog):
         await self.log_member_event(member, embed)
         await ctx.send(f"Simulated member leave for {member.display_name}")
 
-async def setup(bot):
-    await bot.add_cog(OnWelcomeGoodbyeLogs(bot))
+def setup(bot):
+    bot.add_cog(OnWelcomeGoodbyeLogs(bot))

@@ -31,15 +31,28 @@ class RestartCommand(commands.Cog):
     @commands.has_permissions(administrator=True)
     async def stop_cat_bot(self, ctx):
         await ctx.send("Stopping the bot...")
+        await self.bot.close()
         sys.exit()
 
     async def _restart_bot(self):
-        await self.bot.close()
+        try:
+            # Properly close the bot's connection
+            await self.bot.close()
+        except Exception as e:
+            print(f"Error closing the bot: {e}")
+
+        # Give some time for connections to close
+        await asyncio.sleep(1)
+
         # Restart using subprocess
         python = sys.executable
-        subprocess.Popen([python, *sys.argv])
+        try:
+            subprocess.Popen([python, *sys.argv])
+        except Exception as e:
+            print(f"Error restarting the bot: {e}")
+
         # Exit the current process
         sys.exit()
 
-async def setup(bot):
-    await bot.add_cog(RestartCommand(bot))
+def setup(bot):
+    bot.add_cog(RestartCommand(bot))

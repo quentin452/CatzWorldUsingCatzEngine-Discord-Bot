@@ -33,7 +33,7 @@ def install_modules(modules):
 
 if __name__ == "__main__":
     kill_old_instances()
-    required_modules = ['PyNaCl','html5lib','lxml','aiofiles', 'discord', 'beautifulsoup4', 'black']
+    required_modules = ['PyNaCl','html5lib','lxml','aiofiles', 'py-cord', 'beautifulsoup4', 'black']
     install_modules(required_modules)
     
 async def load_extensions(bot):
@@ -55,13 +55,13 @@ async def load_extensions(bot):
     for extension in extensions:
         start_time = time.time()
         try:
-            await bot.load_extension(extension)
+            bot.load_extension(extension)  # Remove `await` here
             end_time = time.time()
             elapsed_time = (end_time - start_time) * 1000  # Conversion en millisecondes
             await LogMessageAsync.LogAsync(f'Extension Loaded : {extension} en {elapsed_time:.2f} millisecondes')
         except Exception as e:
             await LogMessageAsync.LogAsync(f'Error loading {extension}: {type(e).__name__} - {e}')
-
+            
 bot.remove_command('help')
 
 @bot.event
@@ -130,7 +130,7 @@ async def on_ready():
     #if rss_cog is not None:
     #    rss_menu_view = rss_cog.get_menu_view()
     #    bot.add_view(rss_menu_view)
-    await bot.tree.sync()
+    await bot.sync_commands()
 
 @bot.event
 async def on_commanderror(ctx, error):

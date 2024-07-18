@@ -39,7 +39,7 @@ class ConstantsClass:
         discord.ChannelType.forum: 'Forum',
         discord.ChannelType.news: 'Announcement',
         discord.ChannelType.stage_voice: 'Stage',
-        discord.ChannelType.media: 'Media',
+        #discord.ChannelType.media: 'Media', UNUSABLE SINCE WE USE py-cord
         discord.ChannelType.news_thread: 'Announcement Thread',
         discord.ChannelType.private: 'Private',
         discord.ChannelType.private_thread: 'Private Thread',

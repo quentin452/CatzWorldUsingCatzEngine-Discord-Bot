@@ -39,5 +39,5 @@ class OnReactionLogs(commands.Cog):
     async def on_reaction_remove(self, reaction, user):
         await self.log_reaction_change(reaction, user, "removed")
 
-async def setup(bot):
-    await bot.add_cog(OnReactionLogs(bot))
+def setup(bot):
+    bot.add_cog(OnReactionLogs(bot))

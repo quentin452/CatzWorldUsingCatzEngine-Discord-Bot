@@ -93,5 +93,5 @@ class OnMusicLogs(commands.Cog):
             except Exception as e:
                 await LogMessageAsync.LogAsync(f"Error logging music tracks add: {e}")
 
-async def setup(bot):
-    await bot.add_cog(OnMusicLogs(bot))
+def setup(bot):
+    bot.add_cog(OnMusicLogs(bot))

@@ -32,5 +32,5 @@ class Testing(commands.Cog):
                 await LogMessageAsync.LogAsync(f"Error logging member boost: {e}")
 
 # Add this cog to your bot
-async def setup(bot):
-    await bot.add_cog(Testing(bot))
+def setup(bot):
+    bot.add_cog(Testing(bot))

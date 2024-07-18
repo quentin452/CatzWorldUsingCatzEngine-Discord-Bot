@@ -206,5 +206,5 @@ class RssCommands(commands.Cog):
 
             await asyncio.sleep(5)
 
-async def setup(bot):
-    await bot.add_cog(RssCommands(bot))
+def setup(bot):
+    bot.add_cog(RssCommands(bot))

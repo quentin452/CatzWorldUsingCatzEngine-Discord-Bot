@@ -6,7 +6,7 @@ class AdminCommands(commands.Cog):
         self.bot = bot
 
     # Définition de la commande slash "reset_channel"
-    @discord.app_commands.command(name="reset_channel", description="Resets the channel by deleting all messages. Requires administrator permissions.")
+    @commands.command(help="Resets the channel by deleting all messages. Requires administrator permissions.")
     async def reset_channel(self, interaction: discord.Interaction):
         # Vérification des permissions d'administrateur
         if not interaction.user.guild_permissions.administrator:
@@ -28,6 +28,6 @@ class AdminCommands(commands.Cog):
     async def reset_channel_error(self, interaction: discord.Interaction, error):
         await interaction.response.send_message(f'Une erreur est survenue : {error}', ephemeral=True)
 
-async def setup(bot):
+def setup(bot):
     # Ajoute le cog au bot
-    await bot.add_cog(AdminCommands(bot))
+    bot.add_cog(AdminCommands(bot))
