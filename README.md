@@ -156,6 +156,9 @@ This bot is essential if you have an itch.io game and want to keep your server m
 - `/ttt`
   - Play with another player at TicTacToe
 
+- `/rps`
+ - Play with another player in Rock Paper Scissors
+
 ### 📝 Note
 
 This bot code is (probably) intended to be used only for one server due to json caching
@@ -319,6 +322,9 @@ Ce bot est essentiel si vous avez un jeu sur itch.io et que vous souhaitez tenir
 
 - `/ttt`
   - Jouez avec un autre joueur a TicTacToe
+
+- `/rps`
+  - Jouez avec un autre joueur a Pierre Papier Ciseaux
 
 ### 📝 Remarque
 
