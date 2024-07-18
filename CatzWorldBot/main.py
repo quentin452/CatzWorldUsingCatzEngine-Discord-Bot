@@ -112,6 +112,12 @@ async def on_ready():
     if help_cog is not None:
         help_cog_view = help_cog.get_menu_view()
         bot.add_view(help_cog_view)
+   
+    # Vote Commands
+    vote_cog = bot.get_cog('VoteView')
+    if vote_cog is not None:
+        vote_cog_view = vote_cog.get_menu_view()
+        bot.add_view(vote_cog_view)
 
     # Feedback Commands
    # feedback_cog = bot.get_cog('FeedbackCommands')

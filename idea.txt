@@ -6,11 +6,6 @@
 
     Récompenses et réalisations : Le bot pourrait suivre les réalisations des joueurs dans votre jeu et annoncer ces réalisations sur votre serveur Discord.
 
-
-Intégration avec Discord :
-
-    Commandes de statut : Permettez aux utilisateurs de vérifier l'état des serveurs de jeu ou obtenir des informations en temps réel via des commandes Discord.
-
 2. Gestion des retours et suggestions :
 
     Sondages et votes : Créez des sondages pour permettre à la communauté de voter sur des nouvelles fonctionnalités ou des changements proposés.

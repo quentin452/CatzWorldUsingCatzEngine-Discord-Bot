@@ -35,7 +35,7 @@ class OnMessageLogs(commands.Cog):
                 )
                 embed.set_thumbnail(url=user.avatar.url)
                 embed.add_field(name='Channel ID', value=channel.id, inline=True)
-                embed.add_field(name='Date', value=datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'), inline=True)
+                embed.add_field(name='Date', value=discord.utils.utcnow(), inline=True)
                 await log_channel.send(embed=embed)
             except Exception as e:
                 await LogMessageAsync.LogAsync(f"Erreur lors du logging de la suppression : {e}")
@@ -71,7 +71,7 @@ class OnMessageLogs(commands.Cog):
                     )
                     embed.set_thumbnail(url=user.avatar.url)
                     embed.add_field(name='Channel ID', value=channel.id, inline=True)
-                    embed.add_field(name='Date', value=datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'), inline=True)
+                    embed.add_field(name='Date', value=discord.utils.utcnow(), inline=True)
                     await log_channel.send(embed=embed)
                     break  # Nous avons trouvé l'entrée pertinente, sortons de la boucle
             except Exception as e:

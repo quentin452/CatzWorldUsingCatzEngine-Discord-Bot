@@ -142,7 +142,7 @@ class RPSCommands(commands.Cog):
 
         game = RPSGame(ctx.author, opponent)
         view = RPSView(game, self.restart_callback(ctx.author, opponent), self.quit_callback(ctx.author, opponent))
-        message = await ctx.send(f"{opponent.mention}, {ctx.author.mention} invites you to play Rock-Paper-Scissors. Do you accept?", view=view)
+        await ctx.send(f"{opponent.mention}, {ctx.author.mention} invites you to play Rock-Paper-Scissors. Do you accept?", view=view)
 
         self.active_games[ctx.author] = game
         self.active_games[opponent] = game

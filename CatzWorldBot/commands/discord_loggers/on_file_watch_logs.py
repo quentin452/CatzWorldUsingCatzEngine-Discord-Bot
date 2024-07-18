@@ -30,7 +30,7 @@ class OnFileWatch(commands.Cog):
                 )
                 embed.add_field(name='Event Name', value=event_name, inline=True)
                 embed.add_field(name='Directory', value=watch_dir, inline=True)
-                embed.add_field(name='Date', value=datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'), inline=False)
+                embed.add_field(name='Date', value=discord.utils.utcnow(), inline=False)
                 await self.log_channel.send(embed=embed)
             except Exception as e:
                 await LogMessageAsync.LogAsync(f"Error logging file watch event: {e}")
