@@ -78,4 +78,4 @@ class RPSCommands(commands.Cog):
         del self.active_games[opponent.id]
 
 async def setup(bot):
-    await bot.add_cog(RPSGame(bot))
+    await bot.add_cog(RPSCommands(bot))
