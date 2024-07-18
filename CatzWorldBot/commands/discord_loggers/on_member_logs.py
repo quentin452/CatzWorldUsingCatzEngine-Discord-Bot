@@ -21,45 +21,63 @@ class OnMemberLogs(commands.Cog):
         await ctx.send(f"L'ID du canal de on_member_logs a été mis à jour à {ctx.channel.id}")
         
     @commands.Cog.listener()
-    async def on_member_update(self, before, after):
+    async def on_member_update(self, before: discord.Member, after: discord.Member):
         log_channel = self.bot.get_channel(self.log_channel_id)
         if log_channel:
             try:
-                await asyncio.sleep(1)
-                async for entry in after.guild.audit_logs(action=discord.AuditLogAction.member_update, limit=1):
-                    if before.nick != after.nick:
-                        embed = discord.Embed(
-                            title='Nickname Changed',
-                            description=f'{after.name}#{after.discriminator} changed nickname',
-                            color=discord.Color.blue()
-                        )
-                        embed.set_thumbnail(url=after.avatar.url) 
-                        embed.add_field(name='Before', value=before.nick if before.nick else 'None', inline=True)
-                        embed.add_field(name='After', value=after.nick if after.nick else 'None', inline=True)
-                        await log_channel.send(embed=embed)
-                    if before.roles != after.roles:
-                        added_roles = [role for role in after.roles if role not in before.roles]
-                        removed_roles = [role for role in before.roles if role not in after.roles]
-                        if added_roles:
-                            roles_str = ', '.join([role.name for role in added_roles])
-                            embed = discord.Embed(
-                                title='Roles Added',
-                                description=f'Roles added to {after.name}#{after.discriminator}: {roles_str}',
-                                color=discord.Color.gold()
-                            )
-                            embed.set_thumbnail(url=after.avatar.url)
-                            await log_channel.send(embed=embed)
-                        if removed_roles:
-                            roles_str = ', '.join([role.name for role in removed_roles])
-                            embed = discord.Embed(
-                                title='Roles Removed',
-                                description=f'Roles removed from {after.name}#{after.discriminator}: {roles_str}',
-                                color=discord.Color.dark_gold()
-                            )
-                            embed.set_thumbnail(url=after.avatar.url) 
-                            await log_channel.send(embed=embed)
+                # Log member nickname change
+                if before.nick != after.nick:
+                    embed = discord.Embed(
+                        title='Member Nickname Changed',
+                        description=f'{before.name} changed their nickname from "{before.nick}" to "{after.nick}".',
+                        color=discord.Color.orange()
+                    )
+                    embed.add_field(name='Member ID', value=after.id, inline=True)
+                    embed.add_field(name='Date', value=discord.utils.utcnow(), inline=True)
+                    await log_channel.send(embed=embed)
+
+                # Log role changes
+                before_roles = set(before.roles)
+                after_roles = set(after.roles)
+                added_roles = after_roles - before_roles
+                removed_roles = before_roles - after_roles
+
+                if added_roles:
+                    added_roles_names = ', '.join([role.name for role in added_roles])
+                    embed = discord.Embed(
+                        title='Roles Added',
+                        description=f'{after.name} was given the roles: {added_roles_names}.',
+                        color=discord.Color.green()
+                    )
+                    embed.add_field(name='Member ID', value=after.id, inline=True)
+                    embed.add_field(name='Date', value=discord.utils.utcnow(), inline=True)
+                    await log_channel.send(embed=embed)
+
+                if removed_roles:
+                    removed_roles_names = ', '.join([role.name for role in removed_roles])
+                    embed = discord.Embed(
+                        title='Roles Removed',
+                        description=f'{after.name} lost the roles: {removed_roles_names}.',
+                        color=discord.Color.red()
+                    )
+                    embed.add_field(name='Member ID', value=after.id, inline=True)
+                    embed.add_field(name='Date', value=discord.utils.utcnow(), inline=True)
+                    await log_channel.send(embed=embed)
+
+                # Log changes to avatar
+                if before.avatar != after.avatar:
+                    embed = discord.Embed(
+                        title='Avatar Changed',
+                        description=f'{after.name} changed their avatar.',
+                        color=discord.Color.orange()
+                    )
+                    embed.set_thumbnail(url=after.avatar.url)
+                    embed.add_field(name='Member ID', value=after.id, inline=True)
+                    embed.add_field(name='Date', value=discord.utils.utcnow(), inline=True)
+                    await log_channel.send(embed=embed)
+
             except Exception as e:
-                await LogMessageAsync.LogAsync(f"Error logging member update: {e}")
+                await log_channel.send(f"Error logging member update: {e}")
 
     @commands.Cog.listener()
     async def on_member_ban(self, guild, user):

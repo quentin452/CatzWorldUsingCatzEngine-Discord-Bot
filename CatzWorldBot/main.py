@@ -130,7 +130,7 @@ async def on_ready():
     #if rss_cog is not None:
     #    rss_menu_view = rss_cog.get_menu_view()
     #    bot.add_view(rss_menu_view)
-
+    await bot.tree.sync()
 
 @bot.event
 async def on_commanderror(ctx, error):

@@ -58,7 +58,7 @@ class CustomHelpCommandCog(commands.Cog):
             end_idx = start_idx + self.categories_per_page
             current_page_categories = category_list[start_idx:end_idx]
 
-            embed = discord.Embed(title=f"Page {page_num + 1}/{num_pages} - Catégories d'aide", color=discord.Color.blue())
+            embed = discord.Embed(title=f"Page {page_num + 1}/{num_pages} - Help Categories", color=discord.Color.blue())
             for cog_name, cog in current_page_categories:
                 command_list = "\n".join([f"{self.bot.command_prefix}{command.name}: {command.short_doc or 'Aucune description'}" for command in cog.get_commands() if not command.hidden])
                 if command_list:
@@ -68,7 +68,7 @@ class CustomHelpCommandCog(commands.Cog):
 
         return pages  # Retourner les pages remplies
     
-    @commands.command(help="Affiche une liste de toutes les catégories d'aide disponibles.")
+    @commands.command(help="Displays a list of all available help categories.")
     async def help_cat(self, ctx):
         self.pages = self.get_pages()
         if not self.pages:
