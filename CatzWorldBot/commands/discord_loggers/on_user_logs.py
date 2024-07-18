@@ -20,7 +20,7 @@ class OnUserlogs(commands.Cog):
         self.save_log_channel(ctx.channel.id)
         await ctx.send(f"L'ID du canal de on_user_logs a été mis à jour à {ctx.channel.id}")
 
-    @commands.Cog.listener()
+    @commands.Cog.listener() # TODO , THIS IS NOT PROPERLY WORK
     async def on_user_update(self, before, after):
         if before.avatar != after.avatar:
             log_channel = self.bot.get_channel(self.log_channel_id)
