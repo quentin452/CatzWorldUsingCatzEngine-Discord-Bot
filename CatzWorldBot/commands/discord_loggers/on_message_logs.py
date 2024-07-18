@@ -54,49 +54,73 @@ class OnMessageLogs(commands.Cog):
             except Exception as e:
                 await log_channel.send(f"Error logging message edit: {e}")
 
+    
     @commands.Cog.listener()
-    async def on_bulk_message_delete(self, messages):
-        log_channel = self.bot.get_channel(self.log_channel_id)
-        if log_channel:
-            try:
-                channel = messages[0].channel
-                async for entry in channel.guild.audit_logs(action=discord.AuditLogAction.message_bulk_delete, limit=1):
-                    user = entry.user
-                    embed = discord.Embed(
-                        title='Bulk message delete',
-                        description=f'{len(messages)} messages were deleted by {user.name} in {channel.name}',
-                        color=discord.Color.orange()
-                    )
-                    embed.set_thumbnail(url=user.avatar.url)
-                    embed.add_field(name='Channel ID', value=channel.id, inline=True)
-                    embed.add_field(name='Date', value=discord.utils.utcnow(), inline=True)
-                    await log_channel.send(embed=embed)
-                    break
-            except Exception as e:
-                await LogMessageAsync.LogAsync(f"Erreur lors du logging de la suppression en masse : {e}")
-
-    @commands.Cog.listener() # TODO FIX NOT WORKING
     async def on_message(self, message):
-        log_channel = self.bot.get_channel(self.log_channel_id)
-        if log_channel and not message.author.bot:
-            try:
-                invite_pattern = r"(https:\/\/discord\.gg\/[a-zA-Z0-9]+|https:\/\/discordapp\.com\/invite\/[a-zA-Z0-9]+|discord\.gg\/[a-zA-Z0-9]+|discordapp\.com\/invite\/[a-zA-Z0-9]+)"
-                invites = re.findall(invite_pattern, message.content)
-                if invites:
-                    user = message.author
-                    channel = message.channel
-                    invite_links = ', '.join(invites)
-                    embed = discord.Embed(
-                        title='Invitation link posted',
-                        description=f'{user.name} posted an invitation link in {channel.name}: {invite_links}',
-                        color=discord.Color.blue()
-                    )
-                    embed.set_thumbnail(url=user.avatar.url)
-                    embed.add_field(name='Channel ID', value=channel.id, inline=True)
-                    embed.add_field(name='Date', value=discord.utils.utcnow(), inline=True)
+        invite_pattern = re.compile(r'(https?:\/\/)?(www\.)?discord\.gg\/\w+')
+        # Ne pas loguer les messages envoyés par le bot lui-même
+        if message.author == self.bot.user:
+            return
+        
+        # Vérifie si le message contient un lien d'invitation Discord
+        if invite_pattern.search(message.content):
+            log_channel = self.bot.get_channel(self.log_channel_id)
+            if log_channel:
+                try:
+                    embed = discord.Embed(title="Invitation Detected",
+                                          description=f"Message contenant une invitation détecté de {message.author.mention}",
+                                          color=discord.Color.red())
+                    embed.add_field(name="Message", value=message.content)
+                    embed.add_field(name="Channel", value=message.channel.mention)
+                    embed.set_footer(text=f"Message ID: {message.id}")
                     await log_channel.send(embed=embed)
-            except Exception as e:
-                await LogMessageAsync.LogAsync(f"Erreur lors du logging des invitations : {e}")
+                except Exception as e:
+                    # Gestion des erreurs lors de l'envoi du message de log
+                    await log_channel.send(f"Error logging invitation: {e}")
 
+    @commands.Cog.listener()
+    async def on_message(self, message):
+        # Ignore messages sent by the bot itself
+        if message.author == self.bot.user:
+            return
+
+        # Check if the message contains a specific Discord invitation link
+        if re.compile(r'https?:\/\/(?:www\.)?(?:discord\.gg\/\w+|discord\.com\/invite\/\w+)|(?:www\.)?(?:discord\.gg\/\w+|discord\.com\/invite\/\w+)').search(message.content):
+            log_channel = self.bot.get_channel(self.log_channel_id)
+            if log_channel:
+                try:
+                    # Create the embed for logging
+                    embed = discord.Embed(
+                        title="Invitation Detected",
+                        description=f"Message containing an invitation detected from {message.author.mention}",
+                        color=discord.Color.red()
+                    )
+                    embed.add_field(name="Message", value=message.content)
+                    embed.add_field(name="Channel", value=message.channel.mention)
+                    embed.set_footer(text=f"Message ID: {message.id}")
+
+                    # Send the embed to the log channel
+                    await log_channel.send(embed=embed)
+                except Exception as e:
+                    # Handle errors during logging
+                    await log_channel.send(f"Error logging invitation: {e}")
+
+            try:
+                # Delete the message containing the invitation
+                await message.delete()
+
+                # Create and send the warning embed
+                warning_embed = discord.Embed(
+                    title="Warning",
+                    description=f"{message.author.mention}, links to external servers are not allowed. Please review the rules in the <#1095177339408752710>",
+                    color=discord.Color.orange()
+                )
+
+                await message.channel.send(embed=warning_embed)
+            except Exception as e:
+                # Handle errors during message deletion or sending the warning
+                if log_channel:
+                    await log_channel.send(f"Error handling message deletion or warning: {e}")
+                    
 async def setup(bot):
     await bot.add_cog(OnMessageLogs(bot))

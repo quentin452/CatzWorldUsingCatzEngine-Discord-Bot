@@ -1,29 +1,33 @@
+import discord
 from discord.ext import commands
 
 class AdminCommands(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(help="Resets the channel by deleting all messages. Requires administrator permissions.")
-    @commands.has_permissions(administrator=True)
-    async def reset_channel(self, ctx):
+    # Définition de la commande slash "reset_channel"
+    @discord.app_commands.command(name="reset_channel", description="Resets the channel by deleting all messages. Requires administrator permissions.")
+    async def reset_channel(self, interaction: discord.Interaction):
+        # Vérification des permissions d'administrateur
+        if not interaction.user.guild_permissions.administrator:
+            await interaction.response.send_message("Vous n'avez pas la permission d'utiliser cette commande.", ephemeral=True)
+            return
+
         def check_message(message):
             return True
 
         deleted = 0
         while True:
-            deleted_messages = await ctx.channel.purge(limit=100, check=check_message)
+            deleted_messages = await interaction.channel.purge(limit=100, check=check_message)
             deleted += len(deleted_messages)
             if len(deleted_messages) < 100:
                 break
-        await ctx.send(f"Le salon a été réinitialisé. {deleted} messages ont été supprimés.")
+        await interaction.response.send_message(f"Le salon a été réinitialisé. {deleted} messages ont été supprimés.")
 
     @reset_channel.error
-    async def reset_channel_error(self, ctx, error):
-        if isinstance(error, commands.MissingPermissions):
-             ctx.send('Vous n\'avez pas la permission d\'utiliser cette commande.')
-        else:
-             ctx.send(f'Une erreur est survenue : {error}')
+    async def reset_channel_error(self, interaction: discord.Interaction, error):
+        await interaction.response.send_message(f'Une erreur est survenue : {error}', ephemeral=True)
 
 async def setup(bot):
+    # Ajoute le cog au bot
     await bot.add_cog(AdminCommands(bot))

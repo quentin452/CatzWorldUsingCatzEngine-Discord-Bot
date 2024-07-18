@@ -8,7 +8,7 @@ from utils.async_logs import LogMessageAsync
 import time
 from utils.Constants import ConstantsClass
 import psutil
-
+import asyncio
 
 current_path = os.path.dirname(os.path.abspath(__file__))
 config = load_config()
