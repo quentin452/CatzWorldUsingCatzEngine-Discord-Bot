@@ -96,7 +96,11 @@ class OnMessageLogs(commands.Cog):
                         color=discord.Color.red()
                     )
                     embed.add_field(name="Message", value=message.content)
-                    embed.add_field(name="Channel", value=message.channel.mention)
+                    # Check if the message is from a guild or a DM
+                    if message.guild:
+                        embed.add_field(name="Channel", value=message.channel.mention)
+                    else:
+                        embed.add_field(name="Channel", value="Direct Message")
                     embed.set_footer(text=f"Message ID: {message.id}")
 
                     # Send the embed to the log channel
@@ -112,7 +116,7 @@ class OnMessageLogs(commands.Cog):
                 # Create and send the warning embed
                 warning_embed = discord.Embed(
                     title="Warning",
-                    description=f"{message.author.mention}, links to external servers are not allowed. Please review the rules in the <#1095177339408752710>",
+                    description=f"{message.author.mention}, links to external servers are not allowed. Please review the rules.",
                     color=discord.Color.orange()
                 )
 
@@ -121,6 +125,6 @@ class OnMessageLogs(commands.Cog):
                 # Handle errors during message deletion or sending the warning
                 if log_channel:
                     await log_channel.send(f"Error handling message deletion or warning: {e}")
-                    
+   
 async def setup(bot):
     await bot.add_cog(OnMessageLogs(bot))
