@@ -27,6 +27,7 @@ class ConstantsClass:
     ROLE_SAVE_FOLDER = get_github_project_directory() + "/CatzWorldBot/saves/free_roles"
     LOGS_SAVE_FOLDER = get_github_project_directory() + "/CatzWorldBot/saves/logs"
     MUSIC_SAVE_FOLDER = get_github_project_directory() + "/CatzWorldBot/saves/musics"
+    STORIES_DATA_FOLDER = get_github_project_directory() + "/CatzWorldBot/game_data/stories_game"
 
     READ_FILE = "r"
     WRITE_TO_FILE = "w"
@@ -62,4 +63,15 @@ class ConstantsClass:
         with open(json_folder_and_name, 'w') as f:
             json.dump({key: channel_id}, f)
 
-   
+    def load_stories(self, key, file_path):
+        if key == "adventure1":
+                return file_path  # Load the "adventure1" template
+        elif key == "adventure2":
+            return file_path  # Load the "adventure2" template
+        else:
+            raise ValueError("Invalid template key")
+        
+    def save_stories(filename, stories):
+        """Enregistre les histoires dans un fichier JSON."""
+        with open(filename, 'w') as f:
+            json.dump(stories, f, indent=4)

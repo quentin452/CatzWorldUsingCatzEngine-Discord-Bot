@@ -159,6 +159,27 @@ This bot is essential if you have an itch.io game and want to keep your server m
 - `/rps`
  - Play with another player in Rock Paper Scissors
 
+- `/emojigame`
+  - Play the emoji game with other players
+
+- `/guess`
+  - Play the guess game alone
+ 
+- `/roulette`
+  - Play the roulette game alone
+
+- `/scramble`
+  - Play the scramble game with other players
+
+- `/story`
+  - Play the story
+  
+- `/start_hunt`
+  - Play the treasure hunt
+
+- `/guess_word`
+  - Play the word guessing game
+
 ### 📝 Note
 
 This bot code is (probably) intended to be used only for one server due to json caching
@@ -326,6 +347,27 @@ Ce bot est essentiel si vous avez un jeu sur itch.io et que vous souhaitez tenir
 - `/rps`
   - Jouez avec un autre joueur a Pierre Papier Ciseaux
 
+- `/emojigame`
+  - Jouez avec un d'autres joueurs au jeu des emojis
+
+- `/guess`
+  - Jouez tout seul au jeu du guess
+ 
+- `/roulette`
+  - Jouez tout seul au jeu de la roulette
+
+- `/scramble`
+  - Jouez avec un d'autres joueurs au jeu du scramble
+
+- `/histoire`
+  - Jouez a l'histoire
+  
+- `/start_hunt`
+  - Jouez a la chasse au trésor
+
+- `/devinette_mot`
+  - Jouez au jeu de la devinette des mots
+       
 ### 📝 Remarque
 
 Ce bot code est (probablement) destiné à être utilisé uniquement pour un seul serveur en raison de la mise en cache JSON
