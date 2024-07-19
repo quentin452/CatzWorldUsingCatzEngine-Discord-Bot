@@ -38,14 +38,6 @@ class AntiScam(commands.Cog):
                         # Le bot n'a pas la permission d'envoyer des MP à cet utilisateur
                     await LogMessageAsync.LogAsync("Le bot n'a pas les permissions nécessaires pour envoyer des messages privés à l'utilisateur.")
                     
-                    # Optionnel : Envoie également un message dans le canal où le message a été supprimé
-                if isinstance(message.channel, discord.DMChannel):
-                        # Message en MP
-                    await message.channel.send(f'{message.author.mention}, votre message a été supprimé car il pourrait contenir du contenu de phishing ou de scam.')
-                else:
-                        # Message dans le canal
-                    await message.channel.send(f'{message.author.mention}, votre message a été supprimé car il pourrait contenir du contenu de phishing ou de scam.')
-                    
             except discord.Forbidden:
                 await LogMessageAsync.LogAsync("Le bot n'a pas les permissions nécessaires pour supprimer les messages.")
             except discord.HTTPException as e:
