@@ -100,8 +100,6 @@ class DownloadCommands(commands.Cog):
                             keys_reverse = list(upload.keys())[::-1]
                             info_str = "\n".join(f"{key}: {upload[key]}" for key in keys_reverse)
                             await ctx.send(f"```\n{info_str}\n```")
-                    else:
-                        await ctx.send('Aucun fichier téléchargeable trouvé.')
                 else:
                     await ctx.send('Impossible de récupérer les fichiers téléchargeables.')
 
@@ -121,8 +119,6 @@ class DownloadCommands(commands.Cog):
                         keys_reverse = list(last_upload.keys())[::-1]
                         info_str = "\n".join(f"{key}: {last_upload[key]}" for key in keys_reverse)
                         await ctx.send(f"```\n{info_str}\n```")
-                    else:
-                        await ctx.send('Aucun fichier téléchargeable trouvé.')
                 else:
                     await ctx.send('Impossible de récupérer les fichiers téléchargeables.')
 
