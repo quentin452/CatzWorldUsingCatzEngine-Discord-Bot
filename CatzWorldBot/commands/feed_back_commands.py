@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 import json
 from datetime import datetime
+from typing import Optional
 from utils.Constants import ConstantsClass
 
 class FeedbackCommands(commands.Cog):
@@ -54,9 +55,8 @@ class FeedbackCommands(commands.Cog):
         self.save_feedback_channel_id()
         await ctx.send(f"Feedback channel set to {ctx.channel.mention}")
 
-    #@commands.command(help="Submits feedback to the configured feedback channel.")
-    @discord.app_commands.command(name="submit_feedback", description="Submits feedback to the configured feedback channel.")
-    async def submit_feedback(self, ctx, *, feedback):
+    @commands.command(help="Submits feedback to the configured feedback channel.")
+    async def submit_feedback(self, ctx: commands.Context, *, feedback: str):
         if not self.feedback_channel_id:
             await ctx.send("Feedback channel not set.")
             return
