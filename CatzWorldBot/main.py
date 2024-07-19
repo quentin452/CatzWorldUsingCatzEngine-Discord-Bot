@@ -8,7 +8,7 @@ from utils.async_logs import LogMessageAsync
 import time
 from utils.Constants import ConstantsClass
 import psutil
-
+import re
 current_path = os.path.dirname(os.path.abspath(__file__))
 config = load_config()
 token = config['token']
@@ -129,6 +129,7 @@ async def on_ready():
     #if rss_cog is not None:
     #    rss_menu_view = rss_cog.get_menu_view()
     #    bot.add_view(rss_menu_view)
+
 
 @bot.event
 async def on_commanderror(ctx, error):

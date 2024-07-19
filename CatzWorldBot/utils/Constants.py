@@ -20,6 +20,7 @@ class ConstantsClass:
 
     ISSUES_SALON_ID = "1095191079516635219"
     BOT_SALON_ID = "1095202819906211962"
+    IAMACAT_USER_ID = 751590445334921228
     FEED_BACK_SAVE_FOLDER = get_github_project_directory() + "/CatzWorldBot/saves/feedbacks"
     DOWNLOAD_SAVE_FOLDER = get_github_project_directory() + "/CatzWorldBot/saves/downloads"
     RSS_SAVE_FOLDER = get_github_project_directory() + "/CatzWorldBot/saves/rss"
