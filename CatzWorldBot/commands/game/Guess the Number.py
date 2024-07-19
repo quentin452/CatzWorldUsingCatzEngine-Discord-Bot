@@ -20,9 +20,9 @@ class GuessTheNumberGame:
             self.winner = self.host
             return f"Congratulations! You guessed the correct number in {self.attempts} attempts!"
         elif guess < self.number:
-            return "The number is higher. Try another button."
+            return "The number is higher."
         else:
-            return "The number is lower. Try another button."
+            return "The number is lower."
 
 class GuessTheNumberView(View):
     def __init__(self, game, quit_callback):
@@ -33,18 +33,16 @@ class GuessTheNumberView(View):
         self.message = None
 
     def add_buttons(self):
-        # Choisir 5 nombres aléatoires et en mettre un correct
-        numbers = random.sample(range(1, 101), 5)  # 5 nombres aléatoires entre 1 et 100
+        numbers = random.sample(range(1, 101), 10)
         if self.game.number not in numbers:
-            numbers[random.randint(0, 4)] = self.game.number  # Assurer que le bon nombre est inclus
+            numbers[random.randint(0, 9)] = self.game.number
 
-        for i in range(5):  # 1 rangée de 5 boutons
+        for i in range(10):
             button_number = numbers[i]
-            button = Button(label=str(button_number), style=discord.ButtonStyle.secondary, row=0)
+            button = Button(label=str(button_number), style=discord.ButtonStyle.secondary, row=i // 5)
             button.callback = self.create_callback(button_number)
             self.add_item(button)
 
-        # Ajouter le bouton de quitter
         quit_button = Button(label="Quitter", style=discord.ButtonStyle.danger)
         quit_button.callback = self.quit_callback()
         self.add_item(quit_button)
@@ -56,18 +54,21 @@ class GuessTheNumberView(View):
                 return
             
             result = self.game.make_guess(guess)
-            await interaction.response.send_message(result, ephemeral=True)
-            
+            embed = interaction.message.embeds[0]
+
             if self.game.finished:
                 for child in self.children:
                     child.disabled = True
-                embed = discord.Embed(
-                    title="Game Over!",
-                    description=f"{self.game.winner.mention} won the game in {self.game.attempts} attempts!",
-                    color=discord.Color.green()
-                )
+                embed.title = "Game Over!"
+                embed.description = f"{self.game.winner.mention} won the game in {self.game.attempts} attempts!"
+                embed.color = discord.Color.green()
                 await interaction.message.edit(embed=embed, view=self)
                 self.stop()
+            else:
+                embed.description = f"Guess the hidden number:\n\n{result}\n\nAttempts: {self.game.attempts}\nUse the buttons below to make your guess."
+                await interaction.message.edit(embed=embed, view=self)
+
+            await interaction.response.defer()  # Explicitly acknowledge the interaction
         return callback
 
 class GuessTheNumberCommands(commands.Cog):
@@ -80,7 +81,6 @@ class GuessTheNumberCommands(commands.Cog):
         if ctx.author in self.active_games:
             game = self.active_games[ctx.author]
             if game.finished:
-                # Si la partie est finie, on recommence une nouvelle partie
                 del self.active_games[ctx.author]
                 game = GuessTheNumberGame(ctx.author)
                 self.active_games[ctx.author] = game
@@ -102,7 +102,12 @@ class GuessTheNumberCommands(commands.Cog):
             return callback
 
         view = GuessTheNumberView(game, quit_callback)
-        embed = discord.Embed(title="Guess the Number Game!", description="Try to guess the hidden number by clicking on the buttons.", color=discord.Color.blue())
+        embed = discord.Embed(
+            title="Guess the Number Game!",
+            description="Try to guess the hidden number by clicking on the buttons below.",
+            color=discord.Color.blue()
+        )
+        embed.add_field(name="Attempts", value="0", inline=True)
         message = await ctx.send(embed=embed, view=view)
         view.message = message
 
