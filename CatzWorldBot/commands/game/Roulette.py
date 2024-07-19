@@ -26,8 +26,8 @@ class Roulette(commands.Cog):
                 "- If you bet on a number and the wheel lands on that number, you win 36 times your bet amount.\n"
                 "- If you lose, you lose the amount you bet.\n\n"
                 "Example:\n"
-                "`!roulette red 100` - Bet 100 on red.\n"
-                "`!roulette 17 50` - Bet 50 on the number 17."
+                "`/roulette red 100` - Bet 100 on red.\n"
+                "`/roulette 17 50` - Bet 50 on the number 17."
             )
             await ctx.send(rules)
             return
