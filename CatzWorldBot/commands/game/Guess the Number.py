@@ -44,7 +44,7 @@ class GuessTheNumberView(View):
             self.add_item(button)
 
         quit_button = Button(label="Quitter", style=discord.ButtonStyle.danger)
-        quit_button.callback = self.quit_callback()
+        quit_button.callback = self.quit_callback
         self.add_item(quit_button)
 
     def create_callback(self, guess):
@@ -92,14 +92,12 @@ class GuessTheNumberCommands(commands.Cog):
             game = GuessTheNumberGame(ctx.author)
             self.active_games[ctx.author] = game
 
-        def quit_callback():
-            async def callback():
-                if ctx.author in self.active_games:
-                    del self.active_games[ctx.author]
-                for child in self.active_games.get(ctx.author, []):
-                    child.disabled = True
-                await ctx.send(f"{ctx.author.mention} a quitté la partie.")
-            return callback
+        async def quit_callback(interaction: discord.Interaction):
+            if ctx.author in self.active_games:
+                del self.active_games[ctx.author]
+            for child in self.children:
+                child.disabled = True
+            await interaction.response.send_message(f"{ctx.author.mention} a quitté la partie.")
 
         view = GuessTheNumberView(game, quit_callback)
         embed = discord.Embed(
@@ -107,7 +105,6 @@ class GuessTheNumberCommands(commands.Cog):
             description="Try to guess the hidden number by clicking on the buttons below.",
             color=discord.Color.blue()
         )
-        embed.add_field(name="Attempts", value="0", inline=True)
         message = await ctx.send(embed=embed, view=view)
         view.message = message
 
