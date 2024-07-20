@@ -31,7 +31,7 @@ class ConstantsClass:
     STORIES_DATA_FOLDER = get_github_project_directory() + "/CatzWorldBot/game_data/stories_game"
 
     #test:
-    SCORE_SAVE_FILE = get_github_project_directory() + "/CatzWorldBot/game_data/test/test.json"
+    STATS_SAVE_FILE = get_github_project_directory() + "/CatzWorldBot/game_data/test/test.json"
 
     READ_FILE = "r"
     WRITE_TO_FILE = "w"

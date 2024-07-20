@@ -6,6 +6,9 @@ import random
 import json
 import os
 from utils.Constants import ConstantsClass
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 
 # Classe pour le jeu RPS
 class RPSGame:
@@ -65,15 +68,11 @@ class RPSView(View):
             return
 
         # Remove Accept button
-        for child in self.children:
-            if child.label == "Accept":
-                self.remove_item(child)
-                break
+        self.remove_item(next(child for child in self.children if child.label == "Accept"))
 
         await self.start_game(interaction)
 
     async def start_game(self, interaction):
-        # Add Rock, Paper, Scissors buttons for every user
         for move in ['rock', 'paper', 'scissors']:
             emoji = {"rock": "✊", "paper": "✋", "scissors": "✌️"}[move]
             button = Button(label=move.capitalize(), style=discord.ButtonStyle.secondary, emoji=emoji)
@@ -119,6 +118,12 @@ class RPSView(View):
                 result_embed.add_field(name="Moves", value=self.game.print_moves())
                 await interaction.response.send_message(embed=result_embed)
                 await self.disable_all_buttons(interaction)
+
+                # Update game stats
+                if winner is not None:
+                    loser = self.game.player1 if winner == self.game.player2 else self.game.player2
+                    self.bot.get_cog('RPSCommands').update_game_stats(winner, loser)
+
                 self.end_game()
                 return
 
@@ -157,26 +162,25 @@ class RPSCommands(commands.Cog):
         self.game_stats = self.load_game_stats()
 
     def load_game_stats(self):
-        # Assurer que le répertoire existe
         os.makedirs(os.path.dirname(ConstantsClass.STATS_SAVE_FILE), exist_ok=True)
 
-        # Charger les statistiques à partir du fichier JSON
         if os.path.exists(ConstantsClass.STATS_SAVE_FILE):
             with open(ConstantsClass.STATS_SAVE_FILE, 'r') as f:
                 try:
-                    return json.load(f)
+                    stats = json.load(f)
+                    logging.debug(f"Loaded stats: {stats}")
+                    return stats
                 except json.JSONDecodeError:
                     return {}
         else:
             return {}
 
     def save_game_stats(self):
-        # Assurer que le répertoire existe
         os.makedirs(os.path.dirname(ConstantsClass.STATS_SAVE_FILE), exist_ok=True)
 
-        # Sauvegarder les statistiques dans le fichier JSON
         with open(ConstantsClass.STATS_SAVE_FILE, 'w') as f:
             json.dump(self.game_stats, f, indent=4)
+        logging.debug(f"Saved stats: {self.game_stats}")
 
     @commands.command(help="Invite a player to start a game of Rock-Paper-Scissors.")
     async def rps(self, ctx, opponent: discord.Member = None):
@@ -210,71 +214,49 @@ class RPSCommands(commands.Cog):
         self.active_games[ctx.author] = game
         self.active_games[opponent] = game
 
-    async def send_game_stats(self, channel, member):
-        stats_embed = discord.Embed(title=f"Rock-Paper-Scissors Statistics for {member.display_name}", color=discord.Color.blurple())
-
-        if member.id not in self.game_stats:
-            stats_embed.add_field(name="Games Played", value="0")
-            stats_embed.add_field(name="Games Won", value="0")
-            stats_embed.add_field(name="Games Lost", value="0")
-            stats_embed.add_field(name="Last Played", value="Never")
-        else:
-            stats = self.game_stats[member.id]
-            stats_embed.add_field(name="Games Played", value=stats['games_played'])
-            stats_embed.add_field(name="Games Won", value=stats['games_won'])
-            stats_embed.add_field(name="Games Lost", value=stats['games_lost'])
-            stats_embed.add_field(name="Last Played", value=stats['last_played'])
-
-        await channel.send(embed=stats_embed)
-
-    async def play_against_bot(self, ctx):
-        bot_user = ctx.bot.user
-        game = RPSGame(ctx.author, bot_user)
-        view = RPSView(game, self.restart_callback(ctx.author, bot_user), self.quit_callback(ctx.author, bot_user), bot_game=True)
-        self.active_games[ctx.author] = game
-        await view.start_game(ctx)
-
-    def update_game_stats(self, winner, loser):
-        # Update winner stats
-        if winner.id not in self.game_stats:
-            self.game_stats[winner.id] = {'games_played': 0, 'games_won': 0, 'games_lost': 0, 'last_played': ''}
-        self.game_stats[winner.id]['games_played'] += 1
-        self.game_stats[winner.id]['games_won'] += 1
-        self.game_stats[winner.id]['last_played'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
-
-        # Update loser stats
-        if loser.id not in self.game_stats:
-            self.game_stats[loser.id] = {'games_played': 0, 'games_won': 0, 'games_lost': 0, 'last_played': ''}
-        self.game_stats[loser.id]['games_played'] += 1
-        self.game_stats[loser.id]['games_lost'] += 1
-        self.game_stats[loser.id]['last_played'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
-
-        self.save_game_stats()
-
     def restart_callback(self, player1, player2):
         def callback():
-            if player1 in self.active_games:
-                del self.active_games[player1]
-            if player2 in self.active_games:
-                del self.active_games[player2]
-            if player1 in self.pending_invites:
-                del self.pending_invites[player1]
-            if player2 in self.pending_invites:
-                del self.pending_invites[player2]
+            self.pending_invites.pop(player1, None)
+            self.pending_invites.pop(player2, None)
+            self.active_games.pop(player1, None)
+            self.active_games.pop(player2, None)
+
         return callback
 
     def quit_callback(self, player1, player2):
-        async def callback(interaction: discord.Interaction):
-            if player1 in self.active_games:
-                del self.active_games[player1]
-            if player2 in self.active_games:
-                del self.active_games[player2]
-            if player1 in self.pending_invites:
-                del self.pending_invites[player1]
-            if player2 in self.pending_invites:
-                del self.pending_invites[player2]
-            await interaction.message.channel.send(f"{player1.display_name} and {player2.display_name} can now start a new game if they want.")
+        def callback():
+            self.pending_invites.pop(player1, None)
+            self.pending_invites.pop(player2, None)
+            self.active_games.pop(player1, None)
+            self.active_games.pop(player2, None)
+
         return callback
 
+    async def send_game_stats(self, channel, player):
+        stats = self.game_stats.get(str(player.id), {})
+        embed = discord.Embed(title=f"Game Stats for {player.display_name}", color=discord.Color.blue())
+        embed.add_field(name="Games Played", value=stats.get("games_played", 0))
+        embed.add_field(name="Games Won", value=stats.get("games_won", 0))
+        embed.add_field(name="Games Lost", value=stats.get("games_lost", 0))
+        embed.add_field(name="Games Tied", value=stats.get("games_tied", 0))
+        await channel.send(embed=embed)
+
+    def update_game_stats(self, winner, loser):
+        winner_id = str(winner.id)
+        loser_id = str(loser.id)
+
+        if winner_id not in self.game_stats:
+            self.game_stats[winner_id] = {"games_played": 0, "games_won": 0, "games_lost": 0, "games_tied": 0}
+        if loser_id not in self.game_stats:
+            self.game_stats[loser_id] = {"games_played": 0, "games_won": 0, "games_lost": 0, "games_tied": 0}
+
+        self.game_stats[winner_id]["games_played"] += 1
+        self.game_stats[winner_id]["games_won"] += 1
+        self.game_stats[loser_id]["games_played"] += 1
+        self.game_stats[loser_id]["games_lost"] += 1
+
+        self.save_game_stats()
+
 async def setup(bot):
+    # Ajoute le cog au bot
     await bot.add_cog(RPSCommands(bot))
