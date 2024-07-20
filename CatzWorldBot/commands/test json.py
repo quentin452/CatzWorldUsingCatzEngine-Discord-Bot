@@ -10,11 +10,11 @@ class TestCommands(commands.Cog):
 
     def load_scores(self):
         # Assurer que le répertoire existe
-        os.makedirs(os.path.dirname(ConstantsClass.SCORE_SAVE_FILE), exist_ok=True)
+        os.makedirs(os.path.dirname(ConstantsClass.STATS_SAVE_FILE), exist_ok=True)
         
         # Charger les scores à partir du fichier JSON, s'il existe
-        if os.path.exists(ConstantsClass.SCORE_SAVE_FILE):
-            with open(ConstantsClass.SCORE_SAVE_FILE, 'r') as f:
+        if os.path.exists(ConstantsClass.STATS_SAVE_FILE):
+            with open(ConstantsClass.STATS_SAVE_FILE, 'r') as f:
                 try:
                     return json.load(f)
                 except json.JSONDecodeError:
@@ -25,10 +25,10 @@ class TestCommands(commands.Cog):
 
     def save_scores(self):
         # Assurer que le répertoire existe
-        os.makedirs(os.path.dirname(ConstantsClass.SCORE_SAVE_FILE), exist_ok=True)
+        os.makedirs(os.path.dirname(ConstantsClass.STATS_SAVE_FILE), exist_ok=True)
         
         # Sauvegarder les scores dans le fichier JSON
-        with open(ConstantsClass.SCORE_SAVE_FILE, 'w') as f:
+        with open(ConstantsClass.STATS_SAVE_FILE, 'w') as f:
             json.dump(self.scores, f, indent=4)  # Utilisation de indent=4 pour la lisibilité
 
     @commands.command(name="test", help="Incréments your score and displays it.")
