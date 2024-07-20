@@ -15,7 +15,7 @@ class ConstantsClass:
     VERIFIED_ROLE_NAME = "verified"
     URL_GAME_NAME = "catzworld"
     RSS_URL = f"https://iamacatfrdev.itch.io/{URL_GAME_NAME}/devlog.rss"
-    RSS_CHANNEL_IDS_JSON_FILE ="/rss_channel_ids.json"
+    RSS_CHANNEL_IDS_JSON_FILE = "/rss_channel_ids.json"
     SENT_RSS_TITLES_JSON_FILE = "/sent_rss_titles.json"
 
     ISSUES_SALON_ID = "1095191079516635219"
@@ -29,6 +29,9 @@ class ConstantsClass:
     LOGS_SAVE_FOLDER = get_github_project_directory() + "/CatzWorldBot/saves/logs"
     MUSIC_SAVE_FOLDER = get_github_project_directory() + "/CatzWorldBot/saves/musics"
     STORIES_DATA_FOLDER = get_github_project_directory() + "/CatzWorldBot/game_data/stories_game"
+
+    #test:
+    SCORE_SAVE_FILE = get_github_project_directory() + "/CatzWorldBot/game_data/test/test.json"
 
     READ_FILE = "r"
     WRITE_TO_FILE = "w"

@@ -1,6 +1,6 @@
 from discord.ext import commands
 
-class OnMessageLogs(commands.Cog):
+class OnMentionMe(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
@@ -21,4 +21,4 @@ class OnMessageLogs(commands.Cog):
             await message.reply(response)
 
 async def setup(bot):
-    await bot.add_cog(OnMessageLogs(bot))
+    await bot.add_cog(OnMentionMe(bot))

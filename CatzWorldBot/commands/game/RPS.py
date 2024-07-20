@@ -3,7 +3,11 @@ from discord.ext import commands
 from discord.ui import View, Button
 import time
 import random
+import json
+import os
+from utils.Constants import ConstantsClass
 
+# Classe pour le jeu RPS
 class RPSGame:
     def __init__(self, player1, player2):
         self.moves = {player1: None, player2: None}
@@ -34,7 +38,7 @@ class RPSGame:
     def print_moves(self):
         return f"{self.player1.display_name}: {self.moves[self.player1]}\n{self.player2.display_name}: {self.moves[self.player2]}"
 
-
+# Vue pour le jeu RPS
 class RPSView(View):
     def __init__(self, game, restart_callback, quit_callback, bot_game=False):
         super().__init__()
@@ -144,12 +148,35 @@ class RPSView(View):
         self.stop()
         await self.quit_callback(interaction)
 
+# Classe des commandes RPS
 class RPSCommands(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.active_games = {}
         self.pending_invites = {}
-        self.game_stats = {}
+        self.game_stats = self.load_game_stats()
+
+    def load_game_stats(self):
+        # Assurer que le répertoire existe
+        os.makedirs(os.path.dirname(ConstantsClass.STATS_SAVE_FILE), exist_ok=True)
+
+        # Charger les statistiques à partir du fichier JSON
+        if os.path.exists(ConstantsClass.STATS_SAVE_FILE):
+            with open(ConstantsClass.STATS_SAVE_FILE, 'r') as f:
+                try:
+                    return json.load(f)
+                except json.JSONDecodeError:
+                    return {}
+        else:
+            return {}
+
+    def save_game_stats(self):
+        # Assurer que le répertoire existe
+        os.makedirs(os.path.dirname(ConstantsClass.STATS_SAVE_FILE), exist_ok=True)
+
+        # Sauvegarder les statistiques dans le fichier JSON
+        with open(ConstantsClass.STATS_SAVE_FILE, 'w') as f:
+            json.dump(self.game_stats, f, indent=4)
 
     @commands.command(help="Invite a player to start a game of Rock-Paper-Scissors.")
     async def rps(self, ctx, opponent: discord.Member = None):
@@ -187,9 +214,9 @@ class RPSCommands(commands.Cog):
         stats_embed = discord.Embed(title=f"Rock-Paper-Scissors Statistics for {member.display_name}", color=discord.Color.blurple())
 
         if member.id not in self.game_stats:
-            stats_embed.add_field(name="Games Played", value="N/A")
-            stats_embed.add_field(name="Games Won", value="N/A")
-            stats_embed.add_field(name="Games Lost", value="N/A")
+            stats_embed.add_field(name="Games Played", value="0")
+            stats_embed.add_field(name="Games Won", value="0")
+            stats_embed.add_field(name="Games Lost", value="0")
             stats_embed.add_field(name="Last Played", value="Never")
         else:
             stats = self.game_stats[member.id]
@@ -206,6 +233,23 @@ class RPSCommands(commands.Cog):
         view = RPSView(game, self.restart_callback(ctx.author, bot_user), self.quit_callback(ctx.author, bot_user), bot_game=True)
         self.active_games[ctx.author] = game
         await view.start_game(ctx)
+
+    def update_game_stats(self, winner, loser):
+        # Update winner stats
+        if winner.id not in self.game_stats:
+            self.game_stats[winner.id] = {'games_played': 0, 'games_won': 0, 'games_lost': 0, 'last_played': ''}
+        self.game_stats[winner.id]['games_played'] += 1
+        self.game_stats[winner.id]['games_won'] += 1
+        self.game_stats[winner.id]['last_played'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
+
+        # Update loser stats
+        if loser.id not in self.game_stats:
+            self.game_stats[loser.id] = {'games_played': 0, 'games_won': 0, 'games_lost': 0, 'last_played': ''}
+        self.game_stats[loser.id]['games_played'] += 1
+        self.game_stats[loser.id]['games_lost'] += 1
+        self.game_stats[loser.id]['last_played'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
+
+        self.save_game_stats()
 
     def restart_callback(self, player1, player2):
         def callback():
