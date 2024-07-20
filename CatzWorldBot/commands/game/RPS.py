@@ -28,27 +28,32 @@ class RPSGame:
     def determine_winner(self):
         move1 = self.moves[self.player1]
         move2 = self.moves[self.player2]
-
         if move1 == move2:
-            return None  # Tie
+            self.winner = None
         elif (move1 == 'rock' and move2 == 'scissors') or \
-             (move1 == 'paper' and move2 == 'rock') or \
-             (move1 == 'scissors' and move2 == 'paper'):
-            return self.player1
+             (move1 == 'scissors' and move2 == 'paper') or \
+             (move1 == 'paper' and move2 == 'rock'):
+            self.winner = self.player1
         else:
-            return self.player2
+            self.winner = self.player2
+
+        if self.winner:
+            loser = self.player2 if self.winner == self.player1 else self.player1
+            # Note: 'self.bot' is not used here anymore; instead, update stats through view
+            return self.winner, loser
 
     def print_moves(self):
         return f"{self.player1.display_name}: {self.moves[self.player1]}\n{self.player2.display_name}: {self.moves[self.player2]}"
 
 # Vue pour le jeu RPS
 class RPSView(View):
-    def __init__(self, game, restart_callback, quit_callback, bot_game=False):
+    def __init__(self, game, restart_callback, quit_callback, bot_game=False, bot=None):
         super().__init__()
         self.game = game
         self.restart_callback = restart_callback
         self.quit_callback = quit_callback
         self.bot_game = bot_game
+        self.bot = bot  # Store the bot instance
         self.add_buttons()
 
     def add_buttons(self):
@@ -105,7 +110,7 @@ class RPSView(View):
 
             if self.game.moves[self.game.player1] and self.game.moves[self.game.player2]:
                 # Both players have made their moves, determine the winner
-                winner = self.game.determine_winner()
+                winner, loser = self.game.determine_winner()
                 if winner is None:
                     result = "It's a tie!"
                     color = discord.Color.yellow()
@@ -120,8 +125,9 @@ class RPSView(View):
 
                 # Update game stats
                 if winner is not None:
-                    loser = self.game.player1 if winner == self.game.player2 else self.game.player2
-                    self.bot.get_cog('RPSCommands').update_game_stats(winner, loser)
+                    # Ensure bot is available to update stats
+                    if self.bot:
+                        self.bot.get_cog('RPSCommands').update_game_stats(winner, loser)
 
                 self.end_game()
                 return
@@ -176,12 +182,17 @@ class RPSCommands(commands.Cog):
             return {}
 
     def save_game_stats(self):
+        # Assurez-vous que le répertoire de sauvegarde existe
         os.makedirs(os.path.dirname(ConstantsClass.STATS_SAVE_FILE), exist_ok=True)
 
-        with open(ConstantsClass.STATS_SAVE_FILE, 'w') as f:
-            json.dump(self.game_stats, f, indent=4)
-        logging.debug(f"Saved stats: {self.game_stats}")
-
+        # Sauvegarde dans le fichier
+        try:
+            with open(ConstantsClass.STATS_SAVE_FILE, 'w') as f:
+                json.dump(self.game_stats, f, indent=4)
+            logging.debug(f"Saved stats: {self.game_stats}")
+        except IOError as e:
+            logging.error(f"Failed to save stats due to IOError: {e}")
+            
     @commands.command(help="Invite a player to start a game of Rock-Paper-Scissors.")
     async def rps(self, ctx, opponent: discord.Member = None):
         if opponent is None:
@@ -208,7 +219,7 @@ class RPSCommands(commands.Cog):
         self.pending_invites[ctx.author] = (opponent, time.time())
 
         game = RPSGame(ctx.author, opponent)
-        view = RPSView(game, self.restart_callback(ctx.author, opponent), self.quit_callback(ctx.author, opponent))
+        view = RPSView(game, self.restart_callback(ctx.author, opponent), self.quit_callback(ctx.author, opponent), bot=self.bot)
         await ctx.send(f"{opponent.mention}, {ctx.author.mention} invites you to play Rock-Paper-Scissors. Do you accept?", view=view)
 
         self.active_games[ctx.author] = game
