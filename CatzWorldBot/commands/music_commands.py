@@ -33,7 +33,7 @@ class MusicCog(commands.Cog):
             await ctx.send("You are not connected to a voice channel.")
             return None
         
-    @commands.command(help="Stop music from voice music [url].")
+    @commands.command(help="Play music from voice music [url].")
     async def play_song(self, ctx, url: str):
         voice_channel = await self.join_voice_channel(ctx)
         if voice_channel:

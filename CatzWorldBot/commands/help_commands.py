@@ -3,22 +3,26 @@ import discord
 #TODO IDK WHY BUT THE VIEW NOT GET SAVED AND SO WHEN I RELAUNCH THE BOT , OLD BUTTONS CANNOT BE CLICKED
 #TODO only show the pagination for the user that used the command
 class HelpPagination(discord.ui.View):
-    def __init__(self, pages):
+    def __init__(self, pages, show_buttons=True):
         super().__init__(timeout=None)
         self.pages = pages
         self.current_page = 0
-        self.message = None  # Initialisation de la variable pour sauvegarder le message
+        self.message = None
+        self.show_buttons = show_buttons
+
+        if not show_buttons:
+            self.clear_items()
 
     async def show_page(self, interaction=None):
         if not (0 <= self.current_page < len(self.pages)):
-            return  # Si self.current_page est hors des limites, ne rien faire
+            return
         
         embed = self.pages[self.current_page]
 
         if interaction and isinstance(interaction, discord.Interaction):
-            await interaction.response.edit_message(embed=embed, view=self)
+            await interaction.response.edit_message(embed=embed, view=self if self.show_buttons else None)
         elif self.message:
-            await self.message.edit(embed=embed, view=self)
+            await self.message.edit(embed=embed, view=self if self.show_buttons else None)
 
     @discord.ui.button(label='⏪', style=discord.ButtonStyle.blurple, custom_id='help_first_page')
     async def first_page(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -46,11 +50,15 @@ class CustomHelpCommandCog(commands.Cog):
     def __init__(self, bot, categories_per_page=5):
         self.bot = bot
         self.categories_per_page = categories_per_page
-        self.pages = []  # Initialisation de self.pages
+        self.pages = []
 
-    def get_pages(self):
-        pages = []  # Initialisation de pages
-        category_list = list(self.bot.cogs.items())
+    def get_pages(self, category_filter=None):
+        pages = []
+        if category_filter:
+            category_list = [(cog_name, cog) for cog_name, cog in self.bot.cogs.items() if cog_name.lower() == category_filter.lower()]
+        else:
+            category_list = list(self.bot.cogs.items())
+        
         num_pages = (len(category_list) + self.categories_per_page - 1) // self.categories_per_page
 
         for page_num in range(num_pages):
@@ -58,7 +66,11 @@ class CustomHelpCommandCog(commands.Cog):
             end_idx = start_idx + self.categories_per_page
             current_page_categories = category_list[start_idx:end_idx]
 
-            embed = discord.Embed(title=f"Page {page_num + 1}/{num_pages} - Help Categories", color=discord.Color.blue())
+            if category_filter:
+                embed = discord.Embed(title=f"Help - {category_filter.capitalize()} Category", color=discord.Color.blue())
+            else:
+                embed = discord.Embed(title=f"Page {page_num + 1}/{num_pages} - Help Categories", color=discord.Color.blue())
+
             for cog_name, cog in current_page_categories:
                 command_list = "\n".join([f"{self.bot.command_prefix}{command.name}: {command.short_doc or 'Aucune description'}" for command in cog.get_commands() if not command.hidden])
                 if command_list:
@@ -66,17 +78,31 @@ class CustomHelpCommandCog(commands.Cog):
 
             pages.append(embed)
 
-        return pages  # Retourner les pages remplies
+        return pages
     
-    @commands.command(help="Displays a list of all available help categories.")
-    async def help_cat(self, ctx):
-        self.pages = self.get_pages()
+    @commands.command(help="Displays a list of all available help categories or the commands of a specific category.")
+    async def help_cat(self, ctx, category: str = None):
+        self.pages = self.get_pages(category_filter=category)
         if not self.pages:
             return await ctx.send("Aucune catégorie d'aide trouvée.")
 
-        view = HelpPagination(self.pages)
-        message = await ctx.send(embed=self.pages[0], view=view)
-        view.message = message  # Assurez-vous que self.message est correctement défini
+        show_buttons = category is None
+        view = HelpPagination(self.pages, show_buttons=show_buttons)
+        message = await ctx.send(embed=self.pages[0], view=view if show_buttons else None)
+        if show_buttons:
+            view.message = message
+
+    async def help_cat_PeriodicTask(self, ctx, category: str = "MusicCog"):
+        self.pages = self.get_pages(category_filter=category)
+        if not self.pages:
+            return await ctx.send("Aucune catégorie d'aide trouvée.")
+
+        show_buttons = category is None
+        view = HelpPagination(self.pages, show_buttons=show_buttons)
+        message = await ctx.send(embed=self.pages[0], view=view if show_buttons else None)
+        if show_buttons:
+            view.message = message
+
 
     async def send_command_help(self, ctx, command):
         if command.hidden or any(check.__class__.__name__ == 'has_permissions' and check.kwargs.get('administrator', False) for check in command.checks):
