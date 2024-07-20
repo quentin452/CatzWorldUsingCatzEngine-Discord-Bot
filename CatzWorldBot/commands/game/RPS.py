@@ -39,8 +39,10 @@ class RPSGame:
 
         if self.winner:
             loser = self.player2 if self.winner == self.player1 else self.player1
-            # Note: 'self.bot' is not used here anymore; instead, update stats through view
             return self.winner, loser
+        else:
+            # In case of a tie
+            return None, None
 
     def print_moves(self):
         return f"{self.player1.display_name}: {self.moves[self.player1]}\n{self.player2.display_name}: {self.moves[self.player2]}"
@@ -114,20 +116,18 @@ class RPSView(View):
                 if winner is None:
                     result = "It's a tie!"
                     color = discord.Color.yellow()
+                    # Update game stats for a tie
+                    self.bot.get_cog('RPSCommands').update_game_stats(None, None)
                 else:
                     result = f"The winner is {winner.display_name}!"
                     color = discord.Color.green()
+                    # Update game stats for a win/loss
+                    self.bot.get_cog('RPSCommands').update_game_stats(winner, loser)
 
                 result_embed = discord.Embed(title="Game Result", description=result, color=color)
                 result_embed.add_field(name="Moves", value=self.game.print_moves())
                 await interaction.response.send_message(embed=result_embed)
                 await self.disable_all_buttons(interaction)
-
-                # Update game stats
-                if winner is not None:
-                    # Ensure bot is available to update stats
-                    if self.bot:
-                        self.bot.get_cog('RPSCommands').update_game_stats(winner, loser)
 
                 self.end_game()
                 return
@@ -139,7 +139,7 @@ class RPSView(View):
             await interaction.message.edit(embed=embed, view=self)
 
         return callback
-
+    
     async def disable_all_buttons(self, interaction):
         for child in self.children:
             child.disabled = True
@@ -192,7 +192,7 @@ class RPSCommands(commands.Cog):
             logging.debug(f"Saved stats: {self.game_stats}")
         except IOError as e:
             logging.error(f"Failed to save stats due to IOError: {e}")
-            
+
     @commands.command(help="Invite a player to start a game of Rock-Paper-Scissors.")
     async def rps(self, ctx, opponent: discord.Member = None):
         if opponent is None:
@@ -253,18 +253,26 @@ class RPSCommands(commands.Cog):
         await channel.send(embed=embed)
 
     def update_game_stats(self, winner, loser):
-        winner_id = str(winner.id)
-        loser_id = str(loser.id)
+        # IDs des joueurs
+        winner_id = str(winner.id) if winner else None
+        loser_id = str(loser.id) if loser else None
 
-        if winner_id not in self.game_stats:
+        if winner_id and winner_id not in self.game_stats:
             self.game_stats[winner_id] = {"games_played": 0, "games_won": 0, "games_lost": 0, "games_tied": 0}
-        if loser_id not in self.game_stats:
+        if loser_id and loser_id not in self.game_stats:
             self.game_stats[loser_id] = {"games_played": 0, "games_won": 0, "games_lost": 0, "games_tied": 0}
 
-        self.game_stats[winner_id]["games_played"] += 1
-        self.game_stats[winner_id]["games_won"] += 1
-        self.game_stats[loser_id]["games_played"] += 1
-        self.game_stats[loser_id]["games_lost"] += 1
+        if winner_id:
+            self.game_stats[winner_id]["games_played"] += 1
+            self.game_stats[winner_id]["games_won"] += 1
+        if loser_id:
+            self.game_stats[loser_id]["games_played"] += 1
+            self.game_stats[loser_id]["games_lost"] += 1
+        if not winner and not loser:
+            # Gestion des jeux nuls
+            for player_id in self.game_stats:
+                self.game_stats[player_id]["games_played"] += 1
+                self.game_stats[player_id]["games_tied"] += 1
 
         self.save_game_stats()
 
