@@ -5,8 +5,8 @@ import time
 import random
 import json
 import os
-from utils.Constants import ConstantsClass
 import logging
+from utils.Constants import ConstantsClass
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -50,7 +50,6 @@ class RPSView(View):
         self.quit_callback = quit_callback
         self.bot_game = bot_game
         self.add_buttons()
-        self.start_time = time.time()
 
     def add_buttons(self):
         if not self.bot_game:
@@ -171,6 +170,7 @@ class RPSCommands(commands.Cog):
                     logging.debug(f"Loaded stats: {stats}")
                     return stats
                 except json.JSONDecodeError:
+                    logging.warning("Failed to decode JSON from stats file.")
                     return {}
         else:
             return {}
