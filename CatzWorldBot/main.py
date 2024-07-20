@@ -68,7 +68,7 @@ async def on_ready():
     await LogMessageAsync.LogAsync("The github Project Directory is : " + ConstantsClass.get_github_project_directory())
     await LogMessageAsync.reset_log_file()
     # Setting `Playing ` status
-    await bot.change_presence(activity=discord.Game(name="https://iamacatfrdev.itch.io/catzworld"))
+    await bot.change_presence(activity=discord.Game(name="mention me 🤗"))
 
     # Setting `Streaming ` status
     # await bot.change_presence(activity=discord.Streaming(name="My Stream", url=my_twitch_url))

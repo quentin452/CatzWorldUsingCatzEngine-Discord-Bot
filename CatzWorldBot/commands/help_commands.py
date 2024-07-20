@@ -78,20 +78,6 @@ class CustomHelpCommandCog(commands.Cog):
         message = await ctx.send(embed=self.pages[0], view=view)
         view.message = message  # Assurez-vous que self.message est correctement défini
 
-    async def send_bot_help(self, ctx, mapping):
-        self.pages = self.get_pages()
-        if not self.pages:
-            return await ctx.send("Aucune catégorie d'aide trouvée.")
-
-        view = HelpPagination(self.pages)
-        message = await ctx.send(embed=self.pages[0], view=view)
-        view.message = message  # Assurez-vous que self.message est correctement défini
-
-        # Utilisation de la vue pour la pagination
-        view = HelpPagination(self.pages)
-        message = await ctx.send(embed=self.pages[0], view=view)
-        view.message = message  # Sauvegarde du message pour mise à jour ultérieure
-
     async def send_command_help(self, ctx, command):
         if command.hidden or any(check.__class__.__name__ == 'has_permissions' and check.kwargs.get('administrator', False) for check in command.checks):
             return

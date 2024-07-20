@@ -155,15 +155,5 @@ class GuessTheNumberCommands(commands.Cog):
         message = await ctx.send(embed=embed, view=view)
         view.message = message
 
-    @commands.command(help="Check the status of your active game.")
-    async def game_status(self, ctx):
-        if ctx.author not in self.active_games:
-            await ctx.send("You don't have an active game.")
-            return
-
-        game = self.active_games[ctx.author]
-        status = game.make_guess(-1)  # Pass an invalid guess to get the status
-        await ctx.send(status)
-
 async def setup(bot):
     await bot.add_cog(GuessTheNumberCommands(bot))

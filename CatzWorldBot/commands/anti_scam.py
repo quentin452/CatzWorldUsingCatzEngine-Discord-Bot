@@ -129,8 +129,6 @@ class AntiScam(commands.Cog):
                 except discord.HTTPException as e:
                     await LogMessageAsync.LogAsync(f"Une erreur est survenue en essayant de supprimer le message: {e}")
 
-        # Note: ne pas oublier de faire passer les commandes
-        await self.bot.process_commands(message)
-
 async def setup(bot):
     await bot.add_cog(AntiScam(bot))
+#tkt chatgpt a trouver
