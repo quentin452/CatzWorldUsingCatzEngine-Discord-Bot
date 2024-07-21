@@ -83,7 +83,7 @@ class RoleMenu(commands.Cog):
     @commands.command(help="Displays a role menu where users can choose roles using a drop-down menu. Requires administrator permissions.")
     @commands.has_permissions(administrator=True)
     async def role_menu(self, ctx):
-        embed = discord.Embed(title="Roles menu", description="Choose your roles by interacting with the drop-down menu.", color=discord.Color.blue())
+        embed = discord.Embed(title="Roles menu", description="Choose your roles* by interacting with the drop-down menu.\n*When you choose a role, you would have access to the role's channels", color=discord.Color.blue())
         message = await ctx.send(embed=embed, view=self.role_menu_view)
         self.role_menu_view.message_id = message.id  # Définir le message_id
 

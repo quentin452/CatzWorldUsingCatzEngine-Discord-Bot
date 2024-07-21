@@ -103,7 +103,6 @@ class CustomHelpCommandCog(commands.Cog):
         if show_buttons:
             view.message = message
 
-
     async def send_command_help(self, ctx, command):
         if command.hidden or any(check.__class__.__name__ == 'has_permissions' and check.kwargs.get('administrator', False) for check in command.checks):
             return
