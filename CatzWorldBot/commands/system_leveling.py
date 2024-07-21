@@ -96,9 +96,15 @@ class LevelingSystem(commands.Cog):
                 self.levels[user_id]["level"] = new_level
 
                 # Prepare and send the embed
-                embed = discord.Embed(title="New level Reached!",
-                                      description=f"{message.author.mention} reached the level {new_level} !",
-                                      color=discord.Color.green())
+                embed = discord.Embed(
+                    color=discord.Color.green()
+                )
+
+                # Ajout des informations de l'auteur à l'embed
+                embed.set_author(
+                    name=f"{message.author.display_name} reached the level {new_level}!",     # Nom de l'auteur
+                    icon_url=message.author.avatar.url    # URL de l'avatar de l'auteur
+                )
 
                 # Send the embed to the level-up channel
                 level_channel_id = self.level_channel_id.get(str(message.guild.id))

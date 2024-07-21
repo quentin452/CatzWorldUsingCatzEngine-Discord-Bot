@@ -184,14 +184,14 @@ This bot is essential if you have an itch.io game and want to keep your server m
   - Get information about all games available for this bot
 
 - `/set_levelling_channel`
- - Définit le canal actuel comme canal de niveau pour la mise à jour automatique du niveau supérieur.
+ - Définit le canal actuel comme canal de niveau pour la mise a jour automatique du niveau supérieur.
 
 - `/niveau`
  - Affichez votre niveau actuel, votre XP et votre classement.
 
 - `/classement`
  - l'Affiche du classement des utilisateurs par XP.
- 
+
 ### 📝 Note
 
 This bot code is (probably) intended to be used only for one server due to json caching
@@ -204,11 +204,11 @@ This README provides basic setup and usage instructions for your Discord bot tai
 
 ### 🎉 Introduction
 
-Bienvenue dans le README du bot Discord conçu pour maintenir votre serveur à jour avec les devlogs et les téléchargements de fichiers de votre jeu sur itch.io. Ce bot vous aide à gérer les notifications directement depuis les mises à jour de votre jeu vers votre serveur Discord.
+Bienvenue dans le README du bot Discord conçu pour maintenir votre serveur a jour avec les devlogs et les téléchargements de fichiers de votre jeu sur itch.io. Ce bot vous aide a gérer les notifications directement depuis les mises a jour de votre jeu vers votre serveur Discord.
 
 ### 🎯 Pourquoi Utiliser Ce Bot ?
 
-Ce bot est essentiel si vous avez un jeu sur itch.io et que vous souhaitez tenir les membres de votre serveur informés des mises à jour telles que les devlogs et les fichiers téléchargeables.
+Ce bot est essentiel si vous avez un jeu sur itch.io et que vous souhaitez tenir les membres de votre serveur informés des mises a jour telles que les devlogs et les fichiers téléchargeables.
 
 ### ⚙️ Instructions de Configuration
 
@@ -231,7 +231,7 @@ Ce bot est essentiel si vous avez un jeu sur itch.io et que vous souhaitez tenir
 #### Journaux de développement d'Itch.io
 
 - `/set_rss_channel`
-  - Définissez le canal sur lequel les devlogs mis à jour seront affichés.
+  - Définissez le canal sur lequel les devlogs mis a jour seront affichés.
 
 - `/get_all_rss` (EXIGE LES AUTORISATIONS DE L'ADMINISTRATEUR)
   - Récupérez tous les devlogs de votre jeu itch.io.
@@ -242,7 +242,7 @@ Ce bot est essentiel si vous avez un jeu sur itch.io et que vous souhaitez tenir
 #### Fichiers Itch.io
 
 - `/set_download_channel`
-  - Définissez le canal sur lequel les fichiers téléchargés mis à jour seront affichés.
+  - Définissez le canal sur lequel les fichiers téléchargés mis a jour seront affichés.
 
 - `/get_all_download` (EXIGE LES AUTORISATIONS DE L'ADMINISTRATEUR)
   - Récupérez tous les fichiers téléchargeables de votre jeu itch.io.
@@ -307,7 +307,7 @@ Ce bot est essentiel si vous avez un jeu sur itch.io et que vous souhaitez tenir
 ### Musique
 
 - `/play_song [url]`
-  - Jouer de la musique à partir du lien YouTube dans la salle vocale musicale 
+  - Jouer de la musique a partir du lien YouTube dans la salle vocale musicale 
 
 - `/stop_chanson`
   - Arrêtez la musique de la musique vocale
@@ -316,7 +316,7 @@ Ce bot est essentiel si vous avez un jeu sur itch.io et que vous souhaitez tenir
   - Votez pour sauter la musique
 
 - `/play_random_song`
-  - Jouez à un jeu aléatoire à partir des fichiers enregistrés du bot
+  - Jouez a un jeu aléatoire a partir des fichiers enregistrés du bot
 
 - `/loop_song [url] [ammount]`
   - Jouez une musique en boucle 
@@ -324,10 +324,10 @@ Ce bot est essentiel si vous avez un jeu sur itch.io et que vous souhaitez tenir
 #### Autre
 
 - `/bonjour [requête]`
-  - Dites simplement bonjour à « requête ».
+  - Dites simplement bonjour a « requête ».
 
 - `/reset_channel` (EXIGE LES AUTORISATIONS DE L'ADMINISTRATEUR)
-  - Réinitialiser tous les messages de la chaîne (à utiliser avec prudence).
+  - Réinitialiser tous les messages de la chaîne (a utiliser avec prudence).
 
 - `/help_cat`
   - Récupérer une liste de toutes les commandes du bot
@@ -384,7 +384,7 @@ Ce bot est essentiel si vous avez un jeu sur itch.io et que vous souhaitez tenir
   - Obtenir des informations sur tous les jeux disponibles pour ce bot
 
 - `/set_levelling_channel`
-  - Définit le canal actuel comme canal de niveau pour la mise à jour automatique du niveau supérieur.
+  - Définit le canal actuel comme canal de niveau pour la mise a jour automatique du niveau supérieur.
 
 - `/level`
   - Affiche votre niveau actuel, votre XP et votre classement.
@@ -394,8 +394,8 @@ Ce bot est essentiel si vous avez un jeu sur itch.io et que vous souhaitez tenir
 
 ### 📝 Remarque
 
-Ce bot code est (probablement) destiné à être utilisé uniquement pour un seul serveur en raison de la mise en cache JSON
+Ce bot code est (probablement) destiné a être utilisé uniquement pour un seul serveur en raison de la mise en cache JSON
 
-Assurez-vous que votre bot a les permissions appropriées pour lire et envoyer des messages dans les canaux où vous souhaitez définir les mises à jour. Pour tout problème ou suggestion, veuillez contacter le développeur du bot.
+Assurez-vous que votre bot a les permissions appropriées pour lire et envoyer des messages dans les canaux où vous souhaitez définir les mises a jour. Pour tout problème ou suggestion, veuillez contacter le développeur du bot.
 
-Ce README fournit des instructions de configuration de base et d'utilisation pour votre bot Discord, adapté à la gestion des mises à jour de votre jeu itch.io.
+Ce README fournit des instructions de configuration de base et d'utilisation pour votre bot Discord, adapté a la gestion des mises a jour de votre jeu itch.io.
