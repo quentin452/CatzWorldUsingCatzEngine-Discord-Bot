@@ -183,6 +183,15 @@ This bot is essential if you have an itch.io game and want to keep your server m
 - `/games`
   - Get information about all games available for this bot
 
+- `/set_levelling_channel`
+ - Définit le canal actuel comme canal de niveau pour la mise à jour automatique du niveau supérieur.
+
+- `/niveau`
+ - Affichez votre niveau actuel, votre XP et votre classement.
+
+- `/classement`
+ - l'Affiche du classement des utilisateurs par XP.
+ 
 ### 📝 Note
 
 This bot code is (probably) intended to be used only for one server due to json caching
@@ -373,6 +382,15 @@ Ce bot est essentiel si vous avez un jeu sur itch.io et que vous souhaitez tenir
        
 - `/games`
   - Obtenir des informations sur tous les jeux disponibles pour ce bot
+
+- `/set_levelling_channel`
+  - Définit le canal actuel comme canal de niveau pour la mise à jour automatique du niveau supérieur.
+
+- `/level`
+  - Affiche votre niveau actuel, votre XP et votre classement.
+
+- `/leaderboard`
+  - Affiche le classement des utilisateurs par XP.
 
 ### 📝 Remarque
 

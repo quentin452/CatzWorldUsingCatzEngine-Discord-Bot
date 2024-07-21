@@ -31,7 +31,9 @@ class ConstantsClass:
     STORIES_DATA_FOLDER = get_github_project_directory() + "/CatzWorldBot/game_data/stories_game"
     GAME_INFO_SAVE_FOLDER = get_github_project_directory() + "/CatzWorldBot/saves/gameinfos"
     STATS_SAVE_FILE = get_github_project_directory() + "/CatzWorldBot/saves/rps/game_stats.json"
-
+    LEVELING_SAVE_FILE = get_github_project_directory() + "/CatzWorldBot/saves/Leveling/sytems_leveling.json"
+    LEVELING_SAVE_FOLDER = get_github_project_directory() + "/CatzWorldBot/saves/Leveling"
+    
     READ_FILE = "r"
     WRITE_TO_FILE = "w"
 
