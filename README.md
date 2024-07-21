@@ -180,6 +180,9 @@ This bot is essential if you have an itch.io game and want to keep your server m
 - `/guess_word`
   - Play the word guessing game
 
+- `/games`
+  - Get information about all games available for this bot
+
 ### 📝 Note
 
 This bot code is (probably) intended to be used only for one server due to json caching
@@ -368,6 +371,9 @@ Ce bot est essentiel si vous avez un jeu sur itch.io et que vous souhaitez tenir
 - `/devinette_mot`
   - Jouez au jeu de la devinette des mots
        
+- `/games`
+  - Obtenir des informations sur tous les jeux disponibles pour ce bot
+
 ### 📝 Remarque
 
 Ce bot code est (probablement) destiné à être utilisé uniquement pour un seul serveur en raison de la mise en cache JSON
