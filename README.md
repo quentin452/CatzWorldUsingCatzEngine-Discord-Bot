@@ -121,6 +121,49 @@ This bot is essential if you have an itch.io game and want to keep your server m
 - `/loop_song [url] [ammount]`
   - Play music in a loop 
 
+#### Games
+
+- `/ttt`
+  - Play with another player at TicTacToe
+
+- `/rps`
+ - Play with another player in Rock Paper Scissors
+
+- `/emojigame`
+  - Play the emoji game with other players
+
+- `/guess`
+  - Play the guess game alone
+ 
+- `/roulette`
+  - Play the roulette game alone
+
+- `/scramble`
+  - Play the scramble game with other players
+
+- `/story`
+  - Play the story
+  
+- `/start_hunt`
+  - Play the treasure hunt
+
+- `/guess_word`
+  - Play the word guessing game
+
+- `/games`
+  - Get information about all games available for this bot
+
+#### Leveling System
+
+- `/set_levelling_channel`
+ - Définit le canal actuel comme canal de niveau pour la mise a jour automatique du niveau supérieur.
+
+- `/Level`
+ - Affichez votre niveau actuel, votre XP et votre classement.
+
+- `/classement`
+ - l'Affiche du classement des utilisateurs par XP.
+
 #### Other
 
 - `/hello [query]`
@@ -153,44 +196,8 @@ This bot is essential if you have an itch.io game and want to keep your server m
 - `/rules_cat` (REQUIREMENT FOR ADMINISTRATOR PERMISSIONS)
   - Gives the server rules
 
-- `/ttt`
-  - Play with another player at TicTacToe
-
-- `/rps`
- - Play with another player in Rock Paper Scissors
-
-- `/emojigame`
-  - Play the emoji game with other players
-
-- `/guess`
-  - Play the guess game alone
- 
-- `/roulette`
-  - Play the roulette game alone
-
-- `/scramble`
-  - Play the scramble game with other players
-
-- `/story`
-  - Play the story
-  
-- `/start_hunt`
-  - Play the treasure hunt
-
-- `/guess_word`
-  - Play the word guessing game
-
-- `/games`
-  - Get information about all games available for this bot
-
-- `/set_levelling_channel`
- - Définit le canal actuel comme canal de niveau pour la mise a jour automatique du niveau supérieur.
-
-- `/niveau`
- - Affichez votre niveau actuel, votre XP et votre classement.
-
-- `/classement`
- - l'Affiche du classement des utilisateurs par XP.
+- `/poll`
+  - Make a beautiful poll
 
 ### 📝 Note
 
