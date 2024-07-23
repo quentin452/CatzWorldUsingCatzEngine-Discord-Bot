@@ -204,7 +204,7 @@ class RssCommands(commands.Cog):
             except Exception as e:
                 await LogMessageAsync.LogAsync(f"Error in RSS loop: {e}")
 
-            await asyncio.sleep(60)
+            await asyncio.sleep(15)
 
 async def setup(bot):
     await bot.add_cog(RssCommands(bot))
