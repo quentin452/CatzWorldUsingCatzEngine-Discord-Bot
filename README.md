@@ -147,6 +147,9 @@ This bot is essential if you have an itch.io game and want to keep your server m
 - `/start_hunt`
   - Play the treasure hunt
 
+- `/hunt_stats`
+  - Check your treasure hunt statistics
+
 - `/guess_word`
   - Play the word guessing game
 
@@ -383,6 +386,9 @@ Ce bot est essentiel si vous avez un jeu sur itch.io et que vous souhaitez tenir
   
 - `/start_hunt`
   - Jouez a la chasse au trésor
+
+- `/hunt_stats`
+  - Consultez les statistiques de votre chasse au trésor
 
 - `/devinette_mot`
   - Jouez au jeu de la devinette des mots
