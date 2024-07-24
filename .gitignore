@@ -5,3 +5,4 @@
 CatzWorldBot/logs/catz_bot_logs.log
 *.webm
 py_environment/CatzWorldBot/logs/catz_bot_logs.log
+/py_environment/Lib/site-packages/yt_dlp
