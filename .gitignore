@@ -1,4 +1,4 @@
-/!security
+/!security/*.txt
 /*/**/__pycache__
 *.json
 /*/**/.txt
