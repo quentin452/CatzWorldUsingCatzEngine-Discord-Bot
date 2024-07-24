@@ -61,7 +61,6 @@ class DownloadCommands(commands.Cog):
 
         uploads = await self.fetch_uploads()
         if not uploads:
-            await channel.send(f'{role.mention} Aucun fichier téléchargeable trouvé.')
             return
 
         uploads_sorted = sorted(uploads, key=lambda upload: upload.get('position', 0), reverse=True)
