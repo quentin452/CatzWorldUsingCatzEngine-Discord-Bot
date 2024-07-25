@@ -123,8 +123,6 @@ class RssCommands(commands.Cog):
                 await ctx.send(embed=embed_or_message)
             else:
                 await ctx.send(embed_or_message)
-        else:
-            await ctx.send('Impossible de récupérer le flux RSS.')
 
     @commands.command(help="Fetches and displays all entries from the RSS feed. Requires administrator permissions.")
     @commands.has_permissions(administrator=True)
@@ -138,8 +136,6 @@ class RssCommands(commands.Cog):
                     await ctx.send(embed=embed_or_message)
                 else:
                     await ctx.send(embed_or_message)
-        else:
-            await ctx.send('Impossible de récupérer le flux RSS.')
 
     async def last_rss_loop(self, channel):
         role = discord.utils.get(channel.guild.roles, name=ConstantsClass.CATZ_WORLD_ROLE_NAME)
@@ -164,8 +160,6 @@ class RssCommands(commands.Cog):
                 self.sent_rss_titles.append(entry.get('title'))
                 self.save_sent_rss_titles()
                 break  # Only process the first new entry for now
-        else:
-            await channel.send(f"{role.mention} Impossible de récupérer le flux RSS.")
 
     async def fetch_rss_feed(self, url):
         async with aiohttp.ClientSession() as session:
