@@ -7,8 +7,8 @@ from utils.Constants import ConstantsClass
 from utils.config import load_config
 from utils.async_logs import LogMessageAsync
 import json
-import aiohttp
 from lxml import html
+
 config = load_config()
 api_key = config['api_key']
 game_id = config['game_id']
@@ -102,7 +102,6 @@ class RssCommands(commands.Cog):
                 return embed
 
     def extract_text_with_newlines(self, element):
-        # Extract text content from an HTML element, adding newlines after block-level elements
         text = []
         for elem in element.iter():
             if elem.tag in ('p', 'br', 'div'):
@@ -112,7 +111,6 @@ class RssCommands(commands.Cog):
             if elem.tail:
                 text.append(elem.tail)
         return ''.join(text)
-
 
     @commands.command(help="Fetches and displays the latest entry from the RSS feed.")
     async def get_last_rss(self, ctx):
@@ -152,7 +150,7 @@ class RssCommands(commands.Cog):
         url = ConstantsClass.RSS_URL
         feed = await self.fetch_rss_feed(url)
         if feed:
-            new_entries = [entry for entry in feed if entry.get('title', 'Pas de titre') not in self.sent_rss_titles]
+            new_entries = [entry for entry in feed if entry.get('title') not in self.sent_rss_titles]
             if not new_entries:
                 return
 
@@ -172,7 +170,15 @@ class RssCommands(commands.Cog):
     async def fetch_rss_feed(self, url):
         async with aiohttp.ClientSession() as session:
             async with session.get(url) as resp:
-                tree = ET.fromstring(await resp.text())
+                if resp.status != 200:
+                    await LogMessageAsync.LogAsync(f"Failed to fetch RSS feed: {resp.status}")
+                    return []
+
+                try:
+                    tree = ET.fromstring(await resp.text())
+                except ET.ParseError as e:
+                    await LogMessageAsync.LogAsync(f"Failed to parse RSS feed: {e}")
+                    return []
 
                 entries = []
 
@@ -204,7 +210,7 @@ class RssCommands(commands.Cog):
             except Exception as e:
                 await LogMessageAsync.LogAsync(f"Error in RSS loop: {e}")
 
-            await asyncio.sleep(15)
+            await asyncio.sleep(60)
 
 async def setup(bot):
     await bot.add_cog(RssCommands(bot))
