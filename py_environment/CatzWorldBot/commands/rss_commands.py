@@ -77,11 +77,12 @@ class RssCommands(commands.Cog):
                 for line in content.split('\n'):
                     stripped_line = line.strip()
                     if stripped_line:
-                        if 'Added' in stripped_line or 'Add' in stripped_line:
+                        lowered_line = stripped_line.lower()
+                        if 'added' in lowered_line or 'add' in lowered_line:
                             added.append(f"<:Added:1262441172580831253> {stripped_line}")
-                        elif 'Fixed' in stripped_line or 'Fix' in stripped_line or 'HotFix' in stripped_line:
+                        elif 'fixed' in lowered_line or 'fix' in lowered_line or 'hotfix' in lowered_line:
                             fixed.append(f"<:Fixed:1262441171339448451> {stripped_line}")
-                        elif 'Removed' in stripped_line or 'Delete' in stripped_line or 'Remove' in stripped_line:
+                        elif 'removed' in lowered_line or 'delete' in lowered_line or 'remove' in lowered_line:
                             removed.append(f"<:Removed:1262441169904730142> {stripped_line}")
                         else:
                             other.append(f"<:Other:1262453577872576554> {stripped_line}")
@@ -100,7 +101,7 @@ class RssCommands(commands.Cog):
                 embed.set_image(url="https://cdn.discordapp.com/attachments/1261580670057316453/1262477940843745422/DEVLOGS.webp?ex=6696bdb4&is=66956c34&hm=ec81d9d015b61327ab4d1e2bfb5f9638c148879429a0d9c76a3c6832138f8117&")
                 embed.add_field(name="See the Complete Devlog", value=f"[Click Here to see details]({link})", inline=False)
                 return embed
-
+            
     def extract_text_with_newlines(self, element):
         text = []
         for elem in element.iter():
