@@ -35,9 +35,6 @@ This bot is essential if you have an itch.io game and want to keep your server m
 - `/set_rss_channel`
   - Set the channel where updated devlogs will be displayed.
 
-- `/get_all_rss` (REQUIRE ADMINISTRATOR PERMISSIONS)
-  - Retrieve all devlogs from your itch.io game.
-
 - `/get_last_rss`
   - Retrieve last devlog from your itch.io game.
 
@@ -236,9 +233,6 @@ Ce bot est essentiel si vous avez un jeu sur itch.io et que vous souhaitez tenir
 
 - `/set_rss_channel`
   - Définissez le canal sur lequel les devlogs mis a jour seront affichés.
-
-- `/get_all_rss` (EXIGE LES AUTORISATIONS DE L'ADMINISTRATEUR)
-  - Récupérez tous les devlogs de votre jeu itch.io.
 
 - `/get_last_rss`
   - Récupérez le dernier devlog de votre jeu itch.io.

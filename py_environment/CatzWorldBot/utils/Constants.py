@@ -11,6 +11,7 @@ class ConstantsClass:
     ITCH_IO_GAME_ID = "itch_io_game_id"
     DISCORD_BOT_TOKEN = "discord_bot_token"
     CATZ_WORLD_ROLE_NAME = "CatWorld game ping updates"
+    BOT_ROLE_NAME = "@Bot"
     MEMBER_ROLE_NAME = "@Members"
     VERIFIED_ROLE_NAME = "verified"
     URL_GAME_NAME = "catzworld"

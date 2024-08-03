@@ -87,31 +87,58 @@ class RssCommands(commands.Cog):
                         else:
                             other.append(f"<:Other:1262453577872576554> {stripped_line}")
 
-                embed = discord.Embed(title=title, url=link, color=discord.Color.blue())
+                fields = {
+                    "Added": "\n".join(added),
+                    "Fixed": "\n".join(fixed),
+                    "Removed": "\n".join(removed),
+                    "Other": "\n".join(other)
+                }
 
-                if added:
-                    embed.add_field(name="Added", value="\n".join(added), inline=False)
-                if fixed:
-                    embed.add_field(name="Fixed", value="\n".join(fixed), inline=False)
-                if removed:
-                    embed.add_field(name="Removed", value="\n".join(removed), inline=False)
-                if other:
-                    embed.add_field(name="Other", value="\n".join(other), inline=False)
+                embeds = []
+                current_embed = discord.Embed(title=title, url=link, color=discord.Color.blue())
+                current_length = 0
 
-                embed.set_image(url="https://cdn.discordapp.com/attachments/1261580670057316453/1262477940843745422/DEVLOGS.webp?ex=6696bdb4&is=66956c34&hm=ec81d9d015b61327ab4d1e2bfb5f9638c148879429a0d9c76a3c6832138f8117&")
-                embed.add_field(name="See the Complete Devlog", value=f"[Click Here to see details]({link})", inline=False)
-                return embed
-            
+                def create_new_embed():
+                    nonlocal current_length
+                    if current_length > 0:
+                        embeds.append(current_embed)
+                    current_embed = discord.Embed(title=title, url=link, color=discord.Color.blue())
+                    current_length = 0
+
+                def add_field(name, value):
+                    nonlocal current_length
+                    if len(value) + current_length > 6000:
+                        create_new_embed()
+                    current_embed.add_field(name=name, value=value, inline=False)
+                    current_length += len(value)
+
+                for name, value in fields.items():
+                    if value:
+                        while len(value) > 1024:
+                            part = value[:1020] + " ..."
+                            add_field(name, part)
+                            value = value[1024:]
+                        if value:
+                            add_field(name, value)
+
+                if current_embed.fields:
+                    embeds.append(current_embed)
+
+                for embed in embeds:
+                    embed.add_field(name="See the Complete Devlog", value=f"[Click Here to see details]({link})", inline=False)
+
+                return embeds
+                
     def extract_text_with_newlines(self, element):
-        text = []
-        for elem in element.iter():
-            if elem.tag in ('p', 'br', 'div'):
-                text.append('\n')
-            if elem.text:
-                text.append(elem.text)
-            if elem.tail:
-                text.append(elem.tail)
-        return ''.join(text)
+            text = []
+            for elem in element.iter():
+                if elem.tag in ('p', 'br', 'div'):
+                    text.append('\n')
+                if elem.text:
+                    text.append(elem.text)
+                if elem.tail:
+                    text.append(elem.tail)
+            return ''.join(text)
 
     @commands.command(help="Fetches and displays the latest entry from the RSS feed.")
     async def get_last_rss(self, ctx):
@@ -120,23 +147,11 @@ class RssCommands(commands.Cog):
         if feed:
             last_entry = feed[0]
             embed_or_message = await self.generate_embed_from_entry(last_entry)
-            if isinstance(embed_or_message, discord.Embed):
-                await ctx.send(embed=embed_or_message)
+            if isinstance(embed_or_message, list):
+                for embed in embed_or_message:
+                    await ctx.send(embed=embed)
             else:
                 await ctx.send(embed_or_message)
-
-    @commands.command(help="Fetches and displays all entries from the RSS feed. Requires administrator permissions.")
-    @commands.has_permissions(administrator=True)
-    async def get_all_rss(self, ctx):
-        url = ConstantsClass.RSS_URL
-        feed = await self.fetch_rss_feed(url)
-        if feed:
-            for entry in feed:
-                embed_or_message = await self.generate_embed_from_entry(entry)
-                if isinstance(embed_or_message, discord.Embed):
-                    await ctx.send(embed=embed_or_message)
-                else:
-                    await ctx.send(embed_or_message)
 
     async def last_rss_loop(self, channel):
         role = discord.utils.get(channel.guild.roles, name=ConstantsClass.CATZ_WORLD_ROLE_NAME)
@@ -153,8 +168,9 @@ class RssCommands(commands.Cog):
 
             for entry in new_entries:
                 embed_or_message = await self.generate_embed_from_entry(entry)
-                if isinstance(embed_or_message, discord.Embed):
-                    await channel.send(content=f"{role.mention}", embed=embed_or_message)
+                if isinstance(embed_or_message, list):
+                    for embed in embed_or_message:
+                        await channel.send(content=f"{role.mention}", embed=embed)
                 else:
                     await channel.send(f"{role.mention}\n{embed_or_message}")
 
